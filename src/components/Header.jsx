@@ -17,7 +17,9 @@ export default function Header({
   setIsAdminView,
   onAdminLogout,
   onLogoClick,
-  storeSettings
+  storeSettings,
+  currentUser,
+  onOpenAccount
 }) {
   const [internalSearchOpen, setInternalSearchOpen] = useState(false);
   const searchOpen = isSearchOpen !== undefined ? isSearchOpen : internalSearchOpen;
@@ -124,15 +126,20 @@ export default function Header({
               )}
             </button>
 
-            {/* زر الملف الشخصي */}
+            {/* زر الملف الشخصي وحساب العميل */}
             <button
               type="button"
-              onClick={() => setIsAdminView(true)}
-              className="p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 flex items-center justify-center shadow-xs"
-              title={isAdminLoggedIn ? "لوحة الإدارة" : "الملف الشخصي"}
+              onClick={onOpenAccount || (() => setIsAdminView(true))}
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 flex items-center gap-1.5 shadow-xs"
+              title={currentUser ? `حسابي (${currentUser.name})` : (isAdminLoggedIn ? "لوحة الإدارة" : "تسجيل الدخول / حسابي")}
               aria-label="الملف الشخصي"
             >
               <User className="w-5 h-5 text-white" />
+              {currentUser && (
+                <span className="hidden sm:inline text-xs font-bold max-w-[80px] truncate text-white">
+                  {currentUser.name.split(' ')[0]}
+                </span>
+              )}
             </button>
 
             {/* زر البحث */}

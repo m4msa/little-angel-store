@@ -14,6 +14,7 @@ import ProductQuickView from './components/ProductQuickView';
 import StoriesModal from './components/StoriesModal';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
+import AccountView from './components/AccountView';
 import AdminLoginPage from './components/AdminLoginPage';
 import AdminPanel from './components/AdminPanel';
 import Testimonials from './components/Testimonials';
@@ -164,6 +165,69 @@ export default function App() {
     }
   }, [storeSettings]);
 
+  // Default Seed Users (Admin & Sample Customer)
+  const defaultUsers = [
+    {
+      id: 'USR-ADMIN',
+      name: 'مدير المتجر',
+      email: 'msaawadi2016@gmail.com',
+      phone: '0550000000',
+      city: 'الرياض',
+      address: 'حي النرجس، شارع عثمان بن عفان',
+      password: '12345678',
+      role: 'admin',
+      createdAt: '2026-01-01'
+    },
+    {
+      id: 'USR-101',
+      name: 'سارة عبدالله',
+      email: 'sarah@gmail.com',
+      phone: '0551234567',
+      city: 'الرياض',
+      address: 'حي الياسمين، شارع أنس بن مالك، فيلا 14',
+      password: '123',
+      role: 'customer',
+      createdAt: '2026-02-15'
+    }
+  ];
+
+  const [usersList, setUsersList] = useState(() => {
+    const saved = localStorage.getItem('angel_users');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return defaultUsers;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('angel_users', JSON.stringify(usersList));
+  }, [usersList]);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('angel_current_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('angel_current_user', JSON.stringify(currentUser));
+      if (currentUser.role === 'admin') {
+        setIsAdminLoggedIn(true);
+        sessionStorage.setItem('angel_admin_logged', 'true');
+      }
+    } else {
+      localStorage.removeItem('angel_current_user');
+    }
+  }, [currentUser]);
+
   // Admin authentication state
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     return sessionStorage.getItem('angel_admin_logged') === 'true';
@@ -171,7 +235,7 @@ export default function App() {
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedCategoryForView, setSelectedCategoryForView] = useState(null);
-  const [currentTab, setCurrentTab] = useState('home'); // 'home' | 'categories'
+  const [currentTab, setCurrentTab] = useState(() => (window.location.hash.toLowerCase() === '#account' ? 'account' : 'home')); // 'home' | 'categories' | 'account'
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSideDrawerOpen, setIsSideDrawerOpen] = useState(false);
@@ -292,6 +356,13 @@ export default function App() {
       if (state.tab === 'help') {
         setSelectedProduct(null);
         setCurrentTab('help');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return;
+      }
+
+      if (state.tab === 'account') {
+        setSelectedProduct(null);
+        setCurrentTab('account');
         window.scrollTo({ top: 0, behavior: 'instant' });
         return;
       }
@@ -574,6 +645,123 @@ export default function App() {
     showToast('تم تسجيل الخروج وقفل لوحة التحكم بأمان');
   };
 
+  // Customer Account handlers (Login, Register, Profile, Logout)
+  const handleUserLogin = (identifier, password) => {
+    const cleanId = (identifier || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
+
+    // 1. Check if admin credentials
+    const adminEmails = [
+      'msaawadi2016@gmail.com',
+      'admin@littleangel.com',
+      'littleangel@gmail.com',
+      'almalakalsaghir@gmail.com'
+    ];
+    const isAdminEmail = adminEmails.includes(cleanId) || cleanId.includes('msaawadi') || cleanId.includes('الملاك') || cleanId.includes('admin');
+    const isAdminPass = cleanPass === '12345678' || cleanPass === '123';
+
+    if (isAdminEmail && isAdminPass) {
+      const adminUser = usersList.find(u => u.role === 'admin') || {
+        id: 'USR-ADMIN',
+        name: 'مدير المتجر',
+        email: 'msaawadi2016@gmail.com',
+        phone: '0550000000',
+        city: 'الرياض',
+        address: 'حي النرجس، شارع عثمان بن عفان',
+        role: 'admin'
+      };
+      setCurrentUser(adminUser);
+      setIsAdminLoggedIn(true);
+      sessionStorage.setItem('angel_admin_logged', 'true');
+      showToast('أهلاً بك يا مدير المتجر! تم تسجيل الدخول بنجاح');
+      return { success: true, role: 'admin' };
+    }
+
+    // 2. Check in usersList by email or phone
+    const cleanInputPhone = cleanId.replace(/[^0-9]/g, '');
+    const foundUser = usersList.find(u => {
+      const uEmail = (u.email || '').toLowerCase();
+      const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
+      const matchEmailOrPhone = (uEmail && uEmail === cleanId) || (cleanInputPhone && uPhone && uPhone.includes(cleanInputPhone));
+      return matchEmailOrPhone && u.password === cleanPass;
+    });
+
+    if (foundUser) {
+      setCurrentUser(foundUser);
+      if (foundUser.role === 'admin') {
+        setIsAdminLoggedIn(true);
+        sessionStorage.setItem('angel_admin_logged', 'true');
+      }
+      showToast(`مرحباً بعودتك يا ${foundUser.name}! تم تسجيل الدخول`);
+      return { success: true, role: foundUser.role };
+    }
+
+    return { success: false, message: 'بيانات الدخول غير صحيحة، يرجى التأكد من الجوال/البريد وكلمة المرور' };
+  };
+
+  const handleUserRegister = (data) => {
+    const cleanEmail = (data.email || '').trim().toLowerCase();
+    const cleanPhone = (data.phone || '').replace(/[^0-9]/g, '');
+
+    const existing = usersList.find(u => {
+      const uEmail = (u.email || '').toLowerCase();
+      const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
+      return (cleanEmail && uEmail === cleanEmail) || (cleanPhone && uPhone === cleanPhone);
+    });
+
+    if (existing) {
+      return { success: false, message: 'رقم الجوال أو البريد مسجل مسبقاً، يمكنك تسجيل الدخول مباشرة' };
+    }
+
+    const newUser = {
+      id: 'USR-' + Date.now(),
+      name: data.name.trim(),
+      phone: data.phone.trim(),
+      email: cleanEmail,
+      city: data.city,
+      address: data.address.trim(),
+      deliveryNotes: (data.deliveryNotes || '').trim(),
+      password: data.password.trim(),
+      role: 'customer',
+      createdAt: new Date().toLocaleDateString('ar-SA')
+    };
+
+    setUsersList(prev => [...prev, newUser]);
+    setCurrentUser(newUser);
+    showToast(`أهلاً بك يا ${newUser.name}! تم إنشاء حسابك وحفظ موقعك بنجاح`);
+    return { success: true };
+  };
+
+  const handleUpdateProfile = (updatedData) => {
+    if (!currentUser) return;
+    const updated = {
+      ...currentUser,
+      name: updatedData.name.trim(),
+      phone: updatedData.phone.trim(),
+      email: (updatedData.email || '').trim(),
+      city: updatedData.city,
+      address: updatedData.address.trim(),
+      deliveryNotes: (updatedData.deliveryNotes || '').trim()
+    };
+    setCurrentUser(updated);
+    setUsersList(prev => prev.map(u => u.id === currentUser.id ? updated : u));
+    showToast('تم حفظ وتحديث بيانات حسابك وموقع التوصيل بنجاح');
+  };
+
+  const handleUserLogout = () => {
+    setCurrentUser(null);
+    setIsAdminLoggedIn(false);
+    sessionStorage.removeItem('angel_admin_logged');
+    showToast('تم تسجيل الخروج بنجاح');
+  };
+
+  const openAccountView = () => {
+    setSelectedProduct(null);
+    setCurrentTab('account');
+    window.history.pushState({ tab: 'account' }, '', '#account');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   // Cart operations
   const handleAddToCart = (product) => {
     const qty = product.quantity || 1;
@@ -769,6 +957,10 @@ export default function App() {
         <AdminLoginPage
           onLoginSuccess={handleAdminLoginSuccess}
           onReturnToStore={() => navigateTo('store')}
+          onGoToCustomerLogin={() => {
+            navigateTo('store');
+            openAccountView();
+          }}
         />
       );
     }
@@ -831,6 +1023,8 @@ export default function App() {
         onAdminLogout={handleAdminLogout}
         onLogoClick={navigateHome}
         storeSettings={storeSettings}
+        currentUser={currentUser}
+        onOpenAccount={openAccountView}
       />
 
       {/* Slide-over Side Drawer Menu */}
@@ -853,6 +1047,8 @@ export default function App() {
         }}
         wishlistCount={wishlist.length}
         cartCount={cartTotalCount}
+        currentUser={currentUser}
+        onOpenAccount={openAccountView}
       />
 
       <main className={`flex-1 space-y-8 sm:space-y-12 pb-20 sm:pb-24 md:pb-12 md:pl-28 lg:pl-32 xl:pl-0 transition-all duration-300 ${
@@ -920,6 +1116,23 @@ export default function App() {
         ) : currentTab === 'help' ? (
           <HelpView
             onReturnHome={navigateHome}
+          />
+        ) : currentTab === 'account' ? (
+          <AccountView
+            currentUser={currentUser}
+            onLogin={handleUserLogin}
+            onRegister={handleUserRegister}
+            onUpdateProfile={handleUpdateProfile}
+            onLogout={handleUserLogout}
+            onNavigateHome={navigateHome}
+            orders={orders}
+            wishlist={wishlist}
+            products={products}
+            onOpenProduct={handleOpenProduct}
+            onAddToCart={handleAddToCart}
+            onGoToAdmin={() => navigateTo('admin')}
+            isAdminLoggedIn={isAdminLoggedIn}
+            storeSettings={storeSettings}
           />
         ) : (
           <>
@@ -1173,6 +1386,7 @@ export default function App() {
         appliedCoupon={appliedCoupon}
         onCompleteOrder={handleCompleteOrder}
         storeSettings={storeSettings}
+        currentUser={currentUser}
       />
 
       {/* Clean Footer */}

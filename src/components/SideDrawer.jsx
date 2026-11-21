@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ChevronLeft, Heart, ShoppingBag, Phone, Mail } from 'lucide-react';
+import { X, ChevronLeft, Heart, ShoppingBag, Phone, Mail, User } from 'lucide-react';
 
 export default function SideDrawer({
   isOpen,
@@ -10,7 +10,9 @@ export default function SideDrawer({
   onOpenWishlist,
   onOpenCart,
   wishlistCount,
-  cartCount
+  cartCount,
+  currentUser,
+  onOpenAccount
 }) {
   if (!isOpen) return null;
 
@@ -41,6 +43,30 @@ export default function SideDrawer({
           {/* Drawer Menu Items (100% Matching Tefly Frhaty Layout) */}
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 text-sm">
             
+            {/* 0. حسابي وتسجيل الدخول */}
+            <button
+              onClick={() => {
+                if (onOpenAccount) onOpenAccount();
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-5 py-3.5 bg-pink-50/60 hover:bg-pink-100/60 text-slate-900 font-bold transition-colors text-right"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#DF7E93] text-white flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="block text-xs font-black text-slate-900">
+                    {currentUser ? currentUser.name : 'حسابي / تسجيل الدخول'}
+                  </span>
+                  <span className="block text-[10px] text-slate-500 font-normal">
+                    {currentUser ? 'موقع التوصيل وسجل مشترياتي' : 'حفظ بياناتك وعنوانك وسجل طلباتك'}
+                  </span>
+                </div>
+              </div>
+              <ChevronLeft className="w-4 h-4 text-slate-400" />
+            </button>
+
             {/* 1. تخفيضات (Highlighted in Rose/Coral text just like Tefly) */}
             <button
               onClick={() => {

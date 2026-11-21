@@ -8,19 +8,32 @@ export default function CheckoutModal({
   discount, 
   appliedCoupon, 
   onCompleteOrder,
-  storeSettings
+  storeSettings,
+  currentUser
 }) {
   if (!isOpen) return null;
 
   const [step, setStep] = useState('form'); // 'form' | 'success'
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    city: 'الرياض',
-    address: '',
+    name: currentUser?.name || '',
+    phone: currentUser?.phone || '',
+    city: currentUser?.city || 'الرياض',
+    address: currentUser?.address || '',
     paymentMethod: 'mada', // 'mada' | 'apple-pay' | 'visa' | 'cod'
   });
   const [completedOrder, setCompletedOrder] = useState(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        name: currentUser.name || prev.name,
+        phone: currentUser.phone || prev.phone,
+        city: currentUser.city || prev.city,
+        address: currentUser.address || prev.address
+      }));
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -46,7 +59,11 @@ export default function CheckoutModal({
     const order = {
       id: orderNumber,
       date: new Date().toLocaleDateString('ar-SA'),
-      customer: formData,
+      customerId: currentUser?.id || 'guest',
+      customer: {
+        ...formData,
+        email: currentUser?.email || ''
+      },
       items: cartItems,
       subtotal,
       discountAmount,
@@ -124,6 +141,13 @@ export default function CheckoutModal({
                 </div>
               ))}
             </div>
+
+            {currentUser && (
+              <div className="bg-pink-50/80 border border-pink-200 rounded-2xl p-2.5 px-3 flex items-center gap-2 text-xs text-slate-800 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>أهلاً {currentUser.name}! تم تعبئة بيانات التوصيل تلقائياً من حسابك.</span>
+              </div>
+            )}
 
             {/* Customer Information */}
             <div className="space-y-3">

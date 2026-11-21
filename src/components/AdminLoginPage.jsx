@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Mail, KeyRound, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 
-export default function AdminLoginPage({ onLoginSuccess, onReturnToStore }) {
+export default function AdminLoginPage({ onLoginSuccess, onReturnToStore, onGoToCustomerLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -131,6 +131,18 @@ export default function AdminLoginPage({ onLoginSuccess, onReturnToStore }) {
           <p>• اليوزر: <span className="font-mono text-slate-900 font-bold" dir="ltr">msaawadi2016@gmail.com</span></p>
           <p>• كلمة السر: <span className="font-mono text-slate-900 font-bold" dir="ltr">12345678</span></p>
         </div>
+
+        {onGoToCustomerLogin && (
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={onGoToCustomerLogin}
+              className="text-xs font-bold text-[#DF7E93] hover:underline"
+            >
+              لست مديراً؟ تسجيل الدخول كعميل لحفظ عنواني وسجل مشترياتي
+            </button>
+          </div>
+        )}
 
       </div>
 
