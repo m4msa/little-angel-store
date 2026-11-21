@@ -29,13 +29,31 @@ export default function SideDrawer({
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-xs sm:max-w-sm bg-white shadow-2xl flex flex-col justify-between">
           
-          {/* Header matching Tefly: "القائمة الرئيسية" with close button on left */}
+          {/* Header with Profile Icon on top and close button */}
           <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-white">
-            <h3 className="font-black text-slate-900 text-base">القائمة الرئيسية</h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onOpenAccount) onOpenAccount();
+                  onClose();
+                }}
+                className="flex items-center gap-2 py-1.5 px-3 rounded-2xl bg-pink-50 hover:bg-pink-100 text-[#DF7E93] border border-pink-200 transition-all active:scale-95 cursor-pointer shadow-2xs group"
+                title={currentUser ? `الملف الشخصي (${currentUser.name})` : 'تسجيل الدخول / حسابي'}
+                aria-label="الملف الشخصي"
+              >
+                <div className="w-6 h-6 rounded-full bg-[#DF7E93] text-white flex items-center justify-center shadow-xs">
+                  <User className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-xs font-black text-slate-800 group-hover:text-[#DF7E93] max-w-[110px] truncate">
+                  {currentUser ? currentUser.name.split(' ')[0] : 'حسابي'}
+                </span>
+              </button>
+            </div>
             
             <button
               onClick={onClose}
-              className="p-1.5 text-rose-500 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors"
+              className="p-1.5 text-rose-500 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
               aria-label="إغلاق القائمة"
             >
               <X className="w-6 h-6 stroke-[2.5]" />

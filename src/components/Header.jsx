@@ -104,11 +104,11 @@ export default function Header({
               )}
             </button>
 
-            {/* زر السلة (يظهر على شاشات الكمبيوتر والتابلت مع العداد) */}
+            {/* زر السلة (يظهر دائماً على الجوال وسطح المكتب مع عداد السلة) */}
             <button
               type="button"
               onClick={onOpenCart}
-              className="hidden md:flex relative p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 items-center justify-center shadow-xs"
+              className="flex relative p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 items-center justify-center shadow-xs cursor-pointer"
               title="سلة المشتريات"
               aria-label="سلة المشتريات"
             >
@@ -120,11 +120,11 @@ export default function Header({
               )}
             </button>
 
-            {/* زر الملف الشخصي وحساب العميل */}
+            {/* زر الملف الشخصي وحساب العميل (يظهر على سطح المكتب، وموجود في أعلى القائمة المنسدلة للجوال) */}
             <button
               type="button"
               onClick={onOpenAccount || (() => setIsAdminView(true))}
-              className="p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 flex items-center gap-1.5 shadow-xs"
+              className="hidden md:flex p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 items-center gap-1.5 shadow-xs cursor-pointer"
               title={currentUser ? `حسابي (${currentUser.name})` : (isAdminLoggedIn ? "لوحة الإدارة" : "تسجيل الدخول / حسابي")}
               aria-label="الملف الشخصي"
             >

@@ -19,7 +19,6 @@ import AdminLoginPage from './components/AdminLoginPage';
 import AdminPanel from './components/AdminPanel';
 import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
-import MobileBottomNav from './components/MobileBottomNav';
 import QuickNavSubHeader from './components/QuickNavSubHeader';
 import { initialProducts, initialCategories } from './data/mockProducts';
 import { Sparkles, CheckCircle2, Heart, MessageCircle, ArrowLeft, Search, X } from 'lucide-react';
@@ -1054,7 +1053,7 @@ export default function App() {
         onOpenHelp={openHelpView}
       />
 
-      <main className={`w-full flex-1 space-y-8 sm:space-y-12 pb-20 sm:pb-24 md:pb-12 transition-all duration-300 ${
+      <main className={`w-full flex-1 space-y-8 sm:space-y-12 pb-10 sm:pb-12 transition-all duration-300 ${
         isSearchOpen ? 'pt-[150px] sm:pt-[172px]' : 'pt-[94px] sm:pt-[110px]'
       }`}>
         {currentTab === 'product' && selectedProduct ? (
@@ -1337,18 +1336,6 @@ export default function App() {
       </>
     )}
   </main>
-
-  {/* Sticky Bottom Navigation for Mobile Phones (matching native e-commerce apps) */}
-  <MobileBottomNav
-    activeTab={currentTab === 'product' ? previousTab : currentTab}
-    onNavigateHome={navigateHome}
-    onOpenCategories={openAllCategories}
-    onOpenCart={openCartView}
-    onOpenWishlist={openWishlistView}
-    onOpenHelp={openHelpView}
-    cartCount={cartTotalCount}
-    wishlistCount={wishlist.length}
-  />
 
       {/* Stories Modal */}
       <StoriesModal
