@@ -1,0 +1,10 @@
+{
+  "name": "little-angel-store",
+  "compatibility_date": "2024-09-23",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "workers_dev": true,
+  "preview_urls": true
+}
