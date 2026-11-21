@@ -20,6 +20,7 @@ import AdminPanel from './components/AdminPanel';
 import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import QuickNavSubHeader from './components/QuickNavSubHeader';
+import SplashTransition from './components/SplashTransition';
 import { initialProducts, initialCategories } from './data/mockProducts';
 import { Sparkles, CheckCircle2, Heart, MessageCircle, ArrowLeft, Search, X } from 'lucide-react';
 
@@ -247,6 +248,26 @@ export default function App() {
   const [previousTab, setPreviousTab] = useState('home');
   const [previousCategory, setPreviousCategory] = useState(null);
 
+  // Splash & fast-transition logo screen (matching Tefly Frhaty)
+  const [isSplashLoading, setIsSplashLoading] = useState(true);
+  const splashTimeoutRef = useRef(null);
+
+  const triggerSplash = (duration = 450) => {
+    if (splashTimeoutRef.current) clearTimeout(splashTimeoutRef.current);
+    setIsSplashLoading(true);
+    splashTimeoutRef.current = setTimeout(() => {
+      setIsSplashLoading(false);
+    }, duration);
+  };
+
+  useEffect(() => {
+    // Initial site opening splash
+    const timer = setTimeout(() => {
+      setIsSplashLoading(false);
+    }, 850);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Exact scroll positions map to prevent any jarring jumps or scrolling down upon return
   const scrollPositionsRef = useRef({
     home: 0,
@@ -305,6 +326,7 @@ export default function App() {
 
       // 2. Step-by-step navigation history
       const state = e.state;
+      triggerSplash(320);
       if (!state || state.tab === 'home' || !state.tab) {
         setCurrentTab('home');
         setSelectedProduct(null);
@@ -372,6 +394,7 @@ export default function App() {
   }, [products, isCheckoutOpen, isCartOpen, isStoriesOpen, isSideDrawerOpen]);
 
   const navigateHome = () => {
+    triggerSplash(380);
     scrollPositionsRef.current.home = 0;
     setCurrentTab('home');
     setSelectedProduct(null);
@@ -386,6 +409,7 @@ export default function App() {
   };
 
   const openAllCategories = () => {
+    triggerSplash(380);
     setCurrentTab('categories');
     setSelectedCategoryForView(null);
     setSelectedProduct(null);
@@ -394,6 +418,7 @@ export default function App() {
   };
 
   const openCartView = () => {
+    triggerSplash(350);
     setSelectedProduct(null);
     setCurrentTab('cart');
     window.history.pushState({ tab: 'cart' }, '', '#cart');
@@ -401,6 +426,7 @@ export default function App() {
   };
 
   const openWishlistView = () => {
+    triggerSplash(350);
     setSelectedProduct(null);
     setCurrentTab('wishlist');
     window.history.pushState({ tab: 'wishlist' }, '', '#wishlist');
@@ -408,6 +434,7 @@ export default function App() {
   };
 
   const openHelpView = () => {
+    triggerSplash(350);
     setSelectedProduct(null);
     setCurrentTab('help');
     window.history.pushState({ tab: 'help' }, '', '#help');
@@ -464,6 +491,7 @@ export default function App() {
   };
 
   const handleOpenProduct = (prod, fromCategoryId = null) => {
+    triggerSplash(420);
     const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
     if (currentTab === 'home') {
       scrollPositionsRef.current.home = currentScroll;
@@ -489,6 +517,7 @@ export default function App() {
   };
 
   const handleBackFromProduct = () => {
+    triggerSplash(350);
     if (window.history.state && window.history.state.tab === 'product') {
       window.history.back();
     } else {
@@ -756,6 +785,7 @@ export default function App() {
   };
 
   const openAccountView = () => {
+    triggerSplash(380);
     setSelectedProduct(null);
     setCurrentTab('account');
     window.history.pushState({ tab: 'account' }, '', '#account');
@@ -873,6 +903,7 @@ export default function App() {
   };
 
   const handleSelectCategory = (catId) => {
+    triggerSplash(380);
     setSelectedProduct(null);
     if (!catId || catId === 'all') {
       setSelectedCategoryForView(null);
@@ -991,6 +1022,13 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FDF1F4] text-slate-800 relative w-full overflow-x-hidden selection:bg-brand-500 selection:text-white">
       
+      {/* Tefly Frhaty Style Splash Screen / Transition Screen with Store Logo */}
+      <SplashTransition
+        isVisible={isSplashLoading}
+        logoUrl={storeSettings?.logoUrl || '/logo.png'}
+        storeName={storeSettings?.storeName || 'الملاك الصغير'}
+      />
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 left-6 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 border border-slate-800 animate-bounce">
