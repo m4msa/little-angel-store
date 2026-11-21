@@ -64,7 +64,7 @@ export default function App() {
 
   // Load initial data from localStorage
   const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('angel_products_v6');
+    const saved = localStorage.getItem('angel_products_v7');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -605,6 +605,7 @@ export default function App() {
 
   // Sync with LocalStorage
   useEffect(() => {
+    localStorage.setItem('angel_products_v7', JSON.stringify(products));
     localStorage.setItem('angel_products_v6', JSON.stringify(products));
     localStorage.setItem('angel_products', JSON.stringify(products));
   }, [products]);
@@ -1049,6 +1050,8 @@ export default function App() {
         cartCount={cartTotalCount}
         currentUser={currentUser}
         onOpenAccount={openAccountView}
+        onNavigateHome={navigateHome}
+        onOpenHelp={openHelpView}
       />
 
       <main className={`flex-1 space-y-8 sm:space-y-12 pb-20 sm:pb-24 md:pb-12 md:pl-28 lg:pl-32 xl:pl-0 transition-all duration-300 ${

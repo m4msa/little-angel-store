@@ -275,7 +275,7 @@ export default function ProductSectionCarousel({
           {products.map((prod) => (
             <div
               key={prod.id}
-              className="carousel-item w-[155px] xs:w-[170px] sm:w-[180px] md:w-[185px] lg:w-[195px] xl:w-[205px] shrink-0 flex flex-col"
+              className="carousel-item w-[150px] xs:w-[160px] sm:w-[172px] md:w-[180px] lg:w-[188px] xl:w-[192px] shrink-0 flex flex-col"
             >
               <ProductCard
                 product={prod}

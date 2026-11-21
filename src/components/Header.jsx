@@ -47,15 +47,27 @@ export default function Header({
         {/* Main Navbar Row (3-Column balanced layout) */}
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
           
-          {/* 1. جهة اليمين (RTL Start): اسم الموقع فقط باللون الأبيض "الملاك الصغير" */}
-          <div 
-            onClick={onLogoClick || (() => setIsAdminView(false))}
-            className="flex items-center cursor-pointer select-none py-1 shrink-0 flex-1 justify-start"
-            title={`الرئيسية - ${storeSettings?.storeName || 'الملاك الصغير'}`}
-          >
-            <span className="font-black text-white text-base sm:text-2xl tracking-tight drop-shadow-sm hover:opacity-95 transition-opacity">
-              {storeSettings?.storeName || 'الملاك الصغير'}
-            </span>
+          {/* 1. جهة اليمين (RTL Start): زر القائمة (3 خطوط) بيمين اسم الموقع + اسم الموقع */}
+          <div className="flex items-center gap-2 sm:gap-3.5 shrink-0 flex-1 justify-start">
+            <button
+              type="button"
+              onClick={onOpenMenu}
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 flex items-center justify-center shadow-xs cursor-pointer group"
+              title="القائمة وجميع الأقسام"
+              aria-label="القائمة وجميع الأقسام"
+            >
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:scale-110 transition-transform" />
+            </button>
+
+            <div 
+              onClick={onLogoClick || (() => setIsAdminView(false))}
+              className="flex items-center cursor-pointer select-none py-1"
+              title={`الرئيسية - ${storeSettings?.storeName || 'الملاك الصغير'}`}
+            >
+              <span className="font-black text-white text-base sm:text-2xl tracking-tight drop-shadow-sm hover:opacity-95 transition-opacity">
+                {storeSettings?.storeName || 'الملاك الصغير'}
+              </span>
+            </div>
           </div>
 
           {/* 2. المنتصف: الشعار الرسمي المعتمد للمتجر في المنتصف تماماً */}
@@ -75,24 +87,6 @@ export default function Header({
 
           {/* 3. جهة اليسار (RTL End): أزرار التحكم والقائمة */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 flex-1 justify-end">
-            
-            {/* Desktop Navigation Links (الرئيسية، الأقسام) */}
-            <nav className="hidden lg:flex items-center gap-1 ml-2">
-              <button
-                type="button"
-                onClick={onLogoClick || (() => setIsAdminView(false))}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/90 hover:text-white hover:bg-white/20 transition-all"
-              >
-                الرئيسية
-              </button>
-              <button
-                type="button"
-                onClick={onOpenMenu}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/90 hover:text-white hover:bg-white/20 transition-all"
-              >
-                الأقسام
-              </button>
-            </nav>
 
             {/* زر المفضلة (يظهر على شاشات الكمبيوتر والتابلت مع العداد) */}
             <button
