@@ -1054,7 +1054,7 @@ export default function App() {
         onOpenHelp={openHelpView}
       />
 
-      <main className={`flex-1 space-y-8 sm:space-y-12 pb-20 sm:pb-24 md:pb-12 md:pl-28 lg:pl-32 xl:pl-0 transition-all duration-300 ${
+      <main className={`w-full flex-1 space-y-8 sm:space-y-12 pb-20 sm:pb-24 md:pb-12 transition-all duration-300 ${
         isSearchOpen ? 'pt-[150px] sm:pt-[172px]' : 'pt-[94px] sm:pt-[110px]'
       }`}>
         {currentTab === 'product' && selectedProduct ? (

@@ -67,7 +67,7 @@ export default function HeroCarousel({ onExploreClick }) {
 
   return (
     <div className="relative w-full overflow-hidden bg-gradient-to-b from-pink-50/40 via-white to-slate-50 pt-2 pb-4 select-none">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
         
         {/* Slide Frame with Soft Curves and Pure Drag/Swipe (No Arrows) */}
         <div 

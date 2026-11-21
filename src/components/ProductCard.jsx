@@ -89,7 +89,7 @@ export default function ProductCard({
         {/* Desktop Hover Quick-View Pill */}
         <div className="hidden sm:block absolute inset-x-3 bottom-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
           <div className="bg-white/95 backdrop-blur-sm text-slate-700 text-xs font-bold py-1.5 rounded-xl shadow-sm flex items-center justify-center gap-1 border border-slate-100">
-            <Eye className="w-3.5 h-3.5 text-[#0B7D52]" />
+            <Eye className="w-3.5 h-3.5 text-[#DF7E93]" />
             <span>معاينة وتكبير التفاصيل</span>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function ProductCard({
         <div className="min-h-[2.85rem] sm:min-h-[3.25rem] flex items-center justify-center w-full px-0.5">
           <h3 
             onClick={() => onOpenQuickView(product)}
-            className={`font-bold text-slate-800 hover:text-[#0B7D52] transition-colors text-center cursor-pointer break-words w-full ${getTitleStyle(product.name)}`}
+            className={`font-bold text-slate-800 hover:text-[#DF7E93] transition-colors text-center cursor-pointer break-words w-full ${getTitleStyle(product.name)}`}
             title={product.name}
           >
             {product.name}
@@ -133,12 +133,12 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* 3. Action Button: Iconic Emerald Green matching Tefly Frhaty (#0B7D52) */}
+        {/* 3. Action Button: Signature Luxury Rose/Pink (#DF7E93) */}
         {hasOptions ? (
           <button
             type="button"
             onClick={() => onOpenQuickView(product)}
-            className="w-full py-2 sm:py-2.5 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-xs bg-[#0B7D52] hover:bg-[#096B45] text-white shadow-emerald-900/10 hover:shadow-md cursor-pointer"
+            className="w-full py-2 sm:py-2.5 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-xs bg-[#DF7E93] hover:bg-[#D46B82] text-white shadow-pink-200/50 hover:shadow-md cursor-pointer"
             title="تحديد الخيارات والمقاسات"
           >
             <ShoppingBag className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -150,14 +150,14 @@ export default function ProductCard({
             onClick={() => onAddToCart(product)}
             className={`w-full py-2 sm:py-2.5 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${
               isInCart
-                ? 'bg-emerald-50 text-[#0B7D52] border border-[#0B7D52]/40 font-black'
-                : 'bg-[#0B7D52] hover:bg-[#096B45] text-white shadow-emerald-900/10 hover:shadow-md'
+                ? 'bg-pink-50 text-[#DF7E93] border border-[#DF7E93]/40 font-black'
+                : 'bg-[#DF7E93] hover:bg-[#D46B82] text-white shadow-pink-200/50 hover:shadow-md'
             }`}
             title="إضافة مباشرة إلى السلة"
           >
             {isInCart ? (
               <>
-                <Check className="w-4 h-4 text-[#0B7D52] stroke-[2.5]" />
+                <Check className="w-4 h-4 text-[#DF7E93] stroke-[2.5]" />
                 <span>تمت الإضافة للسلة</span>
               </>
             ) : (

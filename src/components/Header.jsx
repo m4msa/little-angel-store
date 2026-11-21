@@ -42,7 +42,7 @@ export default function Header({
           : undefined
       }}
     >
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
         
         {/* Main Navbar Row (3-Column balanced layout) */}
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2">

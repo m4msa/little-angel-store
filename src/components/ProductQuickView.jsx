@@ -700,7 +700,7 @@ export default function ProductQuickView({
                     className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 shadow-md ${
                       added
                         ? 'bg-emerald-600 text-white shadow-emerald-200'
-                        : 'bg-[#0B7D52] hover:bg-[#096B45] text-white shadow-emerald-900/10'
+                        : 'bg-[#DF7E93] hover:bg-[#d46b82] text-white shadow-pink-200'
                     }`}
                   >
                     {added ? (
