@@ -16,7 +16,8 @@ export default function Header({
   isAdminView,
   setIsAdminView,
   onAdminLogout,
-  onLogoClick
+  onLogoClick,
+  storeSettings
 }) {
   const [internalSearchOpen, setInternalSearchOpen] = useState(false);
   const searchOpen = isSearchOpen !== undefined ? isSearchOpen : internalSearchOpen;
@@ -31,7 +32,14 @@ export default function Header({
   };
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 bg-gradient-to-r from-[#DF7E93] via-[#E88E9F] to-[#DF7E93] text-white backdrop-blur-md border-b border-pink-300/50 shadow-md transition-all w-full">
+    <header 
+      className="fixed top-0 inset-x-0 z-50 bg-gradient-to-r from-[#DF7E93] via-[#E88E9F] to-[#DF7E93] text-white backdrop-blur-md border-b border-pink-300/50 shadow-md transition-all w-full"
+      style={{
+        background: storeSettings?.primaryColor && storeSettings?.secondaryColor
+          ? `linear-gradient(to right, ${storeSettings.primaryColor}, ${storeSettings.secondaryColor}, ${storeSettings.primaryColor})`
+          : undefined
+      }}
+    >
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
         {/* Main Navbar Row (3-Column balanced layout) */}
@@ -41,10 +49,10 @@ export default function Header({
           <div 
             onClick={onLogoClick || (() => setIsAdminView(false))}
             className="flex items-center cursor-pointer select-none py-1 shrink-0 flex-1 justify-start"
-            title="الرئيسية - الملاك الصغير"
+            title={`الرئيسية - ${storeSettings?.storeName || 'الملاك الصغير'}`}
           >
             <span className="font-black text-white text-base sm:text-2xl tracking-tight drop-shadow-sm hover:opacity-95 transition-opacity">
-              الملاك الصغير
+              {storeSettings?.storeName || 'الملاك الصغير'}
             </span>
           </div>
 
@@ -52,11 +60,11 @@ export default function Header({
           <div 
             onClick={onLogoClick || (() => setIsAdminView(false))}
             className="flex items-center justify-center cursor-pointer select-none py-1 group shrink-0"
-            title="الملاك الصغير"
+            title={storeSettings?.storeName || 'الملاك الصغير'}
           >
             <img 
-              src="/logo.png" 
-              alt="الملاك الصغير" 
+              src={storeSettings?.logoUrl || '/logo.png'} 
+              alt={storeSettings?.storeName || 'الملاك الصغير'} 
               width="170"
               height="80"
               className="h-14 sm:h-18 md:h-20 w-auto max-w-[130px] sm:max-w-[170px] object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-105" 
@@ -178,7 +186,7 @@ export default function Header({
       <div className="bg-black/10 text-white text-[11px] sm:text-xs py-1.5 px-3 text-center font-medium flex items-center justify-center gap-2 border-t border-white/15">
         <Sparkles className="w-3.5 h-3.5 text-yellow-200 shrink-0" />
         <span className="truncate">
-          شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود <strong className="bg-white/25 px-1.5 py-0.5 rounded font-mono font-black mx-1 text-white">FIRST10</strong> لخصم 10%
+          {storeSettings?.announcementText || 'شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود FIRST10 لخصم 10%'}
         </span>
       </div>
     </header>

@@ -36,9 +36,13 @@ export default function ProductDetailView({
   categories = [],
   onNavigateCategory,
   onReturnHome,
-  onGoBack
+  onGoBack,
+  storeSettings
 }) {
   if (!product) return null;
+
+  const storeName = storeSettings?.storeName || 'الملاك الصغير';
+  const whatsappNumber = storeSettings?.whatsappNumber || '967775302137';
 
   const rawImages = product.images && product.images.length > 0 ? product.images : [product.image].filter(Boolean);
 
@@ -804,7 +808,7 @@ export default function ProductDetailView({
                 </button>
 
                 <a
-                  href={`https://wa.me/967775302137?text=${encodeURIComponent(`مرحباً متجر الملاك الصغير، أود الاستفسار عن منتج: ${product.name} (السعر: ${product.price} ر.س)`)}`}
+                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`مرحباً متجر ${storeName}، أود الاستفسار عن منتج: ${product.name} (السعر: ${product.price} ر.س)`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"

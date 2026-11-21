@@ -114,6 +114,56 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Global Store Settings (Colors, Names, Socials, Shipping & Coupons)
+  const defaultStoreSettings = {
+    storeName: 'الملاك الصغير',
+    storeSubtitle: 'Little Angel Store',
+    storeDescription: 'متجر سعودي رائد يوفر أرقى مستلزمات المواليد والأمهات، متخصص في أطقم الاستقبال الملكية المطرزة حسب الطلب، والمهادات والسرائر الآمنة لنمنح صغيرك بداية حياة مفعمة بالحب والأناقة.',
+    logoUrl: '/logo.png',
+    primaryColor: '#DF7E93',
+    secondaryColor: '#E88E9F',
+    announcementText: 'شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود FIRST10 لخصم 10%',
+    couponCode: 'FIRST10',
+    couponDiscountPercent: 10,
+    freeShippingThreshold: 299,
+    standardShippingFee: 25,
+    whatsappNumber: '967775302137',
+    displayPhoneNumber: '+967 775 302 137',
+    instagramUrl: 'https://instagram.com',
+    tiktokUrl: 'https://tiktok.com',
+    snapchatUrl: 'https://snapchat.com'
+  };
+
+  const [storeSettings, setStoreSettings] = useState(() => {
+    const saved = localStorage.getItem('angel_store_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...defaultStoreSettings, ...parsed };
+      } catch (e) {}
+    }
+    return defaultStoreSettings;
+  });
+
+  const handleUpdateSettings = (newSettings) => {
+    const merged = { ...storeSettings, ...newSettings };
+    setStoreSettings(merged);
+    localStorage.setItem('angel_store_settings', JSON.stringify(merged));
+  };
+
+  useEffect(() => {
+    localStorage.setItem('angel_store_settings', JSON.stringify(storeSettings));
+    if (storeSettings.storeName) {
+      document.title = `${storeSettings.storeName} | ${storeSettings.storeSubtitle || 'متجر المواليد الفاخر'}`;
+    }
+    if (storeSettings.primaryColor) {
+      document.documentElement.style.setProperty('--brand-primary', storeSettings.primaryColor);
+    }
+    if (storeSettings.secondaryColor) {
+      document.documentElement.style.setProperty('--brand-secondary', storeSettings.secondaryColor);
+    }
+  }, [storeSettings]);
+
   // Admin authentication state
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     return sessionStorage.getItem('angel_admin_logged') === 'true';
@@ -738,6 +788,8 @@ export default function App() {
           onUpdateOrderStatus={handleUpdateOrderStatus}
           onLogout={handleAdminLogout}
           onReturnToStore={() => navigateTo('store')}
+          storeSettings={storeSettings}
+          onUpdateSettings={handleUpdateSettings}
         />
       </div>
     );
@@ -778,6 +830,7 @@ export default function App() {
         setIsAdminView={() => navigateTo('admin')}
         onAdminLogout={handleAdminLogout}
         onLogoClick={navigateHome}
+        storeSettings={storeSettings}
       />
 
       {/* Slide-over Side Drawer Menu */}
@@ -824,6 +877,7 @@ export default function App() {
             }}
             onReturnHome={navigateHome}
             onGoBack={handleBackFromProduct}
+            storeSettings={storeSettings}
           />
         ) : currentTab === 'categories' ? (
           <CategoriesView
@@ -852,6 +906,7 @@ export default function App() {
             onApplyCoupon={handleApplyCoupon}
             onRemoveCoupon={handleRemoveCoupon}
             onReturnHome={navigateHome}
+            storeSettings={storeSettings}
           />
         ) : currentTab === 'wishlist' ? (
           <WishlistView
@@ -1106,6 +1161,7 @@ export default function App() {
         appliedCoupon={appliedCoupon}
         onApplyCoupon={handleApplyCoupon}
         onRemoveCoupon={handleRemoveCoupon}
+        storeSettings={storeSettings}
       />
 
       {/* Checkout Modal */}
@@ -1116,10 +1172,11 @@ export default function App() {
         discount={discountPercent}
         appliedCoupon={appliedCoupon}
         onCompleteOrder={handleCompleteOrder}
+        storeSettings={storeSettings}
       />
 
       {/* Clean Footer */}
-      <Footer />
+      <Footer storeSettings={storeSettings} />
 
     </div>
   );

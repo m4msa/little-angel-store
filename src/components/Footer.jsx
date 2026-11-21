@@ -1,7 +1,14 @@
 import React from 'react';
 import { Phone, Mail, MapPin, Instagram, ShieldCheck, Heart } from 'lucide-react';
 
-export default function Footer() {
+export default function Footer({ storeSettings }) {
+  const storeName = storeSettings?.storeName || 'الملاك الصغير';
+  const logoUrl = storeSettings?.logoUrl || '/logo.png';
+  const description = storeSettings?.storeDescription || 'متجر سعودي رائد يوفر أرقى مستلزمات المواليد والأمهات، متخصص في أطقم الاستقبال الملكية المطرزة حسب الطلب، والمهادات والسرائر الآمنة لنمنح صغيرك بداية حياة مفعمة بالحب والأناقة.';
+  const displayPhone = storeSettings?.displayPhoneNumber || '+967 775 302 137';
+  const whatsappNum = storeSettings?.whatsappNumber || '967775302137';
+  const instagram = storeSettings?.instagramUrl || 'https://instagram.com';
+
   return (
     <footer className="bg-[#FCECEF]/90 text-slate-700 pt-14 pb-28 sm:pb-32 mt-16 border-t border-pink-200/80 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -13,8 +20,8 @@ export default function Footer() {
           <div className="space-y-4 md:col-span-1 text-right">
             <div className="flex items-center gap-2.5">
               <img 
-                src="/logo.png" 
-                alt="الملاك الصغير" 
+                src={logoUrl} 
+                alt={storeName} 
                 width="160"
                 height="64"
                 className="h-16 w-auto object-contain drop-shadow-2xs" 
@@ -22,7 +29,7 @@ export default function Footer() {
             </div>
 
             <p className="text-xs text-slate-700 leading-relaxed font-medium">
-              متجر سعودي رائد يوفر أرقى مستلزمات المواليد والأمهات، متخصص في أطقم الاستقبال الملكية المطرزة حسب الطلب، والمهادات والسرائر الآمنة لنمنح صغيرك بداية حياة مفعمة بالحب والأناقة.
+              {description}
             </p>
 
             {/* Saudi Business Center Trust Badge */}
@@ -50,8 +57,8 @@ export default function Footer() {
             <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-brand-700 shrink-0" />
-                <a href="https://wa.me/967775302137" target="_blank" rel="noreferrer" dir="ltr" className="hover:text-brand-700 transition-colors font-bold">
-                  +967 775 302 137
+                <a href={`https://wa.me/${whatsappNum}`} target="_blank" rel="noreferrer" dir="ltr" className="hover:text-brand-700 transition-colors font-bold">
+                  {displayPhone}
                 </a>
               </li>
               <li className="flex items-center gap-2">
@@ -71,7 +78,7 @@ export default function Footer() {
               <p className="text-[11px] font-bold text-slate-700 mb-2">تابعونا على وسائل التواصل:</p>
               <div className="flex items-center gap-2">
                 <a 
-                  href="https://wa.me/967775302137" 
+                  href={`https://wa.me/${whatsappNum}`} 
                   target="_blank" 
                   rel="noreferrer"
                   className="w-8 h-8 rounded-full bg-white border border-pink-200 hover:border-brand-500 flex items-center justify-center text-slate-700 hover:text-brand-700 transition-colors shadow-2xs"
@@ -86,9 +93,15 @@ export default function Footer() {
                 >
                   <Mail className="w-3.5 h-3.5" />
                 </a>
-                <span className="w-8 h-8 rounded-full bg-white border border-pink-200 hover:border-brand-500 flex items-center justify-center text-slate-700 hover:text-brand-700 transition-colors shadow-2xs cursor-pointer">
+                <a 
+                  href={instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-8 h-8 rounded-full bg-white border border-pink-200 hover:border-brand-500 flex items-center justify-center text-slate-700 hover:text-brand-700 transition-colors shadow-2xs cursor-pointer"
+                  title="إنستغرام"
+                >
                   <Instagram className="w-3.5 h-3.5" />
-                </span>
+                </a>
               </div>
             </div>
           </div>
@@ -136,7 +149,7 @@ export default function Footer() {
 
         {/* Bottom Bar matching Tefly & Mini Baby */}
         <div className="border-t border-pink-200/80 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-700 gap-3 font-medium">
-          <p>© 2026 جميع الحقوق محفوظة لمتجر الملاك الصغير في المملكة العربية السعودية.</p>
+          <p>© 2026 جميع الحقوق محفوظة لمتجر {storeName} في المملكة العربية السعودية.</p>
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-slate-600 font-semibold">صنع بكل إتقان وعناية لملاككِ الصغير</span>
           </div>

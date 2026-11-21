@@ -7,7 +7,8 @@ export default function CheckoutModal({
   cartItems, 
   discount, 
   appliedCoupon, 
-  onCompleteOrder 
+  onCompleteOrder,
+  storeSettings
 }) {
   if (!isOpen) return null;
 
@@ -29,9 +30,14 @@ export default function CheckoutModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 299;
+  const standardShippingFee = storeSettings?.standardShippingFee ?? 25;
+  const storeName = storeSettings?.storeName || 'الملاك الصغير';
+  const whatsappNumber = storeSettings?.whatsappNumber || '967775302137';
+
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const discountAmount = appliedCoupon ? Math.round((subtotal * discount) / 100) : 0;
-  const shippingCost = (subtotal - discountAmount) >= 299 ? 0 : 25;
+  const shippingCost = (subtotal - discountAmount) >= freeShippingThreshold ? 0 : standardShippingFee;
   const total = Math.max(0, subtotal - discountAmount + shippingCost);
 
   const handleSubmit = (e) => {
@@ -60,8 +66,8 @@ export default function CheckoutModal({
       `- ${it.name} (مقاس: ${it.selectedSize || 'قياسي'}، لون: ${it.selectedColor || 'وردي'}${it.customBabyName ? `، تطريز اسم: ${it.customBabyName}` : ''}) × ${it.quantity}`
     ).join('%0A');
 
-    const text = `مرحباً متجر الملاك الصغير%0Aأرغب بتأكيد طلبي رقم: *${completedOrder.id}*%0A%0A*المنتجات المشتراة:*%0A${itemsSummary}%0A%0A*بيانات العميل:*%0Aالاسم: ${completedOrder.customer.name}%0Aالجوال: ${completedOrder.customer.phone}%0Aالعنوان: ${completedOrder.customer.city} - ${completedOrder.customer.address}%0Aطريقة الدفع: ${completedOrder.customer.paymentMethod}%0Aالمبلغ الإجمالي: *${completedOrder.total} ر.س*%0A%0Aشكراً لكم!`;
-    return `https://wa.me/967775302137?text=${text}`;
+    const text = `مرحباً متجر ${storeName}%0Aأرغب بتأكيد طلبي رقم: *${completedOrder.id}*%0A%0A*المنتجات المشتراة:*%0A${itemsSummary}%0A%0A*بيانات العميل:*%0Aالاسم: ${completedOrder.customer.name}%0Aالجوال: ${completedOrder.customer.phone}%0Aالعنوان: ${completedOrder.customer.city} - ${completedOrder.customer.address}%0Aطريقة الدفع: ${completedOrder.customer.paymentMethod}%0Aالمبلغ الإجمالي: *${completedOrder.total} ر.س*%0A%0Aشكراً لكم!`;
+    return `https://wa.me/${whatsappNumber}?text=${text}`;
   };
 
   return (
@@ -92,7 +98,7 @@ export default function CheckoutModal({
               <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
                 <span>إتمام الطلب والدفع</span>
                 <span className="text-xs font-bold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-full">
-                  الملاك الصغير
+                  {storeName}
                 </span>
               </h3>
               <p className="text-xs text-slate-500 mt-1">

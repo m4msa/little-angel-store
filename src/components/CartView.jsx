@@ -11,24 +11,30 @@ export default function CartView({
   appliedCoupon = null,
   onApplyCoupon,
   onRemoveCoupon,
-  onReturnHome
+  onReturnHome,
+  storeSettings
 }) {
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
 
+  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 299;
+  const standardShippingFee = storeSettings?.standardShippingFee ?? 25;
+  const validCoupon = storeSettings?.couponCode || 'FIRST10';
+  const validDiscount = storeSettings?.couponDiscountPercent ?? 10;
+
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const freeShippingThreshold = 299;
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const freeShippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
-  const shippingCost = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 25;
+  const shippingCost = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : standardShippingFee;
   const discountAmount = appliedCoupon ? Math.round((subtotal * discount) / 100) : 0;
   const total = Math.max(0, subtotal - discountAmount + shippingCost);
 
   const handleCouponSubmit = (e) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
-    if (couponCode.trim().toUpperCase() === 'FIRST10' || couponCode.trim().toUpperCase() === 'ANGEL10') {
-      if (onApplyCoupon) onApplyCoupon(couponCode.trim().toUpperCase(), 10);
+    const inputUpper = couponCode.trim().toUpperCase();
+    if (inputUpper === validCoupon.toUpperCase() || inputUpper === 'ANGEL10') {
+      if (onApplyCoupon) onApplyCoupon(inputUpper, validDiscount);
       setCouponError('');
       setCouponCode('');
     } else {
