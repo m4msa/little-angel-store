@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://toll-morrison-edit-artist.trycloudflare.com/sitemap.xml
+

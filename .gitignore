@@ -1,0 +1,8 @@
+node_modules
+.vs
+dist
+.env
+.env.local
+cloudflared.exe
+*.log
+tunnel_url.txt
