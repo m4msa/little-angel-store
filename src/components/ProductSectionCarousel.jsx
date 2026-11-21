@@ -227,7 +227,7 @@ export default function ProductSectionCarousel({
       {image && (
         <div 
           onClick={() => onExploreCategory && categoryId && onExploreCategory(categoryId)}
-          className="relative w-full h-24 sm:h-32 md:h-36 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 bg-slate-50 cursor-pointer group"
+          className="relative w-full h-28 sm:h-40 md:h-52 lg:h-60 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 bg-slate-50 cursor-pointer group"
           title={`تصفحي كافة منتجات ${title}`}
         >
           <img
@@ -275,7 +275,7 @@ export default function ProductSectionCarousel({
           {products.map((prod) => (
             <div
               key={prod.id}
-              className="carousel-item w-[170px] xs:w-[195px] sm:w-[230px] md:w-[260px] shrink-0 flex flex-col"
+              className="carousel-item w-[155px] xs:w-[170px] sm:w-[180px] md:w-[185px] lg:w-[195px] xl:w-[205px] shrink-0 flex flex-col"
             >
               <ProductCard
                 product={prod}

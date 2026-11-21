@@ -14,31 +14,15 @@ export default function MobileBottomNav({
   return (
     <nav 
       aria-label="قائمة التنقل الرئيسية"
-      className="
-        fixed z-50 text-white backdrop-blur-md transition-all duration-300
-        /* Mobile: Bottom Navigation Bar */
-        bottom-0 inset-x-0 w-full py-2 px-3
-        bg-gradient-to-r from-[#DF7E93] via-[#E88E9F] to-[#DF7E93]
-        border-t border-pink-300/50 shadow-[0_-4px_25px_rgba(223,126,147,0.35)]
-
-        /* Desktop, Laptops & iPads: Sleek Vertical Floating Sidebar on the Left */
-        md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:inset-x-auto md:right-auto md:left-4 lg:left-6
-        md:w-auto md:py-4 md:px-2 md:rounded-3xl
-        md:bg-gradient-to-b md:from-[#DF7E93]/95 md:via-[#E88E9F]/95 md:to-[#DF7E93]/95
-        md:border md:border-white/40 md:shadow-[0_12px_45px_rgba(223,126,147,0.45)]
-      "
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 w-full py-2 px-3 bg-gradient-to-r from-[#DF7E93] via-[#E88E9F] to-[#DF7E93] text-white backdrop-blur-md border-t border-pink-300/50 shadow-[0_-4px_25px_rgba(223,126,147,0.35)] transition-all duration-300"
     >
-      <div className="
-        max-w-4xl mx-auto flex items-center justify-around
-        /* Desktop: Vertical Stack */
-        md:flex-col md:justify-center md:gap-3 md:w-auto
-      ">
+      <div className="max-w-4xl mx-auto flex items-center justify-around">
         
         {/* 1. الرئيسية */}
         <button
           type="button"
           onClick={onNavigateHome}
-          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 md:w-16 md:py-2.5 rounded-2xl transition-all duration-200 group ${
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 group ${
             activeTab === 'home' 
               ? 'bg-white text-[#DF7E93] font-black scale-105 shadow-sm' 
               : 'text-white hover:text-white hover:bg-white/20'
@@ -54,7 +38,7 @@ export default function MobileBottomNav({
         <button
           type="button"
           onClick={onOpenCategories}
-          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 md:w-16 md:py-2.5 rounded-2xl transition-all duration-200 group ${
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 group ${
             activeTab === 'categories' 
               ? 'bg-white text-[#DF7E93] font-black scale-105 shadow-sm' 
               : 'text-white hover:text-white hover:bg-white/20'
@@ -70,7 +54,7 @@ export default function MobileBottomNav({
         <button
           type="button"
           onClick={onOpenCart}
-          className={`relative flex flex-col items-center justify-center gap-1 px-3 py-1.5 md:w-16 md:py-2.5 rounded-2xl transition-all duration-200 group ${
+          className={`relative flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 group ${
             activeTab === 'cart' 
               ? 'bg-white text-[#DF7E93] font-black scale-105 shadow-sm' 
               : 'text-white hover:text-white hover:bg-white/20'
@@ -95,7 +79,7 @@ export default function MobileBottomNav({
         <button
           type="button"
           onClick={onOpenWishlist}
-          className={`relative flex flex-col items-center justify-center gap-1 px-3 py-1.5 md:w-16 md:py-2.5 rounded-2xl transition-all duration-200 group ${
+          className={`relative flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 group ${
             activeTab === 'wishlist' 
               ? 'bg-white text-[#DF7E93] font-black scale-105 shadow-sm' 
               : 'text-white hover:text-white hover:bg-white/20'
@@ -126,7 +110,7 @@ export default function MobileBottomNav({
         <button
           type="button"
           onClick={onOpenHelp}
-          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 md:w-16 md:py-2.5 rounded-2xl transition-all duration-200 group ${
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 group ${
             activeTab === 'help' 
               ? 'bg-white text-[#DF7E93] font-black scale-105 shadow-sm' 
               : 'text-white hover:text-white hover:bg-white/20'

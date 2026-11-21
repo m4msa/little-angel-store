@@ -63,11 +63,62 @@ export default function Header({
             />
           </div>
 
-          {/* 3. جهة اليسار (RTL End): زر الملف الشخصي وزر البحث فقط */}
+          {/* 3. جهة اليسار (RTL End): أزرار التحكم والقائمة */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 flex-1 justify-end">
             
+            {/* Desktop Navigation Links (الرئيسية، الأقسام) */}
+            <nav className="hidden lg:flex items-center gap-1 ml-2">
+              <button
+                type="button"
+                onClick={onLogoClick || (() => setIsAdminView(false))}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/90 hover:text-white hover:bg-white/20 transition-all"
+              >
+                الرئيسية
+              </button>
+              <button
+                type="button"
+                onClick={onOpenMenu}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-white/90 hover:text-white hover:bg-white/20 transition-all"
+              >
+                الأقسام
+              </button>
+            </nav>
+
+            {/* زر المفضلة (يظهر على شاشات الكمبيوتر والتابلت مع العداد) */}
+            <button
+              type="button"
+              onClick={onOpenWishlist}
+              className="hidden md:flex relative p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 items-center justify-center shadow-xs"
+              title="قائمة المفضلة"
+              aria-label="المفضلة"
+            >
+              <Heart className="w-5 h-5 text-white" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-white text-[#DF7E93] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+
+            {/* زر السلة (يظهر على شاشات الكمبيوتر والتابلت مع العداد) */}
+            <button
+              type="button"
+              onClick={onOpenCart}
+              className="hidden md:flex relative p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 items-center justify-center shadow-xs"
+              title="سلة المشتريات"
+              aria-label="سلة المشتريات"
+            >
+              <ShoppingBag className="w-5 h-5 text-white" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-white text-[#DF7E93] text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+
             {/* زر الملف الشخصي */}
             <button
+              type="button"
               onClick={() => setIsAdminView(true)}
               className="p-2 sm:p-2.5 rounded-2xl bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-xs transition-all active:scale-95 flex items-center justify-center shadow-xs"
               title={isAdminLoggedIn ? "لوحة الإدارة" : "الملف الشخصي"}
@@ -78,6 +129,7 @@ export default function Header({
 
             {/* زر البحث */}
             <button
+              type="button"
               onClick={handleToggleSearch}
               className={`p-2 sm:p-2.5 rounded-2xl border transition-all active:scale-95 flex items-center justify-center shadow-xs backdrop-blur-xs ${
                 searchOpen || searchTerm
