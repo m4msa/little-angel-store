@@ -13,6 +13,21 @@ export default function ProductCard({
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
     : 0;
 
+  // Adaptive font size & line clamp based on title length (يصغر الخط كلما طال الاسم لمنع الاقتطاع)
+  const getTitleStyle = (name = '') => {
+    const len = (name || '').trim().length;
+    if (len > 55) {
+      return 'text-[9.5px] xs:text-[10px] sm:text-[11px] leading-tight line-clamp-3';
+    }
+    if (len > 35) {
+      return 'text-[11px] xs:text-[11.5px] sm:text-xs leading-snug line-clamp-2';
+    }
+    if (len > 22) {
+      return 'text-[11.5px] xs:text-xs sm:text-[13px] leading-snug line-clamp-2';
+    }
+    return 'text-xs sm:text-sm leading-normal line-clamp-2';
+  };
+
   // Check if product requires options selection (custom name embroidery, sizes, or colors)
   const hasOptions = Boolean(
     product.hasCustomName === true ||
@@ -83,14 +98,16 @@ export default function ProductCard({
       {/* 2. Content & Pricing (Clean Centered Layout matching Mini Baby & Tefly) */}
       <div className="p-3 sm:p-4 text-center flex-1 flex flex-col justify-between space-y-2">
         
-        {/* Title */}
-        <h3 
-          onClick={() => onOpenQuickView(product)}
-          className="font-bold text-slate-800 hover:text-[#DF7E93] transition-colors line-clamp-2 text-xs sm:text-sm leading-relaxed cursor-pointer h-10 flex items-center justify-center"
-          title={product.name}
-        >
-          {product.name}
-        </h3>
+        {/* Title: Adaptive font size & flexible height to prevent top/bottom clipping */}
+        <div className="min-h-[2.85rem] sm:min-h-[3.25rem] flex items-center justify-center w-full px-0.5">
+          <h3 
+            onClick={() => onOpenQuickView(product)}
+            className={`font-bold text-slate-800 hover:text-[#DF7E93] transition-colors text-center cursor-pointer break-words w-full ${getTitleStyle(product.name)}`}
+            title={product.name}
+          >
+            {product.name}
+          </h3>
+        </div>
 
         {/* Pricing Block */}
         <div className="space-y-0.5">
