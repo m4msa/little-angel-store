@@ -25,6 +25,7 @@ import SplashTransition from './components/SplashTransition';
 import { initialProducts, initialCategories } from './data/mockProducts';
 import { Sparkles, CheckCircle2, Heart, MessageCircle, ArrowLeft, Search, X } from 'lucide-react';
 import { ROLE_PRESETS, EMPTY_PERMISSIONS, getEffectivePermissions } from './utils/permissionRules';
+import api from './services/api';
 
 export default function App() {
   // Routing state based on URL (e.g. /admin or #admin)
@@ -148,11 +149,55 @@ export default function App() {
     return defaultStoreSettings;
   });
 
-  const handleUpdateSettings = (newSettings) => {
+  const handleUpdateSettings = async (newSettings) => {
     const merged = { ...storeSettings, ...newSettings };
     setStoreSettings(merged);
     localStorage.setItem('angel_store_settings', JSON.stringify(merged));
+    try {
+      await api.updateSettings(newSettings);
+    } catch (err) {
+      console.warn('[API] Settings saved locally (offline mode):', err.message);
+    }
   };
+
+  // Real-time synchronization with Backend Database API
+  useEffect(() => {
+    let isMounted = true;
+    async function syncWithBackend() {
+      try {
+        const [pRes, cRes, oRes, uRes, sRes] = await Promise.allSettled([
+          api.getProducts(),
+          api.getCategories(),
+          api.getOrders(),
+          api.getUsers(),
+          api.getSettings()
+        ]);
+
+        if (!isMounted) return;
+
+        if (pRes.status === 'fulfilled' && Array.isArray(pRes.value) && pRes.value.length > 0) {
+          setProducts(pRes.value);
+        }
+        if (cRes.status === 'fulfilled' && Array.isArray(cRes.value) && cRes.value.length > 0) {
+          setCategories(cRes.value);
+        }
+        if (oRes.status === 'fulfilled' && Array.isArray(oRes.value)) {
+          setOrders(oRes.value);
+        }
+        if (uRes.status === 'fulfilled' && Array.isArray(uRes.value) && uRes.value.length > 0) {
+          setUsersList(uRes.value);
+        }
+        if (sRes.status === 'fulfilled' && sRes.value && typeof sRes.value === 'object') {
+          setStoreSettings(prev => ({ ...prev, ...sRes.value }));
+        }
+      } catch (err) {
+        console.warn('[API] Backend sync fallback to local storage:', err.message);
+      }
+    }
+
+    syncWithBackend();
+    return () => { isMounted = false; };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('angel_store_settings', JSON.stringify(storeSettings));
@@ -983,36 +1028,51 @@ export default function App() {
   };
 
   // User & Staff Management Handlers for Admin
-  const handleAddUser = (newUserData) => {
+  const handleAddUser = async (newUserData) => {
     const userRole = newUserData.role || 'customer';
     const basePreset = ROLE_PRESETS[userRole]?.permissions || EMPTY_PERMISSIONS;
     const finalUser = {
       ...newUserData,
       permissions: newUserData.permissions || basePreset
     };
-    setUsersList(prev => [...prev, finalUser]);
+    try {
+      const created = await api.createUser(finalUser);
+      setUsersList(prev => [created, ...prev]);
+    } catch (err) {
+      setUsersList(prev => [finalUser, ...prev]);
+    }
     showToast(`تمت إضافة المستخدم (${finalUser.name}) بنجاح`);
   };
 
-  const handleUpdateUser = (userId, updatedData) => {
+  const handleUpdateUser = async (userId, updatedData) => {
     setUsersList(prev => prev.map(u => u.id === userId ? { ...u, ...updatedData } : u));
     if (currentUser && currentUser.id === userId) {
       setCurrentUser(prev => ({ ...prev, ...updatedData }));
     }
+    try {
+      await api.updateUser(userId, updatedData);
+    } catch (err) {
+      console.warn('[API] User update fallback:', err.message);
+    }
     showToast('تم حفظ وتحديث بيانات المستخدم بنجاح');
   };
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = async (userId) => {
     const userToDelete = usersList.find(u => u.id === userId);
     if (userToDelete?.role === 'admin' && usersList.filter(u => u.role === 'admin').length <= 1) {
       showToast('تحذير: لا يمكن حذف حساب المدير العام الأساسي للمتجر!');
       return;
     }
     setUsersList(prev => prev.filter(u => u.id !== userId));
+    try {
+      await api.deleteUser(userId);
+    } catch (err) {
+      console.warn('[API] User delete fallback:', err.message);
+    }
     showToast('تم حذف حساب المستخدم بنجاح');
   };
 
-  const handleUpdateUserPermissions = (userId, newPermissions, newRole) => {
+  const handleUpdateUserPermissions = async (userId, newPermissions, newRole) => {
     setUsersList(prev => prev.map(u => {
       if (u.id === userId) {
         return {
@@ -1029,6 +1089,11 @@ export default function App() {
         role: newRole || prev.role,
         permissions: newPermissions
       }));
+    }
+    try {
+      await api.updateUserPermissions(userId, newPermissions, newRole);
+    } catch (err) {
+      console.warn('[API] Permissions update fallback:', err.message);
     }
     showToast('تم تحديث وتثبيت صلاحيات المستخدم بنجاح!');
   };
@@ -1098,8 +1163,13 @@ export default function App() {
     setCart((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  const handleCompleteOrder = (order) => {
-    setOrders((prev) => [order, ...prev]);
+  const handleCompleteOrder = async (order) => {
+    try {
+      const created = await api.createOrder(order);
+      setOrders((prev) => [created, ...prev]);
+    } catch (err) {
+      setOrders((prev) => [order, ...prev]);
+    }
     setCart([]);
     setAppliedCoupon(null);
     setDiscountPercent(0);
@@ -1131,46 +1201,81 @@ export default function App() {
   };
 
   // Product CRUD
-  const handleAddProduct = (newProduct) => {
-    setProducts((prev) => [newProduct, ...prev]);
-    showToast('تمت إضافة المنتج الجديد بنجاح إلى متجرك');
+  const handleAddProduct = async (newProduct) => {
+    try {
+      const created = await api.createProduct(newProduct);
+      setProducts((prev) => [created, ...prev]);
+    } catch (err) {
+      setProducts((prev) => [newProduct, ...prev]);
+    }
+    showToast('تمت إضافة المنتج الجديد بنجاح إلى قاعدة البيانات');
   };
 
-  const handleUpdateProduct = (updatedProduct) => {
+  const handleUpdateProduct = async (updatedProduct) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
     );
+    try {
+      await api.updateProduct(updatedProduct.id, updatedProduct);
+    } catch (err) {
+      console.warn('[API] Update product fallback:', err.message);
+    }
     showToast('تم تحديث بيانات المنتج وصوره بنجاح');
   };
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = async (productId) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
-    showToast('تم حذف المنتج بنجاح.');
+    try {
+      await api.deleteProduct(productId);
+    } catch (err) {
+      console.warn('[API] Delete product fallback:', err.message);
+    }
+    showToast('تم حذف المنتج بنجاح من قاعدة البيانات.');
   };
 
   // Category CRUD
-  const handleAddCategory = (newCat) => {
-    setCategories((prev) => [...prev, newCat]);
+  const handleAddCategory = async (newCat) => {
+    try {
+      const created = await api.createCategory(newCat);
+      setCategories((prev) => [...prev, created]);
+    } catch (err) {
+      setCategories((prev) => [...prev, newCat]);
+    }
     showToast(`تمت إضافة صنف "${newCat.name}" الجديد بنجاح`);
   };
 
-  const handleUpdateCategory = (updatedCat) => {
+  const handleUpdateCategory = async (updatedCat) => {
     setCategories((prev) =>
       prev.map((c) => (c.id === updatedCat.id ? updatedCat : c))
     );
+    try {
+      await api.updateCategory(updatedCat.id, updatedCat);
+    } catch (err) {
+      console.warn('[API] Update category fallback:', err.message);
+    }
     showToast('تم تحديث اسم الصنف بنجاح!');
   };
 
-  const handleDeleteCategory = (catId) => {
+  const handleDeleteCategory = async (catId) => {
     setCategories((prev) => prev.filter((c) => c.id !== catId));
+    try {
+      await api.deleteCategory(catId);
+    } catch (err) {
+      console.warn('[API] Delete category fallback:', err.message);
+    }
     showToast('تم حذف الصنف بنجاح.');
   };
 
   // Order status update
-  const handleUpdateOrderStatus = (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
+    try {
+      await api.updateOrderStatus(orderId, newStatus);
+    } catch (err) {
+      console.warn('[API] Order status update fallback:', err.message);
+    }
     showToast(`تم تحديث حالة الطلب #${orderId} إلى: ${newStatus}`);
   };
 

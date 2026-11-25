@@ -1,0 +1,2220 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)",
+      "category": "hospital-sets",
+      "price": 249,
+      "originalPrice": 320,
+      "rating": 5,
+      "reviewsCount": 84,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم استقبال فاخر للمستشفى والزيارات، مصنوع من قطن تركي نقي 100% فائق النعومة. يشمل: بربتوز مطرز باسم المولود، بطانية استقبال، مهاد لف، كوفية مطرزة، بيت رضاعة، قفازات، ومريلة أنيقة.",
+      "inStock": true,
+      "tags": [
+        "#أطقم_استقبال",
+        "#تفصيل_حسب_الطلب",
+        "#الأكثر_مبيعاً"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "أبيض قطني",
+        "وردي هادئ",
+        "أزرق سماوي"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "طقم استقبال لؤلؤي دانتيل ناعم مع تطريز الاسم بالخيط الذهبي",
+      "category": "hospital-sets",
+      "price": 279,
+      "originalPrice": 350,
+      "rating": 4.9,
+      "reviewsCount": 52,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "إطلالة أنيقة للمولود في أول أيامه، بحواف دانتيل فرنسي راقٍ وتطريز حريري يدوي يحمل اسم ملاكك الصغير.",
+      "inStock": true,
+      "tags": [
+        "#استقبال_ملكي",
+        "#دانتيل",
+        "#تطريز_ذهبي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "أبيض قطني",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "مدس استقبال مواليد شتوي دافئ مبطن فرو ناعم",
+      "category": "swaddles",
+      "price": 189,
+      "originalPrice": 240,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "يحفظ دفء الطفل في الخروج والمستشفى، مزود بسحاب جانبي آمن وبطانة فرو فائقة النعومة مع تطريز اسم المولود حسب الطلب.",
+      "inStock": true,
+      "tags": [
+        "#مدسات_مواليد",
+        "#تطريز_اسم",
+        "#شتوي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "وردي هادئ",
+        "أزرق سماوي",
+        "رمادي ناعم"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "مجموعة مهادات قطن موسلين مسامي نقي (3 قطع بألوان هادئة)",
+      "category": "swaddles",
+      "price": 119,
+      "originalPrice": 155,
+      "rating": 4.8,
+      "reviewsCount": 38,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "خامة شاش قطني نقي 100% قابلة للتنفس تمنع التعرق وتساعد على نوم عميق للطفل. متعددة الاستخدام كمهاد وغطاء لعربة الأطفال.",
+      "inStock": true,
+      "tags": [
+        "#مهادات_موسلين",
+        "#قطن_طبيعي",
+        "#مواليد"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (120×120 سم)"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "وردي هادئ",
+        "أخضر نعناعي"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "سلة موسى فاخرة مصنوعة يدوياً من خوص النخيل مع حامل هزاز خشبي",
+      "category": "moses-baskets",
+      "price": 360,
+      "originalPrice": 450,
+      "rating": 5,
+      "reviewsCount": 29,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "سلة نوم طبيعية منسوجة يدوياً بخوص النخيل النقي، مزودة بمرتبة تنفس طبية، بطانة قطنية مطرزة باسم المولود، وحامل خشب طبيعي هزاز مريح.",
+      "inStock": true,
+      "tags": [
+        "#سلال_موسى",
+        "#خوص_طبيعي",
+        "#حامل_هزاز"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "خشب طبيعي ناعم",
+        "أبيض قطني",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "سلة موسى مكسوة بالدانتيل مع مفرش استقبال قطني وناموسية حماية",
+      "category": "moses-baskets",
+      "price": 410,
+      "originalPrice": 490,
+      "rating": 4.9,
+      "reviewsCount": 22,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "تحفة استقبال ملكية مغطاة بحواف دانتيل فرنسي راقٍ، تمنح غرفة المولود فخامة لا تضاهى مع ناموسية قبة شفافة للحماية الكاملة.",
+      "inStock": true,
+      "tags": [
+        "#سلة_موسى_ملكية",
+        "#دانتيل",
+        "#استقبال_فاخر"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "وردي هادئ"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "سديري نجدي ملكي مطرز بالخيوط الذهبية للمواليد - أوف وايت",
+      "category": "heritage-clothes",
+      "price": 120,
+      "originalPrice": 160,
+      "rating": 5,
+      "reviewsCount": 64,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "أصالة التراث السعودي في قطعة فاخرة لملاكك الصغير. سديري نجدي مذهب بأزرار لؤلؤية وتطريز اسم الطفل بالحرير الذهبي لمناسبات الأعياد واليوم الوطني.",
+      "inStock": true,
+      "tags": [
+        "#سديري_نجدي",
+        "#ملابس_تراثية",
+        "#يوم_التأسيس"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر",
+        "1-2 سنة"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "سديري نجدي فاخر مع ثوب مواليد متناسق ومطرز بالاسم - أسود ملكي",
+      "category": "heritage-clothes",
+      "price": 155,
+      "originalPrice": 200,
+      "rating": 4.9,
+      "reviewsCount": 47,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم متكامل يجمع بين الثوب الأبيض الناعم والسديري الأسود الفاخر ذي النقوش التراثية الذهبية وتطريز اسم الأمير الصغير.",
+      "inStock": true,
+      "tags": [
+        "#سديري_أسود",
+        "#ثوب_مواليد",
+        "#تطريز_ذهبي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "أسود ملكي",
+        "كحلي فاخر"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "مفرش لعب قطني مبطن مع قوس ألعاب تطويرية معلقة وأصوات هادئة",
+      "category": "play-mats",
+      "price": 185,
+      "originalPrice": 230,
+      "rating": 4.9,
+      "reviewsCount": 36,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مساحة لعب آمنة ومريحة تحفز حواس الرضيع وحركته. مزود بحلقات تعليق لدمى حيوانات لطيفة مع وسادة استلقاء قطنية ومرآة آمنة مقاومة للكسر.",
+      "inStock": true,
+      "tags": [
+        "#مفارش_اللعب",
+        "#تطوير_الحواس",
+        "#ألعاب_رضع"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "قطر 95 سم"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "وردي هادئ",
+        "رمادي ناعم"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "حصيرة ألعاب أطفال ناعمة على شكل بتلات زهرة مع وسادة نوم",
+      "category": "play-mats",
+      "price": 140,
+      "originalPrice": 175,
+      "rating": 4.8,
+      "reviewsCount": 31,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "تصميم جمالي ناعم كالسحاب لغرف الأطفال، قابلة للغسيل في الغسالة وتوفر عزلاً دافئاً عن الأرضيات الباردة.",
+      "inStock": true,
+      "tags": [
+        "#حصيرة_لعب",
+        "#زهرة",
+        "#ديكور_نيرسري"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "قطر 100 سم"
+      ],
+      "availableColors": [
+        "وردي هادئ",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "بوكس هدية الملاك الصغير الملكي للإهداء مع تغليف فاخر",
+      "category": "baby-clothes",
+      "price": 299,
+      "originalPrice": 380,
+      "rating": 5,
+      "reviewsCount": 62,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "هدية راقية متكاملة للمواليد الجدد. يشمل: بربتوز مطرز بالاسم، مهاد ناعم، دمية أرنوب قطنية، حذاء مواليد مخمل، وكرت إهداء بعبارتك الخاصة داخل بوكس مذهب.",
+      "inStock": true,
+      "tags": [
+        "#هدايا_مواليد",
+        "#بوكس_فاخر",
+        "#جاهز_للإهداء"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "وردي هادئ",
+        "أزرق سماوي",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "روب استقبال نفاس أنيق للأم قطني مريح مع كوفية مطابقة للمولود",
+      "category": "mom-care",
+      "price": 195,
+      "originalPrice": 250,
+      "rating": 4.8,
+      "reviewsCount": 39,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم متناسق بين الأم والطفل. روب استقبال نسائي فاخر بفتحة رضاعة سهلة وتطريز اسم المولود على كوفية الطفل المتطابقة مجاناً.",
+      "inStock": true,
+      "tags": [
+        "#أرواب_نفاس",
+        "#طقم_الأم_والطفل",
+        "#دانتيل"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "S/M",
+        "L/XL",
+        "Free Size"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "وردي هادئ",
+        "أبيض قطني"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "سرير أطفال هزاز محمول قابل للطي مع ناموسية ومرتبة طبية",
+      "category": "strollers-cribs",
+      "price": 389,
+      "originalPrice": 470,
+      "rating": 4.9,
+      "reviewsCount": 35,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "سرير مواليد مريح بهيكل ألومنيوم متين ووضعية اهتزاز لطيفة للمساعدة على نوم هادئ. مزود بمرتبة تنفس طبية وناموسية كاملة للحماية، سهل الطي والتنقل به في السفر والزيارات.",
+      "inStock": true,
+      "tags": [
+        "#سرائر_أطفال",
+        "#سرير_هزاز",
+        "#سفر_وتنقل"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "قياسي (0-12 شهر)"
+      ],
+      "availableColors": [
+        "رمادي ناعم",
+        "بيج كريمي",
+        "أزرق سماوي"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "عربة أطفال خفيفة الوزن بتصميم مدمج تقبل دخول مقصورة الطائرة",
+      "category": "strollers-cribs",
+      "price": 460,
+      "originalPrice": 560,
+      "rating": 5,
+      "reviewsCount": 44,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طي سريع بيد واحدة بضغطة زر، تناسب مقصورة الطائرة وصندوق السيارة الصغير. تدعم انحناء كامل لحديثي الولادة مع نظام امتصاص صدمات رباعي.",
+      "inStock": true,
+      "tags": [
+        "#عربات_أطفال",
+        "#طي_بيد_واحدة",
+        "#سفر"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (من الولادة حتى 4 سنوات)"
+      ],
+      "availableColors": [
+        "كحلي فاخر",
+        "رمادي ناعم",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "أفارول مواليد شتوي قطن عضوي مع كوفية مطرزة باسم المولود",
+      "category": "baby-clothes",
+      "price": 125,
+      "originalPrice": 160,
+      "rating": 4.9,
+      "reviewsCount": 78,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "أفارول يومي فاخر من القطن العضوي الممشط، لطيف تماماً على بشرة الرضيع مع طقطق أمامي مريح للتبديل وتطريز الاسم على الصدر والقبعة.",
+      "inStock": true,
+      "tags": [
+        "#أفارول_مواليد",
+        "#تطريز_اسم",
+        "#قطن_عضوي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر",
+        "1-2 سنة"
+      ],
+      "availableColors": [
+        "وردي هادئ",
+        "أزرق سماوي",
+        "بيج كريمي",
+        "أبيض قطني"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "طاولة الغيار والاستحمام للأطفال متكاملة قابلة للطي",
+      "category": "care-feeding",
+      "price": 389,
+      "originalPrice": 460,
+      "rating": 5,
+      "reviewsCount": 48,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "حوض استحمام مدمج مع وسادة غيار مبطنة ومقاومة للماء، عجلات دوارة مع فرامل أمان، سهلة الطي والتخزين في المساحات الصغيرة.",
+      "inStock": true,
+      "tags": [
+        "#طاولة_غيار",
+        "#استحمام_الطفل",
+        "#وصل_حديثاً"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس قياسي مدمج"
+      ],
+      "availableColors": [
+        "أبيض ناصع",
+        "رمادي ناعم"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "طقم استقبال فيكتوري فاخر مطرز بالحرير والدانتيل الإيطالي (8 قطع)",
+      "category": "hospital-sets",
+      "price": 320,
+      "originalPrice": 395,
+      "rating": 5,
+      "reviewsCount": 42,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم استقبال ملكي متكامل بتفاصيل دانتيل إيطالي رقيق وتطريز اسم المولود بخيوط حريرية فاخرة.",
+      "inStock": true,
+      "tags": [
+        "#أطقم_استقبال",
+        "#دانتيل_إيطالي",
+        "#ملكي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "بيج كريمي",
+        "وردي هادئ"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "بكج استقبال الملاك الذهبي مع بطانية وكوفية وحذاء مواليد مطرز",
+      "category": "hospital-sets",
+      "price": 260,
+      "originalPrice": 330,
+      "rating": 4.9,
+      "reviewsCount": 31,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "إطلالة المستشفى الأولى بلمسات ذهبية أنيقة وقماش قطني معالج فائق النعومة لراحة صغيرك.",
+      "inStock": true,
+      "tags": [
+        "#استقبال_ذهبي",
+        "#بكج_مواليد",
+        "#تطريز_اسم"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "أبيض ناصع",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "طقم تفصيل خاص - مفرش استقبال وبطانية مع تطريز التاج واسم المولود",
+      "category": "custom-embroidery",
+      "price": 290,
+      "originalPrice": 370,
+      "rating": 5,
+      "reviewsCount": 57,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "تفصيل حصري باسم ملاكك الصغير مع زخارف التاج الملكي بالخيوط اللامعة وبطانة قطنية دافئة.",
+      "inStock": true,
+      "tags": [
+        "#تفصيل_حسب_الطلب",
+        "#تطريز_التاج",
+        "#حسب_الطلب"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس مفرش 110×110 سم"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "سماوي ملكي",
+        "وردي بودري"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "بطانية استقبال ناعمة دبل فيس مطرزة بالاسم وتاريخ الولادة",
+      "category": "custom-embroidery",
+      "price": 175,
+      "originalPrice": 220,
+      "rating": 4.9,
+      "reviewsCount": 39,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "بطانية مزدوجة الوجه من المخمل والفرو الناعم مع تطريز مخصص لاسم المولود وتاريخ ولادته كذكرى خالدة.",
+      "inStock": true,
+      "tags": [
+        "#بطانية_مواليد",
+        "#تطريز_اسم",
+        "#هدية_مولود"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (100×90 سم)"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "رمادي فاتح",
+        "وردي هادئ"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "مهاد تركي فاخر قطن 100% مع ربطة فيونكة وتطريز الاسم",
+      "category": "swaddles",
+      "price": 135,
+      "originalPrice": 175,
+      "rating": 4.9,
+      "reviewsCount": 45,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مهاد قطني آمن يمنح طفلك إحساساً بالاحتضان والسكينة لمنع فزعات النوم ليلاً.",
+      "inStock": true,
+      "tags": [
+        "#مهادات_مواليد",
+        "#قطن_تركي",
+        "#نوم_هادئ"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "أبيض ناصع",
+        "بيج كريمي",
+        "أزرق باستيل"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "مدس مواليد شتوي صوف محبوك دافئ مبطن بالقطن العضوي",
+      "category": "swaddles",
+      "price": 210,
+      "originalPrice": 265,
+      "rating": 5,
+      "reviewsCount": 33,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مدس شتوي أنيق يحفظ حرارة الطفل في الطلعات والمستشفى مزود بسحابات جانبية لسهولة الاستخدام.",
+      "inStock": true,
+      "tags": [
+        "#مدس_شتوي",
+        "#صوف_طبيعي",
+        "#مواليد_شتاء"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "بيج جمالي",
+        "رمادي ناعم",
+        "وردي مغبر"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "سلة موسى بوهيمية من الخوص الطبيعي مع ناموسية مظلة ملكية",
+      "category": "moses-baskets",
+      "price": 430,
+      "originalPrice": 520,
+      "rating": 5,
+      "reviewsCount": 38,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "تصميم بوهيمي فاخر بحواف مكرمية يدوية وقاعدة خشبية صلبة ومرتبة إسفنجية مضادة للحساسية.",
+      "inStock": true,
+      "tags": [
+        "#سلة_موسى",
+        "#بوهيمي",
+        "#مهد_أطفال"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "خوص طبيعي",
+        "أبيض كريمي"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "مهد موسى خوص كلاسيكي محمول مع مقابض جلدية مبطنة",
+      "category": "moses-baskets",
+      "price": 340,
+      "originalPrice": 410,
+      "rating": 4.8,
+      "reviewsCount": 26,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "سهلة الحمل والنقل داخل المنزل لتكون عيناكِ على طفلك دائماً في كل زاوية.",
+      "inStock": true,
+      "tags": [
+        "#سلة_موسى_محمولة",
+        "#مقابض_جلد",
+        "#خوص"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (0-5 أشهر)"
+      ],
+      "availableColors": [
+        "خوص طبيعي فاتح"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "دقلة مواليد ملكية مطرزة بالزري الذهبي مع كوفية متناسقة",
+      "category": "heritage-clothes",
+      "price": 165,
+      "originalPrice": 215,
+      "rating": 5,
+      "reviewsCount": 53,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "دقلة خليجية مذهبة للمناسبات والأعياد وحفلات الاستقبال تمنح طفلك طلة أميرية لا تُنسى.",
+      "inStock": true,
+      "tags": [
+        "#دقلة_مواليد",
+        "#زري_ذهبي",
+        "#أزياء_تراثية"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "أوف وايت مع ذهبي",
+        "أسود مع ذهبي"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "سديري حجازي تراثي فاخر للأولاد مع ثوب مواليد أبيض نقي",
+      "category": "heritage-clothes",
+      "price": 145,
+      "originalPrice": 190,
+      "rating": 4.9,
+      "reviewsCount": 41,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم متكامل بتطريز تقليدي راقٍ وتطريز اسم الأمير الصغير على ياقة السديري.",
+      "inStock": true,
+      "tags": [
+        "#سديري_حجازي",
+        "#ثوب_مواليد",
+        "#تطريز_اسم"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "كحلي مطرز",
+        "رصاصي ملكي"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "سرير أطفال خشبي أبيض متعدد الارتفاعات يتحول إلى جلسة أطفال",
+      "category": "strollers-cribs",
+      "price": 520,
+      "originalPrice": 650,
+      "rating": 5,
+      "reviewsCount": 39,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "سرير خشبي متين من خشب الزان الطبيعي، 3 مستويات للارتفاع ينمو مع طفلك حتى عمر 4 سنوات.",
+      "inStock": true,
+      "tags": [
+        "#سرير_خشبي",
+        "#سرير_أطفال",
+        "#غرفة_مواليد"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "120×60 سم (0-4 سنوات)"
+      ],
+      "availableColors": [
+        "أبيض ناصع",
+        "خشب طبيعي"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "عربة مواليد فاخرة 2 في 1 بنظام سرير نوم ومقعد جلوس قابل للعكس",
+      "category": "strollers-cribs",
+      "price": 580,
+      "originalPrice": 720,
+      "rating": 4.9,
+      "reviewsCount": 47,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "عربة سفر وتنقل فخمة بعجلات هوائية مانعة للاهتزاز ومظلة كاملة للحماية من الشمس والرياح.",
+      "inStock": true,
+      "tags": [
+        "#عربة_أطفال_فاخرة",
+        "#سفر_وتنقل",
+        "#مواليد"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس شامل (0-3 سنوات)"
+      ],
+      "availableColors": [
+        "أسود مع إطار ذهبي",
+        "رمادي ناعم"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "مفرش ألعاب واستكشاف تفاعلي مبطن مع بيانو أقدام موسيقي",
+      "category": "play-mats",
+      "price": 195,
+      "originalPrice": 245,
+      "rating": 4.9,
+      "reviewsCount": 34,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "يحفز حركة القدمين واليدين لدى الرضيع، مزود بألحان مهدئة وألعاب معلقة قابلة للفصل.",
+      "inStock": true,
+      "tags": [
+        "#مفرش_بيانو",
+        "#ألعاب_تفاعلية",
+        "#تطور_الطفل"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "قطر 90 سم"
+      ],
+      "availableColors": [
+        "ألوان الباستيل الهادئة"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "حصيرة أرضية سميكة قابلة للطي للزحف واللعب آمنة ومضادة للانزلاق",
+      "category": "play-mats",
+      "price": 160,
+      "originalPrice": 200,
+      "rating": 5,
+      "reviewsCount": 42,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "إسفنج طبي عالي الكثافة خالي من المواد الكيميائية يمتص الصدمات عند تعلم الجلوس والزحف.",
+      "inStock": true,
+      "tags": [
+        "#حصيرة_زحف",
+        "#أمان_الطفل",
+        "#مفرش_سميك"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "180×120 سم (سماكة 1.5 سم)"
+      ],
+      "availableColors": [
+        "بيج وأبيض هادئ"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "طقم أفرول مواليد فاخر 5 قطع قطن عضوي مع روب استحمام وحذاء",
+      "category": "baby-clothes",
+      "price": 195,
+      "originalPrice": 250,
+      "rating": 5,
+      "reviewsCount": 68,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "video",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "تشكيلة أساسية متكاملة لحديثي الولادة من القطن الخالص فائق النعومة، مثالي للإهداء ولوازم أول شهر.",
+      "inStock": true,
+      "tags": [
+        "#ملابس_مواليد",
+        "#أفرول_فاخر",
+        "#قطن_عضوي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "وردي سحابي",
+        "سماوي ناعم",
+        "بيج قطني"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "فستان استقبال مواليد أميري مع طوق شعر لؤلؤي وحذاء متناسق",
+      "category": "baby-clothes",
+      "price": 180,
+      "originalPrice": 230,
+      "rating": 4.9,
+      "reviewsCount": 51,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "إطلالة الأميرات الصغيرات بأقمشة التول والدانتيل الناعم المبطن بقطن طبيعي لحماية بشرتها الرقيقة.",
+      "inStock": true,
+      "tags": [
+        "#فستان_مواليد",
+        "#أميرات",
+        "#استقبال_بنات"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "وردي بودري",
+        "أبيض لؤلؤي"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "سلة موسى كروشيه قطني مع قاعدة خشبية متينة ومرتبة طبية",
+      "category": "moses-baskets",
+      "price": 345,
+      "originalPrice": 420,
+      "rating": 4.9,
+      "reviewsCount": 38,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "سلة كروشيه يدوية مصنوعة من خيوط قطنية فائقة النعومة مع قاعدة خشبية طبيعية توفر أقصى درجات الثبات والراحة لنوم طفلك.",
+      "inStock": true,
+      "tags": [
+        "#سلال_موسى",
+        "#كروشيه",
+        "#مرتبة_طبية"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "بيج دافئ",
+        "رمادي فاتح"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "مهد موسى خوص عضوي محمول مزود بمقابض كتان مع بطانة ناعمة",
+      "category": "moses-baskets",
+      "price": 320,
+      "originalPrice": 390,
+      "rating": 5,
+      "reviewsCount": 42,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مهد موسى كلاسيكي خفيف الوزن مع مقابض متينة من الكتان الطبيعي المبطن لسهولة الحمل في المنزل وخارجه.",
+      "inStock": true,
+      "tags": [
+        "#مهد_موسى",
+        "#خوص_عضوي",
+        "#مواليد"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "خوص طبيعي",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "سلة موسى ريفية أنيقة بقبة دانتيل قابلة للفك والغسيل",
+      "category": "moses-baskets",
+      "price": 390,
+      "originalPrice": 480,
+      "rating": 4.8,
+      "reviewsCount": 27,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "تصميم ريفي ساحر يضفي لمسة دافئة على غرفة المواليد، مزودة بقبة دانتيل قابلة للفك لحجب الإضاءة المباشرة أثناء القيلولة.",
+      "inStock": true,
+      "tags": [
+        "#سلة_ريفية",
+        "#دانتيل",
+        "#سلال_موسى"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "بيج طبيعي",
+        "أبيض سكري"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "سلة موسى ملكية مطرزة بالاسم مع مفرش وسادة دانتيل فخم",
+      "category": "moses-baskets",
+      "price": 435,
+      "originalPrice": 520,
+      "rating": 5,
+      "reviewsCount": 65,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "إصدار ملكي خاص مطرز بالاسم على البطانة الداخلية والوسادة، مزودة بحواف من الدانتيل الإيطالي الفاخر.",
+      "inStock": true,
+      "tags": [
+        "#سلة_ملكية",
+        "#تطريز_اسم",
+        "#استقبال"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "أوف وايت ملكي",
+        "وردي بودري"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "كرسي سيارة مواليد مريح متعدد الوضعيات مع حزام أمان خماسي",
+      "category": "strollers-cribs",
+      "price": 399,
+      "originalPrice": 490,
+      "rating": 4.9,
+      "reviewsCount": 54,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "حماية فائقة في كل رحلة للطفل من عمر الولادة، مزود بمساند رأس مبطنة بنظام امتصاص الصدمات وحزام أمان خماسي النقاط معتمد.",
+      "inStock": true,
+      "tags": [
+        "#كرسي_سيارة",
+        "#أمان_الطفل",
+        "#سفر"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "0-13 كجم (مواليد حتى سنة)"
+      ],
+      "availableColors": [
+        "رمادي داكن",
+        "أسود ملكي",
+        "بيج أنيق"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "سرير أطفال خشبي أبيض متعدد الارتفاعات يتحول لسرير طفل",
+      "category": "strollers-cribs",
+      "price": 679,
+      "originalPrice": 799,
+      "rating": 5,
+      "reviewsCount": 88,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "سرير خشبي متين مطلي بطلاء آمن خالٍ من الرصاص، يحتوي على 3 مستويات لارتفاع المرتبة وجانب متحرك للملاصقة بسرير الأم.",
+      "inStock": true,
+      "tags": [
+        "#سرير_خشبي",
+        "#سرير_أطفال",
+        "#غرف_نوم"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "120×60 سم"
+      ],
+      "availableColors": [
+        "أبيض ناصع",
+        "خشب طبيعي"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "كرسي سيارة متنقل مع مظلة حماية ومقبض مريح",
+      "category": "strollers-cribs",
+      "price": 249,
+      "originalPrice": 310,
+      "rating": 4.8,
+      "reviewsCount": 36,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "كرسي تنقل خفيف الوزن وسهل التثبيت، مناسب للخروج اليومي والمستشفى والزيارات، مزود بمظلة واقية من الشمس.",
+      "inStock": true,
+      "tags": [
+        "#كرسي_متنقل",
+        "#تنقل_وسفر",
+        "#مستلزمات_مواليد"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (0-10 كجم)"
+      ],
+      "availableColors": [
+        "رمادي كلاسيك",
+        "كحلي ناعم"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "عربة أطفال اتجاهين قابلة للطي بيد واحدة ومظلة واسعة",
+      "category": "strollers-cribs",
+      "price": 540,
+      "originalPrice": 650,
+      "rating": 4.9,
+      "reviewsCount": 47,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "عربة فاخرة تتيح توجيه المقعد باتجاه الأم أو باتجاه العالم الخارجي، عجلات ممتصة للاهتزاز وسلة تسوق سفلية واسعة.",
+      "inStock": true,
+      "tags": [
+        "#عربات_أطفال",
+        "#عربة_اتجاهين",
+        "#سفر"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "من الولادة حتى 4 سنوات"
+      ],
+      "availableColors": [
+        "أسود وذهبي",
+        "بيج أنيق",
+        "رمادي عصري"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "مفرش لعب وسرير بيبي محمول مبطن بحواف دائرية واقية",
+      "category": "play-mats",
+      "price": 165,
+      "originalPrice": 210,
+      "rating": 4.9,
+      "reviewsCount": 39,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "عش نوم ولعب مبطن ناعم يشعر الطفل بالأمان والحماية، مزود بحواف دائرية قابلة للشد والتوسيع حسب نمو الصغير.",
+      "inStock": true,
+      "tags": [
+        "#مفرش_لعب",
+        "#عش_مواليد",
+        "#أمان"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "90×55 سم"
+      ],
+      "availableColors": [
+        "وردي سحابي",
+        "سماوي هادئ",
+        "بيج قطني"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "حصيرة لعب إسفنجية قابلة للطي برسومات حيوانات الغابة اللطيفة",
+      "category": "play-mats",
+      "price": 135,
+      "originalPrice": 170,
+      "rating": 4.8,
+      "reviewsCount": 28,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "حصيرة إسفنجية سميكة عازلة للبرودة ومضادة للانزلاق ومقاومة للماء وسهلة التنظيف بمسحة واحدة.",
+      "inStock": true,
+      "tags": [
+        "#حصيرة_إسفنجية",
+        "#ألعاب_أطفال",
+        "#عازلة"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "180×150 سم"
+      ],
+      "availableColors": [
+        "رسومات الباستيل",
+        "غابة سفاري"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "مفرش استلقاء ولعب قطني على شكل ورقة شجر لغرف المواليد",
+      "category": "play-mats",
+      "price": 150,
+      "originalPrice": 190,
+      "rating": 5,
+      "reviewsCount": 41,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مفرش أنيق وناعم للغاية على شكل ورقة شجر يمنح جلسات تصوير المواليد وغرفهم لمسة بوهيمية ساحرة.",
+      "inStock": true,
+      "tags": [
+        "#ورقة_شجر",
+        "#بوهيمي",
+        "#مفرش_قطني"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "110×90 سم"
+      ],
+      "availableColors": [
+        "أخضر زيتي ناعم",
+        "بيج خريفي",
+        "وردي ترابي"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "بساط لعب تفاعلي مع بيانو موسيقي وأقواس ألعاب معلقة",
+      "category": "play-mats",
+      "price": 199,
+      "originalPrice": 250,
+      "rating": 4.9,
+      "reviewsCount": 63,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "بيانو أقدام تفاعلي يحفز عضلات الطفل الحركية وسمعه، مع 5 ألعاب معلقة وألحان نوم هادئة ومبهجة.",
+      "inStock": true,
+      "tags": [
+        "#بيانو_أطفال",
+        "#تطوير_الحركة",
+        "#موسيقي"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس قياسي"
+      ],
+      "availableColors": [
+        "وردي باستيل",
+        "أزرق باستيل"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "بكج استقبال فيكتوري فاخر مطرز بالحرير والدانتيل الإيطالي (8 قطع)",
+      "category": "hospital-sets",
+      "price": 320,
+      "originalPrice": 395,
+      "rating": 5,
+      "reviewsCount": 71,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "بكج كامل يشمل ثوب بربتوز مطرز، مهاد ملفوف بالدانتيل، مريلة، كوفية، بيت رضاعة، حذاء لؤلؤي، بطانية استقبال، وقفازات ناعمة.",
+      "inStock": true,
+      "tags": [
+        "#فيكتوري",
+        "#دانتيل_إيطالي",
+        "#طقم_8_قطع"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "بيج كريمي"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "طقم استقبال كلاسيك أبيض قطني ناعم مع بطانية ومشبك لهاية مذهب",
+      "category": "hospital-sets",
+      "price": 235,
+      "originalPrice": 290,
+      "rating": 4.8,
+      "reviewsCount": 39,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم استقبال أنيق وبسيط بلمسات ذهبية راقية تناسب أول ظهور للمولود في المستشفى والمنزل.",
+      "inStock": true,
+      "tags": [
+        "#كلاسيك",
+        "#أبيض_قطني",
+        "#مشبك_لهاية"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "أبيض ناصع"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "بكج استقبال أميري بيج مطرز بالاسم مع بيت رضاعة وكوفية",
+      "category": "hospital-sets",
+      "price": 260,
+      "originalPrice": 330,
+      "rating": 4.9,
+      "reviewsCount": 58,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "درجات البيج الهادئة مع تطريز خيوط الحرير بدرجة متناغمة تمنح طفلك إطلالة أميرية مميزة.",
+      "inStock": true,
+      "tags": [
+        "#أميري",
+        "#بيج_كريمي",
+        "#استقبال_مواليد"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "عاجي فاخر"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "طقم استقبال ملكي دانتيل فرنسي وردي بودري فاخر (6 قطع)",
+      "category": "hospital-sets",
+      "price": 289,
+      "originalPrice": 360,
+      "rating": 5,
+      "reviewsCount": 76,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم استقبال بنات ساحر باللون الوردي البودري الهادئ مزين بحواف دانتيل فرنسي ناعم وتطريز الاسم بالحرير.",
+      "inStock": true,
+      "tags": [
+        "#استقبال_بنات",
+        "#وردي_بودري",
+        "#دانتيل_فرنسي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر"
+      ],
+      "availableColors": [
+        "وردي بودري",
+        "سكري مع وردي"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "مهاد قطني مغلف بالدانتيل مع قبعة وقفازات متناسقة بالاسم",
+      "category": "swaddles",
+      "price": 125,
+      "originalPrice": 160,
+      "rating": 4.9,
+      "reviewsCount": 44,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مهاد لف تقليدي محاك من أجود خيوط القطن التركي مع تطريز اسم الطفل على طرف القبعة والمهاد.",
+      "inStock": true,
+      "tags": [
+        "#مهاد_لف",
+        "#تطريز",
+        "#قطن_تركي"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-3 أشهر)"
+      ],
+      "availableColors": [
+        "أبيض ناصع",
+        "بيج كريمي",
+        "وردي هادئ"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "مدس مواليد شتوي ووتربروف مبطن صوف دافئ للمشاوير والسفر",
+      "category": "swaddles",
+      "price": 175,
+      "originalPrice": 220,
+      "rating": 4.8,
+      "reviewsCount": 33,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مدس مصمم خصيصاً لمقاومة الهواء البارد والرياح، مبطن بصوف خروف ناعم جداً على بشرة المولود.",
+      "inStock": true,
+      "tags": [
+        "#مدس_شتوي",
+        "#ووتربروف",
+        "#سفر"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "كحلي",
+        "رمادي ميلانج",
+        "بيج"
+      ]
+    },
+    {
+      "id": 51,
+      "name": "طقم مهادات قطن جيرسي مطاطي فائق النعومة (3 قطع ألوان باستيل)",
+      "category": "swaddles",
+      "price": 110,
+      "originalPrice": 145,
+      "rating": 4.9,
+      "reviewsCount": 51,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "قماش جيرسي خفيف ومطاطي يتيح تقميط الطفل بسهولة وأمان ليشعر بدفء رحم الأم ويمنع فزع النوم.",
+      "inStock": true,
+      "tags": [
+        "#مهادات_جيرسي",
+        "#ألوان_باستيل",
+        "#نوم_هادئ"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "مقاس موحد (90×90 سم)"
+      ],
+      "availableColors": [
+        "مجموعة الباستيل الهادئة"
+      ]
+    },
+    {
+      "id": 52,
+      "name": "مدس مواليد كلاسيكي دانتيل مريح مع سحاب حماية آمن",
+      "category": "swaddles",
+      "price": 160,
+      "originalPrice": 205,
+      "rating": 4.8,
+      "reviewsCount": 29,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "مدس استقبال كلاسيكي مزود بسحاب داخلي محمي بلسان قماشي لمنع ملامسة بشرة الطفل.",
+      "inStock": true,
+      "tags": [
+        "#مدس_كلاسيكي",
+        "#دانتيل",
+        "#استقبال"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "مقاس موحد (0-6 أشهر)"
+      ],
+      "availableColors": [
+        "أوف وايت",
+        "سماوي"
+      ]
+    },
+    {
+      "id": 53,
+      "name": "سديري أطفال ولادي كحلي فاخر مطرز بسيفين ونخلة بالخيط الذهبي",
+      "category": "heritage-clothes",
+      "price": 130,
+      "originalPrice": 170,
+      "rating": 5,
+      "reviewsCount": 67,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "قطعة تراثية فخمة باللون الكحلي الملكي مزينة بتطريز شعار المملكة بسيفين ونخلة مع تطريز اسم طفلك.",
+      "inStock": true,
+      "tags": [
+        "#سديري_كحلي",
+        "#سيفين_ونخلة",
+        "#اليوم_الوطني"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر",
+        "1-2 سنة"
+      ],
+      "availableColors": [
+        "كحلي ملكي",
+        "زيتي فاخر"
+      ]
+    },
+    {
+      "id": 54,
+      "name": "بشت مواليد ملكي أسود بحواف زري ذهبي أصيل للأعراس والمناسبات",
+      "category": "heritage-clothes",
+      "price": 165,
+      "originalPrice": 210,
+      "rating": 4.9,
+      "reviewsCount": 48,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "بشت مصغر للأمراء الصغار بخامة يابانية خفيفة وزري ذهبي أصيل يضفي فخامة استثنائية في الأعياد والمناسبات.",
+      "inStock": true,
+      "tags": [
+        "#بشت_مواليد",
+        "#زري_ذهبي",
+        "#أعراس"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "أسود ملكي",
+        "بيج عودي"
+      ]
+    },
+    {
+      "id": 55,
+      "name": "طقم ثوب وسديري نجدي تراثي أبيض مع عقال ومقاسات مواليد",
+      "category": "heritage-clothes",
+      "price": 145,
+      "originalPrice": 185,
+      "rating": 4.9,
+      "reviewsCount": 52,
+      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "طقم متكامل للطفل في الأعياد، يشمل ثوب ناعم وسديري تراثي مع عقال قطني لين لا يضايق رأس المولود.",
+      "inStock": true,
+      "tags": [
+        "#طقم_تراثي",
+        "#ثوب_وعقال",
+        "#أعياد"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "أبيض وبيج",
+        "أبيض وسديري كحلي"
+      ]
+    },
+    {
+      "id": 56,
+      "name": "دقلة نجدية تراثية مطرزة بالاسم للأعياد والمناسبات الوطنية",
+      "category": "heritage-clothes",
+      "price": 155,
+      "originalPrice": 200,
+      "rating": 5,
+      "reviewsCount": 39,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1595347097560-69238724e7bd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "دقلة نجدية أصيلة بقماش جوخ خفيف فاخر ونقوش مذهبة، مطرزة باسم الطفل بحرفية عالية.",
+      "inStock": true,
+      "tags": [
+        "#دقلة_نجدية",
+        "#تراث_سعودي",
+        "#يوم_التأسيس"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-6 أشهر",
+        "6-12 شهر",
+        "1-2 سنة"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "عنابي فاخر"
+      ]
+    },
+    {
+      "id": 57,
+      "name": "أفرول مواليد قطن عضوي بنقشة زهور رقيقة مع ربطة شعر متناسقة",
+      "category": "baby-clothes",
+      "price": 95,
+      "originalPrice": 125,
+      "rating": 4.8,
+      "reviewsCount": 46,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "قطعة يومية فائقة النعومة من القطن العضوي 100% مع كشكش ناعم على الأكتاف وطوق شعر مطاطي لين.",
+      "inStock": true,
+      "tags": [
+        "#أفرول_بنات",
+        "#قطن_عضوي",
+        "#زهور"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-9 أشهر"
+      ],
+      "availableColors": [
+        "وردي بنقشة الزهور",
+        "سكري سحابي"
+      ]
+    },
+    {
+      "id": 58,
+      "name": "طقم سالوبيت مواليد ولادي أنيق مع قميص وياقة بابيون",
+      "category": "baby-clothes",
+      "price": 115,
+      "originalPrice": 150,
+      "rating": 4.9,
+      "reviewsCount": 37,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "إطلالة الجنتلمان الصغير، سالوبيت قطني بحمالات قابلة للتعديل مع قميص أبيض وبابيون جذاب للزيارات والمناسبات.",
+      "inStock": true,
+      "tags": [
+        "#سالوبيت_ولادي",
+        "#جنتلمان",
+        "#أناقة_المواليد"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "رمادي وأبيض",
+        "بيج وكحلي"
+      ]
+    },
+    {
+      "id": 59,
+      "name": "بيجامة نوم مواليد قطنية مريحة مع سحاب ذو اتجاهين لسهولة التغيير",
+      "category": "baby-clothes",
+      "price": 85,
+      "originalPrice": 110,
+      "rating": 5,
+      "reviewsCount": 59,
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "أفضل بيجامة لنوم مريح ومستمر، سحاب ثنائي الاتجاه يتيح تغيير الحفاض بسرعة دون الحاجة لنزع كامل الملابس.",
+      "inStock": true,
+      "tags": [
+        "#بيجامة_نوم",
+        "#سحاب_ثنائي",
+        "#راحة_الطفل"
+      ],
+      "hasCustomName": false,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "أزرق سحابي",
+        "وردي ناعم",
+        "بيج قطني"
+      ]
+    },
+    {
+      "id": 60,
+      "name": "جاكيت مواليد صوف تريكو محبوك يدوياً بأزرار خشبية طبيعية",
+      "category": "baby-clothes",
+      "price": 135,
+      "originalPrice": 175,
+      "rating": 4.9,
+      "reviewsCount": 43,
+      "video": "https://vjs.zencdn.net/v/oceans.mp4",
+      "primaryMediaType": "image",
+      "primaryImageIndex": 0,
+      "image": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80",
+      "images": [
+        "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=800&q=80"
+      ],
+      "description": "حياكة يدوية متقنة من صوف الميرينو فائق النعومة والمضاد للحساسية بأزرار خشبية أنيقة تمنح دفئاً وأناقة لا مثيل لها.",
+      "inStock": true,
+      "tags": [
+        "#جاكيت_صوف",
+        "#تريكو_يدوي",
+        "#شتوي_فاخر"
+      ],
+      "hasCustomName": true,
+      "availableSizes": [
+        "0-3 أشهر",
+        "3-6 أشهر",
+        "6-12 شهر"
+      ],
+      "availableColors": [
+        "بيج كريمي",
+        "رمادي فاتح",
+        "وردي ترابي"
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": "all",
+      "name": "الكل",
+      "storyName": "الكل"
+    },
+    {
+      "id": "hospital-sets",
+      "name": "أطقم الاستقبال الملكية",
+      "storyName": "استقبال",
+      "subtitle": "أطقم استقبال للمستشفى والزيارات من أقمشة قطنية تركية فاخرة",
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "custom-embroidery",
+      "name": "تفصيل حسب الطلب",
+      "storyName": "تفصيل",
+      "subtitle": "أطقم استقبال ومهادات ملكية مع تطريز اسم المولود بأرقى الخيوط مجاناً",
+      "image": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "swaddles",
+      "name": "مهادات المواليد",
+      "storyName": "المهادات",
+      "subtitle": "مهادات قطنية ناعمة ومدسات شتوية دافئة لنوم آمن وهادئ",
+      "image": "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "moses-baskets",
+      "name": "سلال موسى",
+      "storyName": "سلال موسى",
+      "subtitle": "سلال موسى مصنوعة يدوياً من خوص النخيل الطبيعي وأقمشة قطنية نقية",
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "heritage-clothes",
+      "name": "الملابس التراثية (سديري وثوب)",
+      "storyName": "التراثية",
+      "subtitle": "سديريات وثياب نجدية مطرزة بالاسم للأعياد والمناسبات السعيدة",
+      "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "strollers-cribs",
+      "name": "سرائر وعربات الأطفال",
+      "storyName": "السرائر",
+      "subtitle": "سرائر أطفال هزازة، عربات مدمجة وسلال مريحة لنوم هادئ وعميق",
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "play-mats",
+      "name": "مفارش اللعب والمهادات",
+      "storyName": "المفارش",
+      "subtitle": "مفارش ألعاب تفاعلية آمنة ومريحة تحفز حواس الرضيع وتطور حركته",
+      "image": "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "baby-clothes",
+      "name": "ملابس المواليد والأزياء التراثية",
+      "storyName": "الملابس",
+      "subtitle": "أفارولات قطنية عضوية فائقة النعومة وتصاميم أنيقة مصممة بكل حب",
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "offers",
+      "name": "العروض والتخفيضات",
+      "storyName": "العروض",
+      "subtitle": "أقوى الخصومات والعروض الحصرية على أطقم المواليد",
+      "image": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "mom-care",
+      "name": "ركن الأم والنفاس",
+      "storyName": "الأم والنفاس",
+      "subtitle": "أرواب ومستلزمات استقبال النفاس الفاخرة للأم والمولود",
+      "image": "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "care-feeding",
+      "name": "أدوات الاستحمام والعناية",
+      "storyName": "العناية",
+      "subtitle": "أحواض وطاولات استحمام آمنة ومريحة لصغيرك",
+      "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80"
+    }
+  ],
+  "users": [
+    {
+      "id": "USR-ADMIN",
+      "name": "مدير المتجر العام",
+      "email": "msaawadi2016@gmail.com",
+      "phone": "0550000000",
+      "city": "الرياض",
+      "address": "حي النرجس، شارع عثمان بن عفان",
+      "password": "12345678",
+      "role": "admin",
+      "createdAt": "2026-01-01",
+      "permissions": {
+        "categoriesMode": "all",
+        "allowedCategories": [],
+        "canAddProduct": true,
+        "canEditProduct": true,
+        "canDeleteProduct": true,
+        "canEditPrice": true,
+        "canToggleStock": true,
+        "canToggleCustomName": true,
+        "canAddCategory": true,
+        "canEditCategory": true,
+        "canDeleteCategory": true,
+        "canManageOrders": true,
+        "canManageSettings": true,
+        "canManageUsers": true
+      }
+    },
+    {
+      "id": "USR-AMJAD",
+      "name": "امجد البركاني (مسؤول مبيعات وشحن)",
+      "email": "ama2026@gmail.com",
+      "phone": "555545555",
+      "city": "الرياض",
+      "address": "العزيزه",
+      "password": "12345678",
+      "role": "order_specialist",
+      "createdAt": "2026-02-25",
+      "permissions": {
+        "categoriesMode": "all",
+        "allowedCategories": [],
+        "canAddProduct": false,
+        "canEditProduct": false,
+        "canDeleteProduct": false,
+        "canEditPrice": false,
+        "canToggleStock": false,
+        "canToggleCustomName": false,
+        "canAddCategory": false,
+        "canEditCategory": false,
+        "canDeleteCategory": false,
+        "canManageOrders": true,
+        "canManageSettings": false,
+        "canManageUsers": false
+      }
+    },
+    {
+      "id": "USR-SUP-1",
+      "name": "ريم القحطاني (مشرفة أطقم وتطريز)",
+      "email": "reem@littleangel.com",
+      "phone": "0551122334",
+      "city": "الرياض",
+      "address": "حي الملقا - شارع التحلية",
+      "password": "123",
+      "role": "supervisor",
+      "createdAt": "2026-02-01",
+      "permissions": {
+        "categoriesMode": "custom",
+        "allowedCategories": [
+          "hospital-sets",
+          "custom-embroidery",
+          "baby-clothes",
+          "swaddles"
+        ],
+        "canAddProduct": true,
+        "canEditProduct": true,
+        "canDeleteProduct": false,
+        "canEditPrice": true,
+        "canToggleStock": true,
+        "canToggleCustomName": true,
+        "canAddCategory": false,
+        "canEditCategory": false,
+        "canDeleteCategory": false,
+        "canManageOrders": true,
+        "canManageSettings": false,
+        "canManageUsers": false
+      }
+    },
+    {
+      "id": "USR-101",
+      "name": "سارة عبدالله",
+      "email": "sarah@gmail.com",
+      "phone": "0551234567",
+      "city": "الرياض",
+      "address": "حي الياسمين، شارع أنس بن مالك، فيلا 14",
+      "password": "123",
+      "role": "customer",
+      "createdAt": "2026-02-15",
+      "permissions": {
+        "categoriesMode": "none",
+        "allowedCategories": [],
+        "canAddProduct": false,
+        "canEditProduct": false,
+        "canDeleteProduct": false,
+        "canEditPrice": false,
+        "canToggleStock": false,
+        "canToggleCustomName": false,
+        "canAddCategory": false,
+        "canEditCategory": false,
+        "canDeleteCategory": false,
+        "canManageOrders": false,
+        "canManageSettings": false,
+        "canManageUsers": false
+      }
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-17955701",
+      "customer": {
+        "name": "سارة عبدالله",
+        "phone": "0551234567",
+        "email": "sarah@gmail.com",
+        "city": "الرياض",
+        "address": "حي الياسمين، شارع أنس بن مالك، فيلا 14"
+      },
+      "items": [
+        {
+          "id": 1,
+          "name": "بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)",
+          "price": 249,
+          "quantity": 1,
+          "color": "بيج كريمي",
+          "size": "0-3 أشهر",
+          "hasCustomName": true,
+          "embroideryName": "محمد",
+          "threadColor": "ذهبي ملكي"
+        }
+      ],
+      "subtotal": 249,
+      "discountAmount": 24.9,
+      "shippingFee": 0,
+      "total": 224.1,
+      "paymentMethod": "apple_pay",
+      "status": "processing",
+      "createdAt": "2026-11-24T18:30:00Z",
+      "notes": "تغليف هدية فاخر مع كرت مباركة"
+    }
+  ],
+  "settings": {
+    "storeName": "الملاك الصغير",
+    "storeSlogan": "عالم الأناقة والفخامة لمولودك الصغير",
+    "storeDescription": "متجر سعودي رائد متخصص في أرقى مستلزمات واستقبال المواليد والتطريز الفاخر بالاسم حسب الطلب.",
+    "whatsappNumber": "967775302137",
+    "brandColor": "#DF7E93",
+    "brandColorHover": "#d06a80",
+    "logoUrl": "",
+    "announcementText": "✨ شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود FIRST10 لخصم 10%",
+    "shippingFee": 25,
+    "freeShippingThreshold": 299,
+    "enableCustomNameEmbroidery": true,
+    "taxRatePercent": 15,
+    "coupons": [
+      {
+        "code": "FIRST10",
+        "discountPercent": 10,
+        "minOrder": 100,
+        "isActive": true
+      },
+      {
+        "code": "ANGEL20",
+        "discountPercent": 20,
+        "minOrder": 250,
+        "isActive": true
+      }
+    ]
+  },
+  "meta": {
+    "createdAt": "2026-11-25T20:50:51.008Z",
+    "updatedAt": "2026-11-25T20:50:51.009Z",
+    "version": "1.0.0"
+  }
+}

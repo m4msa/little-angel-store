@@ -9,8 +9,15 @@ export default defineConfig({
     host: true,
     port: 5173,
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false
+      }
+    },
     watch: {
-      ignored: ['**/.vs/**', '**/node_modules/**', '**/cloudflared.exe', '**/tunnel_url.txt', '**/*.log']
+      ignored: ['**/.vs/**', '**/node_modules/**', '**/cloudflared.exe', '**/tunnel_url.txt', '**/*.log', '**/server/data/**']
     }
   }
 })
