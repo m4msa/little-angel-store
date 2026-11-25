@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Package, ShoppingBag, Plus, Trash2, Edit3, Upload, Image as ImageIcon, 
   DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
-  X, LogOut, Store, Eye, Percent, Palette, Video, MessageCircle, Phone, 
+  X, LogOut, Store, Eye, Percent, Palette, Video, MessageCircle, Phone, Mail, MapPin, Sparkles,
   Tag, Search, CheckCircle2, AlertTriangle, AlertCircle,
   Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus
 } from 'lucide-react';
