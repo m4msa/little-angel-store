@@ -1,18 +1,23 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo, memo } from 'react';
 import ProductCard from './ProductCard';
+import { handleImageError } from '../utils/catalogUtils';
 
-export default function ProductSectionCarousel({
+/**
+ * ProductSectionCarousel displays a featured category banner with an auto-gliding,
+ * touch-swipable and mouse-draggable horizontal carousel of product cards.
+ */
+function ProductSectionCarousel({
   title,
   subtitle,
   storyName,
   image,
   categoryId,
   onExploreCategory,
-  products,
+  products = [],
   onAddToCart,
-  cart,
+  cart = [],
   onOpenQuickView,
-  wishlist,
+  wishlist = [],
   onToggleFavorite
 }) {
   const containerRef = useRef(null);
@@ -25,15 +30,18 @@ export default function ProductSectionCarousel({
   const isInViewRef = useRef(false);
   const isDelayPassedRef = useRef(false);
   const delayTimerRef = useRef(null);
-  const rtlSignRef = useRef(-1); // RTL scrollLeft direction
+  const rtlSignRef = useRef(-1); // RTL scroll direction adjustment
 
-  // Mouse drag state for desktop / laptop
+  // Mouse drag state for desktop interactions
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollStartLeft, setScrollStartLeft] = useState(0);
 
-  // 1. Intersection Observer: detect when user scrolls to the product cards in viewport
-  // Waits exactly 2.0 seconds after entering view before initiating smooth motion
+  // Fast Set lookups for cart & wishlist status
+  const cartIdsSet = useMemo(() => new Set(cart.map((item) => item.id)), [cart]);
+  const wishlistIdsSet = useMemo(() => new Set(wishlist), [wishlist]);
+
+  // 1. Viewport Intersection Observer: initiates auto-glide after 2s of visibility
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -43,7 +51,6 @@ export default function ProductSectionCarousel({
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             isInViewRef.current = true;
-            // Wait exactly 2 full seconds upon entering view before movement starts
             if (!isDelayPassedRef.current) {
               if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
               delayTimerRef.current = setTimeout(() => {
@@ -51,7 +58,6 @@ export default function ProductSectionCarousel({
               }, 2000);
             }
           } else {
-            // When leaving view, stop and reset delay so re-entering waits 2s again
             isInViewRef.current = false;
             isDelayPassedRef.current = false;
             if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
@@ -66,22 +72,20 @@ export default function ProductSectionCarousel({
       observer.disconnect();
       if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
     };
-  }, [products]);
+  }, []);
 
-  // 2. Continuous Smooth Linear Auto-Scrolling with Immediate Ping-Pong Reversal (نصف السرعة + انعكاس فوري دون توقف عند الأطراف)
+  // 2. Smooth Linear Auto-Scrolling with ping-pong reversal
   useEffect(() => {
     if (!products || products.length <= 1) return;
 
     let lastTime = performance.now();
-    // Double speed: 22px per second for balanced, elegant and smooth motion
-    const SPEED = 22;
+    const SPEED = 22; // Pixels per second
 
     const scrollLoop = (time) => {
       const delta = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
       const el = containerRef.current;
-      // Only glide if visible in viewport, 2-second delay has passed, and user is not manually interacting
       if (
         el &&
         isInViewRef.current &&
@@ -93,9 +97,8 @@ export default function ProductSectionCarousel({
           const currentScroll = Math.abs(el.scrollLeft);
 
           if (stepDirectionRef.current === 1) {
-            // Gliding forward towards the end
+            // Forward glide towards the end
             if (currentScroll >= maxScroll - 4) {
-              // Reached the last card: immediately reverse direction with NO waiting!
               stepDirectionRef.current = -1;
               accumulatorRef.current = 0;
             } else {
@@ -105,19 +108,18 @@ export default function ProductSectionCarousel({
                 accumulatorRef.current -= pixels;
 
                 const prev = el.scrollLeft;
-                el.scrollLeft = prev + (rtlSignRef.current * pixels * 1);
+                el.scrollLeft = prev + (rtlSignRef.current * pixels);
 
-                // Auto-detect sign if browser behaves differently in RTL
+                // Auto-detect browser RTL scroll behavior
                 if (el.scrollLeft === prev && pixels > 0) {
                   rtlSignRef.current = -rtlSignRef.current;
-                  el.scrollLeft = prev + (rtlSignRef.current * pixels * 1);
+                  el.scrollLeft = prev + (rtlSignRef.current * pixels);
                 }
               }
             }
           } else {
-            // Gliding backward towards the start (من النهاية للبداية)
+            // Backward glide towards the start
             if (currentScroll <= 4) {
-              // Reached the first card: immediately reverse direction with NO waiting!
               stepDirectionRef.current = 1;
               accumulatorRef.current = 0;
             } else {
@@ -129,7 +131,6 @@ export default function ProductSectionCarousel({
                 const prev = el.scrollLeft;
                 el.scrollLeft = prev + (rtlSignRef.current * pixels * -1);
 
-                // Auto-detect sign if browser behaves differently in RTL
                 if (el.scrollLeft === prev && pixels > 0) {
                   rtlSignRef.current = -rtlSignRef.current;
                   el.scrollLeft = prev + (rtlSignRef.current * pixels * -1);
@@ -152,7 +153,7 @@ export default function ProductSectionCarousel({
     };
   }, [products]);
 
-  // 3. Window vertical scroll detection: resume smooth gliding when user scrolls up/down the page
+  // 3. Resume auto-glide when user scrolls page vertically
   useEffect(() => {
     const handleWindowScroll = () => {
       if (isInteractingRef.current && !isTouchActiveRef.current) {
@@ -165,6 +166,7 @@ export default function ProductSectionCarousel({
     return () => window.removeEventListener('scroll', handleWindowScroll);
   }, []);
 
+  // Interaction handlers
   const handleTouchStart = () => {
     isTouchActiveRef.current = true;
     isInteractingRef.current = true;
@@ -217,37 +219,49 @@ export default function ProductSectionCarousel({
     }, 2500);
   };
 
+  const handleExplore = () => {
+    if (onExploreCategory && categoryId) {
+      onExploreCategory(categoryId);
+    }
+  };
+
   if (!products || products.length === 0) return null;
 
   return (
-    <section 
-      className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 lg:px-8 space-y-5 select-none"
-    >
-      {/* 1. مربع صورة القسم بالكامل (قابلة للنقر للانتقال المباشر لمنتجات القسم) */}
+    <section className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 lg:px-8 space-y-5 select-none">
+      
+      {/* 1. Category Banner Image (with robust fallback and direct navigation click) */}
       {image && (
         <div 
-          onClick={() => onExploreCategory && categoryId && onExploreCategory(categoryId)}
+          onClick={handleExplore}
           className="relative w-full h-28 sm:h-40 md:h-52 lg:h-60 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 bg-slate-50 cursor-pointer group"
           title={`تصفحي كافة منتجات ${title}`}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleExplore();
+            }
+          }}
         >
           <img
             src={image}
             alt={title}
+            onError={handleImageError}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         </div>
       )}
 
-      {/* 2. اسم القسم ووصفه بالأسفل باللون الأسود الأنيق (قابلان للنقر للانتقال للمنتجات) */}
+      {/* 2. Category Heading and Subtitle */}
       <div 
-        onClick={() => onExploreCategory && categoryId && onExploreCategory(categoryId)}
+        onClick={handleExplore}
         className="relative text-center space-y-1.5 flex flex-col items-center pt-1 cursor-pointer group"
         title={`تصفحي كافة منتجات ${title}`}
       >
-        <h3 
-          className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight group-hover:text-[#DF7E93] transition-colors"
-        >
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight group-hover:text-[#DF7E93] transition-colors">
           {title}
         </h3>
         
@@ -258,7 +272,7 @@ export default function ProductSectionCarousel({
         )}
       </div>
 
-      {/* 3. شريط المنتجات الأفقي بالتحرك السلس المستمر */}
+      {/* 3. Horizontal Product Cards Carousel */}
       <div className="relative">
         <div
           ref={containerRef}
@@ -280,15 +294,18 @@ export default function ProductSectionCarousel({
               <ProductCard
                 product={prod}
                 onAddToCart={onAddToCart}
-                isInCart={cart.some((item) => item.id === prod.id)}
+                isInCart={cartIdsSet.has(prod.id)}
                 onOpenQuickView={() => onOpenQuickView && onOpenQuickView(prod, categoryId)}
-                isFavorite={wishlist.includes(prod.id)}
+                isFavorite={wishlistIdsSet.has(prod.id)}
                 onToggleFavorite={onToggleFavorite}
               />
             </div>
           ))}
         </div>
       </div>
+
     </section>
   );
 }
+
+export default memo(ProductSectionCarousel);

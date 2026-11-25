@@ -1,57 +1,71 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ShoppingBag, Check, Heart, Eye } from 'lucide-react';
+import { 
+  calculateDiscountPercent, 
+  hasProductOptions, 
+  getTitleClampingStyle, 
+  handleImageError, 
+  FALLBACK_IMAGE 
+} from '../utils/catalogUtils';
 
-export default function ProductCard({ 
+/**
+ * ProductCard component displays a luxury portrait baby product card
+ * with image/video preview, wishlist toggling, quick view opening,
+ * and smart cart addition based on whether options (embroidery/sizes) exist.
+ *
+ * Memoized with React.memo to ensure high rendering performance in large lists.
+ */
+function ProductCard({ 
   product, 
   onAddToCart, 
-  isInCart, 
+  isInCart = false, 
   onOpenQuickView, 
-  isFavorite, 
+  isFavorite = false, 
   onToggleFavorite 
 }) {
-  const discountPercent = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
-    : 0;
+  if (!product) return null;
 
-  // Adaptive font size & line clamp based on title length (يصغر الخط كلما طال الاسم لمنع الاقتطاع)
-  const getTitleStyle = (name = '') => {
-    const len = (name || '').trim().length;
-    if (len > 55) {
-      return 'text-[9.5px] xs:text-[10px] sm:text-[11px] leading-tight line-clamp-3';
+  const discountPercent = calculateDiscountPercent(product.originalPrice, product.price);
+  const requiresOptions = hasProductOptions(product);
+
+  const imagesList = Array.isArray(product.images) && product.images.length > 0 
+    ? product.images 
+    : [product.image].filter(Boolean);
+
+  const isVideoPrimary = product.primaryMediaType === 'video' && Boolean(product.video);
+  const primaryImg = imagesList[product.primaryImageIndex || 0] || imagesList[0] || product.image || FALLBACK_IMAGE;
+
+  const handleCardClick = () => {
+    if (onOpenQuickView) {
+      onOpenQuickView(product);
     }
-    if (len > 35) {
-      return 'text-[11px] xs:text-[11.5px] sm:text-xs leading-snug line-clamp-2';
-    }
-    if (len > 22) {
-      return 'text-[11.5px] xs:text-xs sm:text-[13px] leading-snug line-clamp-2';
-    }
-    return 'text-xs sm:text-sm leading-normal line-clamp-2';
   };
 
-  // Check if product requires options selection (custom name embroidery, sizes, or colors)
-  const hasOptions = Boolean(
-    product.hasCustomName === true ||
-    (Array.isArray(product.availableSizes) && product.availableSizes.length > 0) ||
-    (Array.isArray(product.availableColors) && product.availableColors.length > 0)
-  );
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    if (onToggleFavorite) {
+      onToggleFavorite(product.id);
+    }
+  };
 
-  const imagesList = product.images && product.images.length > 0 ? product.images : [product.image].filter(Boolean);
-
-  // Determine primary media: only primary video or primary image on outside card
-  const isVideoPrimary = product.primaryMediaType === 'video' && Boolean(product.video);
-  const primaryImg = imagesList[product.primaryImageIndex || 0] || imagesList[0] || product.image;
+  const handleAddToCartClick = (e) => {
+    e.stopPropagation();
+    if (requiresOptions) {
+      if (onOpenQuickView) onOpenQuickView(product);
+    } else if (onAddToCart) {
+      onAddToCart(product);
+    }
+  };
 
   return (
-    <div 
-      className="group bg-white rounded-2xl border border-slate-200/80 hover:border-pink-200 overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_28px_rgba(223,126,147,0.12)] transition-all duration-300 flex flex-col justify-between h-full"
-    >
+    <div className="group bg-white rounded-2xl border border-slate-200/80 hover:border-pink-200 overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_28px_rgba(223,126,147,0.12)] transition-all duration-300 flex flex-col justify-between h-full select-none">
       
-      {/* 1. Media Container: Only Heart Icon on top of pure, clean media (aspect-[3/4] portrait matching Tefly Frhaty) */}
+      {/* 1. Media Container: Aspect 3:4 portrait matching luxury store theme */}
       <div 
         className="relative aspect-[3/4] overflow-hidden bg-slate-50/50 cursor-pointer select-none"
-        onClick={() => onOpenQuickView(product)}
+        onClick={handleCardClick}
       >
-        {/* Primary Media (Clean without outside flipping) */}
+        {/* Primary Media (Video or Lazy-loaded Image with error fallback) */}
         {isVideoPrimary && product.video ? (
           <div className="w-full h-full relative bg-slate-900 flex items-center justify-center">
             <video
@@ -66,27 +80,25 @@ export default function ProductCard({
         ) : (
           <img
             src={primaryImg}
-            alt={product.name}
+            alt={product.name || 'منتج الملاك الصغير'}
+            onError={handleImageError}
             className="w-full h-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
             loading="lazy"
           />
         )}
 
-        {/* ONLY Heart Icon (as explicitly requested) */}
+        {/* Favorite Heart Button */}
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(product.id);
-          }}
-          className="absolute top-2.5 left-2.5 w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500 shadow-xs border border-slate-100 flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-10"
-          title="إضافة للمفضلة"
-          aria-label="إضافة للمفضلة"
+          onClick={handleFavoriteClick}
+          className="absolute top-2.5 left-2.5 w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500 shadow-xs border border-slate-100 flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-10 cursor-pointer"
+          title={isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+          aria-label={isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
         >
           <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
 
-        {/* Desktop Hover Quick-View Pill */}
+        {/* Desktop Quick-View Preview Pill on Hover */}
         <div className="hidden sm:block absolute inset-x-3 bottom-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
           <div className="bg-white/95 backdrop-blur-sm text-slate-700 text-xs font-bold py-1.5 rounded-xl shadow-sm flex items-center justify-center gap-1 border border-slate-100">
             <Eye className="w-3.5 h-3.5 text-[#DF7E93]" />
@@ -95,21 +107,21 @@ export default function ProductCard({
         </div>
       </div>
 
-      {/* 2. Content & Pricing (Clean Centered Layout matching Tefly Frhaty) */}
+      {/* 2. Content & Pricing Details */}
       <div className="p-2.5 sm:p-3 text-center flex-1 flex flex-col justify-between space-y-2">
         
-        {/* Title: Adaptive font size & flexible height to prevent top/bottom clipping */}
+        {/* Title with adaptive font-size to prevent text clipping */}
         <div className="min-h-[2.85rem] sm:min-h-[3.25rem] flex items-center justify-center w-full px-0.5">
           <h3 
-            onClick={() => onOpenQuickView(product)}
-            className={`font-bold text-slate-800 hover:text-[#DF7E93] transition-colors text-center cursor-pointer break-words w-full ${getTitleStyle(product.name)}`}
+            onClick={handleCardClick}
+            className={`font-bold text-slate-800 hover:text-[#DF7E93] transition-colors text-center cursor-pointer break-words w-full ${getTitleClampingStyle(product.name)}`}
             title={product.name}
           >
             {product.name}
           </h3>
         </div>
 
-        {/* Pricing Block */}
+        {/* Price & Offer Badges */}
         <div className="space-y-0.5">
           <div className="flex items-center justify-center gap-1.5">
             <span className="text-sm sm:text-base font-black text-slate-900">
@@ -128,16 +140,16 @@ export default function ProductCard({
             </p>
           ) : (
             <p className="text-[11px] text-slate-500 font-medium">
-              {product.hasCustomName ? 'تطريز الاسم مجاناً حسب الطلب' : hasOptions ? 'متوفر بعدة خيارات' : 'شحن وتوصيل فوري'}
+              {product.hasCustomName ? 'تطريز الاسم مجاناً حسب الطلب' : requiresOptions ? 'متوفر بعدة خيارات' : 'شحن وتوصيل فوري'}
             </p>
           )}
         </div>
 
-        {/* 3. Action Button: Signature Luxury Rose/Pink (#DF7E93) */}
-        {hasOptions ? (
+        {/* 3. Action Button: Luxury Rose (#DF7E93) */}
+        {requiresOptions ? (
           <button
             type="button"
-            onClick={() => onOpenQuickView(product)}
+            onClick={handleAddToCartClick}
             className="w-full py-2 sm:py-2.5 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-xs bg-[#DF7E93] hover:bg-[#D46B82] text-white shadow-pink-200/50 hover:shadow-md cursor-pointer"
             title="تحديد الخيارات والمقاسات"
           >
@@ -147,7 +159,7 @@ export default function ProductCard({
         ) : (
           <button
             type="button"
-            onClick={() => onAddToCart(product)}
+            onClick={handleAddToCartClick}
             className={`w-full py-2 sm:py-2.5 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer ${
               isInCart
                 ? 'bg-pink-50 text-[#DF7E93] border border-[#DF7E93]/40 font-black'
@@ -174,3 +186,5 @@ export default function ProductCard({
     </div>
   );
 }
+
+export default memo(ProductCard);

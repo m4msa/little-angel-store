@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { 
   ShoppingBag, 
   Check, 
@@ -6,30 +6,41 @@ import {
   Truck, 
   RefreshCw, 
   Heart, 
-  PenTool, 
   Play, 
   Pause, 
   Volume2, 
   VolumeX, 
-  Video, 
   ZoomIn, 
-  Upload, 
-  Trash2, 
   ArrowRight,
   Share2,
-  Clock,
   Sparkles,
   MessageCircle,
   CreditCard,
   X
 } from 'lucide-react';
 import ProductCard from './ProductCard';
+import CustomEmbroideryForm from './CustomEmbroideryForm';
+import { 
+  buildProductMediaItems, 
+  normalizeProductColors, 
+  DEFAULT_SIZES, 
+  THREAD_COLORS, 
+  calculateDiscountPercent, 
+  handleImageError, 
+  FALLBACK_IMAGE 
+} from '../utils/catalogUtils';
+import { useProductMediaGallery } from '../hooks/useProductMediaGallery';
 
-export default function ProductDetailView({
+/**
+ * ProductDetailView provides a full luxury product page experience
+ * featuring interactive media gallery with video controls and zoom lens,
+ * dynamic embroidery configuration, related products grid, and checkout actions.
+ */
+function ProductDetailView({
   product,
   onAddToCart,
   onDirectCheckout,
-  isFavorite,
+  isFavorite = false,
   onToggleFavorite,
   onSelectProduct,
   allProducts = [],
@@ -44,221 +55,118 @@ export default function ProductDetailView({
   const storeName = storeSettings?.storeName || 'الملاك الصغير';
   const whatsappNumber = storeSettings?.whatsappNumber || '967775302137';
 
-  const rawImages = product.images && product.images.length > 0 ? product.images : [product.image].filter(Boolean);
+  // 1. Build unified media items
+  const mediaItems = useMemo(() => buildProductMediaItems(product), [product]);
 
-  // Build unified media items: video + images
-  const mediaItems = [];
-  if (product.video) {
-    if (product.primaryMediaType === 'video') {
-      mediaItems.push({ type: 'video', url: product.video, isPrimary: true });
-      rawImages.forEach((img, idx) => {
-        mediaItems.push({ type: 'image', url: img, isPrimary: false, originalIndex: idx });
-      });
-    } else {
-      rawImages.forEach((img, idx) => {
-        const isPrimary = (product.primaryImageIndex ?? 0) === idx;
-        mediaItems.push({ type: 'image', url: img, isPrimary, originalIndex: idx });
-      });
-      mediaItems.push({ type: 'video', url: product.video, isPrimary: false });
-    }
-  } else {
-    rawImages.forEach((img, idx) => {
-      const isPrimary = (product.primaryImageIndex ?? 0) === idx;
-      mediaItems.push({ type: 'image', url: img, isPrimary, originalIndex: idx });
-    });
-  }
+  // 2. Custom Media Gallery hook
+  const {
+    activeMediaIndex,
+    currentMedia,
+    isPlaying,
+    isMuted,
+    isZoomed,
+    zoomPos,
+    isFullscreenImage,
+    setIsFullscreenImage,
+    videoRef,
+    toggleVideoPlayback,
+    toggleMute,
+    handleSelectMedia,
+    handleTouchStart,
+    handleTouchEnd,
+    handleMouseMove,
+    handleMouseLeave
+  } = useProductMediaGallery(mediaItems);
 
-  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
+  // 3. Options normalization
+  const sizes = useMemo(() => {
+    return Array.isArray(product.availableSizes) && product.availableSizes.length > 0
+      ? product.availableSizes
+      : [];
+  }, [product.availableSizes]);
+
+  const colors = useMemo(() => {
+    return normalizeProductColors(product.availableColors);
+  }, [product.availableColors]);
+
+  // 4. Form states
+  const [selectedSize, setSelectedSize] = useState(sizes[0] || '');
+  const [selectedColor, setSelectedColor] = useState(colors[0]?.name || '');
   const [customBabyName, setCustomBabyName] = useState('');
   const [nameLanguage, setNameLanguage] = useState('ar');
-  const [threadColor, setThreadColor] = useState('ذهبي ملكي');
+  const [threadColor, setThreadColor] = useState(THREAD_COLORS[0]);
   const [customDesignFile, setCustomDesignFile] = useState(null);
   const [customDesignFileName, setCustomDesignFileName] = useState('');
   const [customNotes, setCustomNotes] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Video and Zoom states
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [isFullscreenImage, setIsFullscreenImage] = useState(false);
-  const [dragStartX, setDragStartX] = useState(null);
-  const [isManualInteracted, setIsManualInteracted] = useState(false);
-
-  const videoRef = useRef(null);
-  const fileInputRef = useRef(null);
-
-  const currentMedia = mediaItems[activeMediaIndex] || mediaItems[0] || { type: 'image', url: product.image };
-
-  const sizes = product.availableSizes && product.availableSizes.length > 0
-    ? product.availableSizes
-    : [];
-
-  const colorClassMap = {
-    'وردي هادئ': 'bg-pink-300',
-    'أزرق سماوي': 'bg-sky-300',
-    'أبيض قطني': 'bg-slate-100',
-    'بيج كريمي': 'bg-amber-100',
-    'رمادي فاتح': 'bg-slate-300',
-    'أصفر ليموني': 'bg-amber-200',
-    'مشمشي هادئ': 'bg-orange-200'
-  };
-
-  const colors = product.availableColors && product.availableColors.length > 0
-    ? product.availableColors.map(c => typeof c === 'string' ? { name: c, bg: colorClassMap[c] || 'bg-brand-200' } : c)
-    : [];
-
-  const threadColors = ['ذهبي ملكي', 'فضي ناعم', 'بني كراميل', 'كحلي فاخر', 'وردي'];
-
-  // Reset states on product change
+  // Reset form states on product ID change
   useEffect(() => {
-    const primaryIdx = Math.max(0, mediaItems.findIndex(m => m.isPrimary));
-    setActiveMediaIndex(primaryIdx);
-    setQuantity(1);
+    setSelectedSize(sizes[0] || '');
+    setSelectedColor(colors[0]?.name || '');
     setCustomBabyName('');
     setNameLanguage('ar');
+    setThreadColor(THREAD_COLORS[0]);
     setCustomDesignFile(null);
     setCustomDesignFileName('');
     setCustomNotes('');
-    setIsFullscreenImage(false);
-    setIsPlaying(true);
-    setIsMuted(true);
-    setIsZoomed(false);
+    setQuantity(1);
     setAdded(false);
-    setIsManualInteracted(false);
-
-    if (sizes.length > 0) setSelectedSize(sizes[0]);
-    else setSelectedSize('');
-    if (colors.length > 0) setSelectedColor(colors[0].name);
-    else setSelectedColor('');
-
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [product.id]);
+  }, [product.id, sizes, colors]);
 
-  // Auto-flip media every 3.5 seconds until user interacts manually
-  useEffect(() => {
-    if (isManualInteracted || mediaItems.length <= 1) return;
-    if (currentMedia.type === 'video' && isPlaying) return;
+  const categoryObj = useMemo(() => {
+    return categories.find((c) => c.id === product.category);
+  }, [categories, product.category]);
 
-    const timer = setInterval(() => {
-      setActiveMediaIndex((prev) => (prev < mediaItems.length - 1 ? prev + 1 : 0));
-    }, 3500);
+  const categoryName = categoryObj?.name || 'مستلزمات الأطفال';
+  const discountPercent = calculateDiscountPercent(product.originalPrice, product.price);
 
-    return () => clearInterval(timer);
-  }, [isManualInteracted, mediaItems.length, currentMedia.type, isPlaying]);
+  // Related products from the same category
+  const relatedProducts = useMemo(() => {
+    return allProducts
+      .filter((p) => p.id !== product.id && (p.category === product.category || product.category === 'all'))
+      .slice(0, 4);
+  }, [allProducts, product.id, product.category]);
 
-  const handleNextMedia = (isManual = true) => {
-    if (isManual) setIsManualInteracted(true);
-    setActiveMediaIndex((prev) => (prev < mediaItems.length - 1 ? prev + 1 : 0));
-  };
+  // Build complete payload for cart/checkout
+  const getCustomizedPayload = () => {
+    const primaryImg = currentMedia.type === 'image' 
+      ? currentMedia.url 
+      : (product.images?.[0] || product.image || FALLBACK_IMAGE);
 
-  const handlePrevMedia = (isManual = true) => {
-    if (isManual) setIsManualInteracted(true);
-    setActiveMediaIndex((prev) => (prev > 0 ? prev - 1 : mediaItems.length - 1));
-  };
-
-  const handleSelectMedia = (idx) => {
-    setIsManualInteracted(true);
-    setActiveMediaIndex(idx);
-  };
-
-  // Touch Swipe Handlers (Stops auto-flip on manual swipe)
-  const handleTouchStart = (e) => {
-    setDragStartX(e.touches ? e.touches[0].clientX : e.clientX);
-  };
-
-  const handleTouchEnd = (e) => {
-    if (dragStartX === null) return;
-    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const diff = dragStartX - clientX;
-    if (Math.abs(diff) > 35) {
-      if (diff > 0) {
-        handleNextMedia(true);
-      } else {
-        handlePrevMedia(true);
-      }
-    }
-    setDragStartX(null);
-  };
-
-  // Magnifier Zoom Handler
-  const handleMouseMove = (e) => {
-    if (currentMedia.type !== 'image') return;
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomPos({ x, y });
-    setIsZoomed(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsZoomed(false);
-  };
-
-  const toggleVideoPlayback = (e) => {
-    if (e) e.stopPropagation();
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      videoRef.current.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const toggleMute = (e) => {
-    if (e) e.stopPropagation();
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setCustomDesignFile(event.target.result);
-      setCustomDesignFileName(file.name);
+    return {
+      ...product,
+      image: primaryImg,
+      selectedSize: selectedSize || undefined,
+      selectedColor: selectedColor || undefined,
+      customBabyName: customBabyName.trim() || undefined,
+      nameLanguage: customBabyName.trim() ? nameLanguage : undefined,
+      threadColor: customBabyName.trim() ? threadColor : undefined,
+      customDesignFile: customDesignFile || undefined,
+      customDesignFileName: customDesignFileName || undefined,
+      customNotes: customNotes.trim() || undefined,
+      quantity
     };
-    reader.readAsDataURL(file);
   };
-
-  const handleRemoveFile = () => {
-    setCustomDesignFile(null);
-    setCustomDesignFileName('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const getCustomizedItemData = () => ({
-    selectedSize,
-    selectedColor,
-    customBabyName: customBabyName.trim() || undefined,
-    nameLanguage: customBabyName.trim() ? nameLanguage : undefined,
-    threadColor: customBabyName.trim() ? threadColor : undefined,
-    customDesignFile: customDesignFile || undefined,
-    customNotes: customNotes.trim() || undefined
-  });
 
   const handleAdd = () => {
+    const payload = getCustomizedPayload();
     if (onAddToCart) {
-      onAddToCart(product, quantity, getCustomizedItemData());
+      onAddToCart(payload, quantity, payload);
       setAdded(true);
       setTimeout(() => setAdded(false), 2400);
     }
   };
 
   const handleDirectBuy = () => {
+    const payload = getCustomizedPayload();
     if (onDirectCheckout) {
-      onDirectCheckout(product, quantity, getCustomizedItemData());
+      onDirectCheckout(payload, quantity, payload);
     } else if (onAddToCart) {
-      onAddToCart(product, quantity, getCustomizedItemData());
+      onAddToCart(payload, quantity, payload);
     }
   };
 
@@ -276,22 +184,10 @@ export default function ProductDetailView({
     }
   };
 
-  const categoryObj = categories.find(c => c.id === product.category);
-  const categoryName = categoryObj?.name || 'مستلزمات الأطفال';
-
-  const discountPercent = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
-    : 0;
-
-  // Related products from same category
-  const relatedProducts = allProducts
-    .filter(p => p.id !== product.id && (p.category === product.category || product.category === 'all'))
-    .slice(0, 4);
-
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-8 animate-fadeIn">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-8 animate-fadeIn select-none">
       
-      {/* Fullscreen Media Modal when Zoom is Clicked */}
+      {/* Fullscreen Lightbox when image zoom is clicked */}
       {isFullscreenImage && currentMedia.type === 'image' && (
         <div 
           className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-fadeIn"
@@ -303,17 +199,21 @@ export default function ProductDetailView({
               e.stopPropagation();
               setIsFullscreenImage(false);
             }}
-            className="absolute top-5 left-5 z-20 p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-all"
+            className="absolute top-5 left-5 z-20 p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-all cursor-pointer"
             title="إغلاق التكبير"
             aria-label="إغلاق التكبير"
           >
             <X className="w-6 h-6 stroke-[2.5]" />
           </button>
 
-          <div className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div 
+            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={currentMedia.url}
               alt={product.name}
+              onError={handleImageError}
               className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl select-none"
             />
           </div>
@@ -321,24 +221,22 @@ export default function ProductDetailView({
         </div>
       )}
 
-      {/* 1. Top Action Header: زر الرجوع وزر المشاركة بالكامل خارج مربع مسار الصفحة والامتداد */}
+      {/* 1. Top Action Header: Navigation Back & Share Buttons */}
       <div className="flex items-center justify-between gap-3 select-none">
-        {/* زر الرجوع المستقل */}
         <button
           type="button"
           onClick={onGoBack || onReturnHome}
-          className="inline-flex items-center gap-2 bg-white hover:bg-pink-50 text-slate-800 hover:text-[#DF7E93] border border-pink-200/90 px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0"
+          className="inline-flex items-center gap-2 bg-white hover:bg-pink-50 text-slate-800 hover:text-[#DF7E93] border border-pink-200/90 px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0 cursor-pointer"
           title="رجوع"
         >
           <ArrowRight className="w-4 h-4 text-[#DF7E93]" />
           <span>رجوع</span>
         </button>
 
-        {/* زر المشاركة المستقل */}
         <button
           type="button"
           onClick={handleShare}
-          className="inline-flex items-center gap-2 bg-white hover:bg-pink-50 text-slate-700 hover:text-[#DF7E93] border border-pink-200/90 px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0"
+          className="inline-flex items-center gap-2 bg-white hover:bg-pink-50 text-slate-700 hover:text-[#DF7E93] border border-pink-200/90 px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0 cursor-pointer"
           title="مشاركة المنتج"
         >
           <Share2 className="w-4 h-4 text-[#DF7E93]" />
@@ -346,7 +244,7 @@ export default function ProductDetailView({
         </button>
       </div>
 
-      {/* 2. بطاقة مسار الصفحة التفاعلية الكاملة (تلتف على أسطر متعددة وتتيح النقر على كل جزء) */}
+      {/* 2. Interactive Breadcrumb Navigation Card */}
       <nav 
         aria-label="مسار التنقل" 
         className="w-full bg-white px-4 py-3 sm:py-3.5 rounded-2xl border border-pink-100 shadow-2xs leading-relaxed"
@@ -394,11 +292,11 @@ export default function ProductDetailView({
         </div>
       </nav>
 
-      {/* 2. Main Product Hero Section (Two-Column Layout) */}
+      {/* 3. Main Product Hero Section (Two-Column Layout) */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:divide-x lg:divide-x-reverse divide-slate-100">
           
-          {/* Column A: Media Gallery (5 of 12 cols on desktop) */}
+          {/* Column A: Media Gallery */}
           <div className="lg:col-span-5 p-4 sm:p-6 md:p-8 bg-slate-50/40 flex flex-col justify-between space-y-4">
             
             {/* Main Media Box with Zoom & Touch Swipe */}
@@ -412,7 +310,7 @@ export default function ProductDetailView({
                 if (currentMedia.type === 'image') setIsFullscreenImage(true);
               }}
             >
-              {/* If active media is Video */}
+              {/* Video Media */}
               {currentMedia.type === 'video' ? (
                 <div className="relative w-full h-full bg-black flex items-center justify-center">
                   <video
@@ -430,7 +328,7 @@ export default function ProductDetailView({
                     <button
                       type="button"
                       onClick={toggleVideoPlayback}
-                      className="bg-slate-900/85 backdrop-blur-md text-white p-2 rounded-xl hover:bg-slate-900 transition-all shadow-md flex items-center gap-1.5 text-xs font-bold"
+                      className="bg-slate-900/85 backdrop-blur-md text-white p-2 rounded-xl hover:bg-slate-900 transition-all shadow-md flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                     >
                       {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current text-pink-400" />}
                       <span>{isPlaying ? 'إيقاف مؤقت' : 'تشغيل'}</span>
@@ -439,7 +337,7 @@ export default function ProductDetailView({
                     <button
                       type="button"
                       onClick={toggleMute}
-                      className="bg-slate-900/85 backdrop-blur-md text-white p-2 rounded-xl hover:bg-slate-900 transition-all shadow-md flex items-center gap-1.5 text-xs font-bold"
+                      className="bg-slate-900/85 backdrop-blur-md text-white p-2 rounded-xl hover:bg-slate-900 transition-all shadow-md flex items-center gap-1.5 text-xs font-bold cursor-pointer"
                     >
                       {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
                       <span>{isMuted ? 'مكتوم' : 'الصوت يعمل'}</span>
@@ -452,6 +350,7 @@ export default function ProductDetailView({
                   <img
                     src={currentMedia.url}
                     alt={product.name}
+                    onError={handleImageError}
                     style={{
                       transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                       transform: isZoomed ? 'scale(2.2)' : 'scale(1)',
@@ -477,10 +376,10 @@ export default function ProductDetailView({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggleFavorite(product.id);
+                  if (onToggleFavorite) onToggleFavorite(product.id);
                 }}
-                className="absolute bottom-3 right-3 p-2.5 rounded-full bg-white/95 backdrop-blur-md shadow-md text-slate-400 hover:text-rose-500 transition-all hover:scale-110 active:scale-90 z-10 border border-slate-100"
-                title="إضافة للمفضلة"
+                className="absolute bottom-3 right-3 p-2.5 rounded-full bg-white/95 backdrop-blur-md shadow-md text-slate-400 hover:text-rose-500 transition-all hover:scale-110 active:scale-90 z-10 border border-slate-100 cursor-pointer"
+                title={isFavorite ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
               >
                 <Heart className={`w-5 h-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
               </button>
@@ -511,7 +410,7 @@ export default function ProductDetailView({
                     key={idx}
                     type="button"
                     onClick={() => handleSelectMedia(idx)}
-                    className={`relative w-16 h-16 rounded-2xl overflow-hidden border-2 shrink-0 transition-all bg-white p-1 flex items-center justify-center ${
+                    className={`relative w-16 h-16 rounded-2xl overflow-hidden border-2 shrink-0 transition-all bg-white p-1 flex items-center justify-center cursor-pointer ${
                       activeMediaIndex === idx 
                         ? 'border-[#DF7E93] scale-105 shadow-md ring-2 ring-pink-100' 
                         : 'border-slate-200 opacity-70 hover:opacity-100'
@@ -522,7 +421,12 @@ export default function ProductDetailView({
                         <Play className="w-5 h-5 fill-white text-white drop-shadow-xs" />
                       </div>
                     ) : (
-                      <img src={item.url} alt={`مصغر ${idx + 1}`} className="w-full h-full object-cover rounded-xl" />
+                      <img 
+                        src={item.url} 
+                        alt={`مصغر ${idx + 1}`} 
+                        onError={handleImageError}
+                        className="w-full h-full object-cover rounded-xl" 
+                      />
                     )}
                   </button>
                 ))}
@@ -531,12 +435,12 @@ export default function ProductDetailView({
 
           </div>
 
-          {/* Column B: Product Details & Purchase Actions (7 of 12 cols on desktop) */}
+          {/* Column B: Product Details & Purchase Actions */}
           <div className="lg:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-between space-y-6">
             
             <div className="space-y-4">
               
-              {/* Category Row */}
+              {/* Category Badge */}
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold bg-pink-50 text-[#DF7E93] px-3.5 py-1.5 rounded-full border border-pink-200/60 inline-flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#DF7E93]" />
@@ -578,119 +482,24 @@ export default function ProductDetailView({
               </p>
             </div>
 
-            {/* Custom Embroidery & Personalization Box */}
+            {/* Custom Embroidery & Personalization Form */}
             {Boolean(product.hasCustomName) && (
-              <div className="bg-pink-50/70 p-4 sm:p-5 rounded-2xl border border-pink-200/80 space-y-3.5">
-                
-                {/* Header: Title + Language Switch */}
-                <div className="flex items-center justify-between">
-                  <label className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <PenTool className="w-4 h-4 text-[#DF7E93]" />
-                    <span>تطريز اسم المولود مجاناً حسب رغبتك:</span>
-                  </label>
-
-                  <div className="flex items-center bg-white rounded-xl p-0.5 border border-pink-200 shadow-2xs text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => setNameLanguage('ar')}
-                      className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                        nameLanguage === 'ar' ? 'bg-[#DF7E93] text-white shadow-xs' : 'text-slate-600 hover:text-[#DF7E93]'
-                      }`}
-                    >
-                      عربي
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNameLanguage('en')}
-                      className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                        nameLanguage === 'en' ? 'bg-[#DF7E93] text-white shadow-xs' : 'text-slate-600 hover:text-[#DF7E93]'
-                      }`}
-                    >
-                      English
-                    </button>
-                  </div>
-                </div>
-
-                {/* Name Input */}
-                <input
-                  type="text"
-                  dir={nameLanguage === 'en' ? 'ltr' : 'rtl'}
-                  placeholder={nameLanguage === 'en' ? 'Type baby name in English (e.g. Faisal / Sarah)' : 'اكتب اسم المولود بالعربية (مثال: فيصل / سارة)'}
-                  value={customBabyName}
-                  onChange={(e) => setCustomBabyName(e.target.value)}
-                  className="w-full bg-white border border-pink-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm outline-none focus:border-[#DF7E93] focus:ring-2 focus:ring-pink-100 shadow-2xs transition-all"
-                />
-
-                {/* Thread Color */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5 text-xs">
-                  <span className="text-slate-700 font-bold">لون خيط التطريز المفضل:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {threadColors.map((tc) => (
-                      <button
-                        key={tc}
-                        type="button"
-                        onClick={() => setThreadColor(tc)}
-                        className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all ${
-                          threadColor === tc
-                            ? 'bg-[#DF7E93] text-white border-[#DF7E93] shadow-xs'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        {tc}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Optional Design File Upload */}
-                <div className="pt-1 border-t border-pink-200/60">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-
-                  {!customDesignFile ? (
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full py-2.5 px-3 bg-white hover:bg-pink-100/50 border border-dashed border-pink-300 rounded-xl text-xs font-bold text-[#DF7E93] flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
-                    >
-                      <Upload className="w-4 h-4 text-[#DF7E93]" />
-                      <span>إرفاق صورة أو باترون لتطريز خاص (اختياري)</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-emerald-200 shadow-2xs text-xs">
-                      <div className="flex items-center gap-2 truncate">
-                        <img src={customDesignFile} alt="باترون التصميم" className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0" />
-                        <span className="font-bold text-slate-700 truncate">{customDesignFileName || 'تم إرفاق صورة التصميم'}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRemoveFile}
-                        className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors shrink-0 mr-2"
-                        title="حذف الملف"
-                      >
-                        <Trash2 className="w-4 h-4 text-rose-500" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Additional Notes */}
-                <div className="pt-1">
-                  <textarea
-                    rows={2}
-                    placeholder="ملاحظات إضافية للتفصيل أو مكان التطريز (مثال: كتابة الاسم على البطانية والقبعة بخط الرقعة)..."
-                    value={customNotes}
-                    onChange={(e) => setCustomNotes(e.target.value)}
-                    className="w-full bg-white border border-pink-200 rounded-xl p-2.5 text-xs outline-none focus:border-[#DF7E93] text-right shadow-2xs resize-none"
-                  />
-                </div>
-
-              </div>
+              <CustomEmbroideryForm
+                customBabyName={customBabyName}
+                setCustomBabyName={setCustomBabyName}
+                nameLanguage={nameLanguage}
+                setNameLanguage={setNameLanguage}
+                threadColor={threadColor}
+                setThreadColor={setThreadColor}
+                threadColors={THREAD_COLORS}
+                customDesignFile={customDesignFile}
+                setCustomDesignFile={setCustomDesignFile}
+                customDesignFileName={customDesignFileName}
+                setCustomDesignFileName={setCustomDesignFileName}
+                customNotes={customNotes}
+                setCustomNotes={setCustomNotes}
+                compact={false}
+              />
             )}
 
             {/* Sizes & Colors Selection */}
@@ -706,7 +515,7 @@ export default function ProductDetailView({
                         key={sz}
                         type="button"
                         onClick={() => setSelectedSize(sz)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
+                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                           selectedSize === sz
                             ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                             : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
@@ -731,7 +540,7 @@ export default function ProductDetailView({
                         key={c.name}
                         type="button"
                         onClick={() => setSelectedColor(c.name)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${c.bg} ${
+                        className={`w-8 h-8 rounded-full border-2 transition-all cursor-pointer ${c.bg} ${
                           selectedColor === c.name
                             ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-110 shadow-xs'
                             : 'border-slate-200 hover:scale-105'
@@ -755,7 +564,7 @@ export default function ProductDetailView({
                   <button
                     type="button"
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="w-10 h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base shadow-2xs transition-colors"
+                    className="w-10 h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base shadow-2xs transition-colors cursor-pointer"
                   >
                     -
                   </button>
@@ -765,7 +574,7 @@ export default function ProductDetailView({
                   <button
                     type="button"
                     onClick={() => setQuantity(q => q + 1)}
-                    className="w-10 h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base shadow-2xs transition-colors"
+                    className="w-10 h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base shadow-2xs transition-colors cursor-pointer"
                   >
                     +
                   </button>
@@ -775,7 +584,7 @@ export default function ProductDetailView({
                 <button
                   type="button"
                   onClick={handleAdd}
-                  className={`flex-1 py-3.5 px-6 rounded-2xl text-xs sm:text-sm font-black transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 shadow-md ${
+                  className={`flex-1 py-3.5 px-6 rounded-2xl text-xs sm:text-sm font-black transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 shadow-md cursor-pointer ${
                     added
                       ? 'bg-emerald-600 text-white shadow-emerald-200'
                       : 'bg-[#DF7E93] hover:bg-[#d46b82] text-white shadow-pink-200'
@@ -796,12 +605,12 @@ export default function ProductDetailView({
 
               </div>
 
-              {/* Direct Checkout & WhatsApp Buttons */}
+              {/* Direct Checkout & WhatsApp Inquiry */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={handleDirectBuy}
-                  className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#0B7D52] hover:bg-[#096B45] text-white shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-[#0B7D52] hover:bg-[#096B45] text-white shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <CreditCard className="w-4 h-4" />
                   <span>شراء فوري الآن</span>
@@ -811,7 +620,7 @@ export default function ProductDetailView({
                   href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`مرحباً متجر ${storeName}، أود الاستفسار عن منتج: ${product.name} (السعر: ${product.price} ر.س)`)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 text-emerald-600" />
                   <span>استفسار واتساب سريع</span>
@@ -844,7 +653,7 @@ export default function ProductDetailView({
         </div>
       </div>
 
-      {/* 3. Detailed Information & Specifications Accordion / Cards */}
+      {/* 4. Specifications & Care Details Accordion / Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
         {/* Card 1: مواصفات وخامات القماش */}
@@ -882,7 +691,7 @@ export default function ProductDetailView({
 
       </div>
 
-      {/* 4. Related Products Section (منتجات مشابهة) */}
+      {/* 5. Related Products Section */}
       {relatedProducts.length > 0 && (
         <section className="space-y-4 pt-4">
           <div className="flex items-center justify-between border-b border-pink-100 pb-3">
@@ -894,8 +703,9 @@ export default function ProductDetailView({
             </div>
             {categoryObj && (
               <button
+                type="button"
                 onClick={() => onNavigateCategory && onNavigateCategory(categoryObj.id)}
-                className="text-xs font-bold text-[#DF7E93] hover:underline"
+                className="text-xs font-bold text-[#DF7E93] hover:underline cursor-pointer"
               >
                 عرض المزيد من {categoryName}
               </button>
@@ -924,3 +734,4 @@ export default function ProductDetailView({
   );
 }
 
+export default memo(ProductDetailView);
