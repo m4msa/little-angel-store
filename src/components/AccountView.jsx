@@ -424,7 +424,20 @@ export default function AccountView({
                   className="text-[#DF7E93] hover:underline font-bold flex items-center gap-1"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  <span>تعبئة سريعة لحساب المدير (Admin Auto-fill)</span>
+                  <span>حساب المدير (Admin)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginIdentifier('ama2026@gmail.com');
+                    setLoginPassword('12345678');
+                    setLoginError('');
+                  }}
+                  className="text-sky-600 hover:underline font-bold flex items-center gap-1 bg-sky-50 px-2.5 py-1 rounded-xl border border-sky-100"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>حساب أمجد (مسؤول شحن)</span>
                 </button>
 
                 <button
@@ -437,7 +450,7 @@ export default function AccountView({
                   className="text-slate-600 hover:underline font-bold flex items-center gap-1"
                 >
                   <User className="w-3.5 h-3.5" />
-                  <span>تعبئة حساب عميل تجريبي</span>
+                  <span>عميل تجريبي</span>
                 </button>
               </div>
             </form>
@@ -641,14 +654,16 @@ export default function AccountView({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
-          {currentUser.role === 'admin' && (
+          {Boolean(currentUser && ['admin', 'supervisor', 'editor', 'order_specialist'].includes(currentUser.role)) && (
             <button
               type="button"
               onClick={onGoToAdmin}
               className="bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold px-4 py-2.5 rounded-2xl text-xs flex items-center gap-2 shadow-sm transition-all hover:scale-105 active:scale-95"
             >
               <ShieldCheck className="w-4 h-4 text-amber-400" />
-              <span>لوحة الإدارة الكاملة</span>
+              <span>
+                {currentUser.role === 'admin' ? 'لوحة الإدارة الكاملة' : 'لوحة تحكم وصلاحيات الموظف'}
+              </span>
             </button>
           )}
 

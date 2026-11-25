@@ -83,30 +83,50 @@ export default function AdminLoginPage({
         cleanEmail === 'msaawadi2016@gmail.com' ||
         cleanEmail === 'admin@littleangel.com';
 
-      // 2. Safely verify against registered admin users in localStorage
-      const storedUsers = safeJsonParse(localStorage.getItem('angel_users'), []);
-      const matchedAdmin = Array.isArray(storedUsers)
-        ? storedUsers.find(
-            (u) =>
-              u &&
-              u.role === 'admin' &&
-              ((u.email && u.email.toLowerCase() === cleanEmail) ||
-                (u.phone && u.phone.replace(/[^0-9]/g, '') === cleanEmail.replace(/[^0-9]/g, '')))
-          )
-        : null;
+      // 2. Safely verify against registered admin/staff users in localStorage
+      const storedUsersV2 = safeJsonParse(localStorage.getItem('angel_users_v2'), []);
+      const storedUsersV1 = safeJsonParse(localStorage.getItem('angel_users'), []);
+      const allStoredUsers = Array.isArray(storedUsersV2) && storedUsersV2.length > 0 
+        ? storedUsersV2 
+        : (Array.isArray(storedUsersV1) ? storedUsersV1 : []);
+
+      const STAFF_ROLES = ['admin', 'supervisor', 'editor', 'order_specialist'];
+      const cleanPhoneInput = cleanEmail.replace(/[^0-9]/g, '');
+
+      // Check predefined staff (including amjad)
+      const isAmjad = cleanEmail === 'ama2026@gmail.com' || cleanPhoneInput === '555545555';
+
+      const matchedStaff = allStoredUsers.find(
+        (u) =>
+          u &&
+          STAFF_ROLES.includes(u.role) &&
+          ((u.email && u.email.toLowerCase() === cleanEmail) ||
+            (cleanPhoneInput && u.phone && String(u.phone).replace(/[^0-9]/g, '').includes(cleanPhoneInput)))
+      );
+
+      const targetUser = matchedStaff || (isAmjad ? {
+        id: 'USR-AMJAD',
+        name: 'امجد البركاني',
+        email: 'ama2026@gmail.com',
+        phone: '555545555',
+        city: 'الرياض',
+        address: 'العزيزه',
+        role: 'order_specialist',
+        password: '12345678'
+      } : null);
 
       const isPassValid =
         cleanPass === '12345678' ||
         cleanPass === '123' ||
-        (matchedAdmin && matchedAdmin.password && cleanPass === String(matchedAdmin.password));
+        (targetUser && targetUser.password && cleanPass === String(targetUser.password));
 
-      const isEmailValid = isPredefinedEmail || Boolean(matchedAdmin);
+      const isEmailValid = isPredefinedEmail || Boolean(targetUser);
 
       if (isEmailValid && isPassValid) {
         setIsLoading(false);
         setFailedAttempts(0);
         if (typeof onLoginSuccess === 'function') {
-          onLoginSuccess();
+          onLoginSuccess(targetUser);
         }
       } else {
         setIsLoading(false);
@@ -250,34 +270,46 @@ export default function AdminLoginPage({
         </form>
 
         {/* Safe Demo Autofill button */}
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-[11px] text-slate-600 space-y-1.5">
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-[11px] text-slate-600 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="font-bold text-slate-800">بيانات دخول المدير الافتراضية:</p>
-            <button
-              type="button"
-              disabled={isLoading || isLockedOut}
-              onClick={() => {
-                setEmail('msaawadi2016@gmail.com');
-                setPassword('12345678');
-                setError('');
-              }}
-              className="text-[#DF7E93] hover:underline font-bold text-[10px]"
-            >
-              تعبئة تلقائية
-            </button>
+            <p className="font-bold text-slate-800">بيانات دخول سريعة للتجربة:</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isLoading || isLockedOut}
+                onClick={() => {
+                  setEmail('ama2026@gmail.com');
+                  setPassword('12345678');
+                  setError('');
+                }}
+                className="text-sky-600 hover:underline font-bold text-[10px] bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100"
+              >
+                دخول أمجد (مسؤول شحن)
+              </button>
+              <button
+                type="button"
+                disabled={isLoading || isLockedOut}
+                onClick={() => {
+                  setEmail('msaawadi2016@gmail.com');
+                  setPassword('12345678');
+                  setError('');
+                }}
+                className="text-[#DF7E93] hover:underline font-bold text-[10px] bg-pink-50 px-2 py-0.5 rounded-lg border border-pink-100"
+              >
+                دخول المدير العام
+              </button>
+            </div>
           </div>
-          <p>
-            • اليوزر:{' '}
-            <span className="font-mono text-slate-900 font-bold" dir="ltr">
-              msaawadi2016@gmail.com
-            </span>
-          </p>
-          <p>
-            • كلمة السر:{' '}
-            <span className="font-mono text-slate-900 font-bold" dir="ltr">
-              12345678
-            </span>
-          </p>
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/50 text-[10px]">
+            <div>
+              <span className="font-bold text-slate-700 block">حساب المدير:</span>
+              <span className="font-mono text-slate-500" dir="ltr">msaawadi2016@gmail.com</span>
+            </div>
+            <div>
+              <span className="font-bold text-sky-700 block">حساب أمجد (فريق العمل):</span>
+              <span className="font-mono text-slate-500" dir="ltr">ama2026@gmail.com</span>
+            </div>
+          </div>
         </div>
 
         {typeof onGoToCustomerLogin === 'function' && (

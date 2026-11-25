@@ -557,6 +557,26 @@ export default function AdminPanel({
           <p className="text-xs text-slate-500 mt-0.5">
             بضغطات بسيطة يمكنك تعديل الألوان، الأسماء، المنتجات، الأقسام، الشحن، والكوبونات بكل حرية وأمان.
           </p>
+          {currentUser && (
+            <div className="mt-2.5 flex items-center gap-2 flex-wrap text-xs">
+              <span className="font-bold text-slate-400">المستخدم الحالي:</span>
+              <span className="font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                {currentUser.name}
+              </span>
+              <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border ${
+                currentUser.role === 'admin' 
+                  ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                  : 'bg-sky-50 text-sky-700 border-sky-200'
+              }`}>
+                {ROLE_PRESETS[currentUser.role]?.label || currentUser.role}
+              </span>
+              {currentUser.email && (
+                <span className="font-mono text-slate-400 text-[11px] dir-ltr">
+                  ({currentUser.email})
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
@@ -671,21 +691,23 @@ export default function AdminPanel({
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'users'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>المستخدمين والصلاحيات ({safeUsers.length})</span>
-            <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-              RBAC
-            </span>
-          </button>
+          {currentOperatorPerms.canManageUsers && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                activeTab === 'users'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>المستخدمين والصلاحيات ({safeUsers.length})</span>
+              <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                RBAC
+              </span>
+            </button>
+          )}
 
           <button
             type="button"
