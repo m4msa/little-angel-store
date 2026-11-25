@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, Mail, Phone, MapPin, Lock, ShoppingBag, Heart, ShieldCheck, 
-  LogOut, CheckCircle2, AlertCircle, ArrowRight, Package, Clock, 
-  Truck, Check, ChevronLeft, Eye, MessageCircle, RotateCcw, Edit3, Save, Sparkles, KeyRound
+  LogOut, CheckCircle2, AlertCircle, ArrowRight, Check, ChevronLeft, 
+  MessageCircle, Save, Sparkles, KeyRound, Eye, EyeOff 
 } from 'lucide-react';
+import { 
+  sanitizeString, 
+  sanitizeUrl, 
+  buildWhatsAppUrl, 
+  validateEmail, 
+  validatePhone, 
+  safeOpenExternal 
+} from '../utils/security';
 
 const SAUDI_CITIES = [
   'الرياض', 'جدة', 'مكة المكرمة', 'المدينة المنورة', 
@@ -13,29 +21,32 @@ const SAUDI_CITIES = [
 ];
 
 export default function AccountView({
-  currentUser,
-  onLogin,
-  onRegister,
-  onUpdateProfile,
-  onLogout,
-  onNavigateHome,
+  currentUser = null,
+  onLogin = () => ({ success: false, message: 'دخول غير متاح حالياً' }),
+  onRegister = () => ({ success: false, message: 'التسجيل غير متاح حالياً' }),
+  onUpdateProfile = () => {},
+  onLogout = () => {},
+  onNavigateHome = () => {},
   orders = [],
   wishlist = [],
   products = [],
-  onOpenProduct,
-  onAddToCart,
-  onGoToAdmin,
-  isAdminLoggedIn,
+  onOpenProduct = () => {},
+  onAddToCart = () => {},
+  onGoToAdmin = () => {},
+  isAdminLoggedIn = false,
   storeSettings = {}
 }) {
   // If not logged in: 'login' | 'register'
   const [authMode, setAuthMode] = useState('login');
 
+  // Password visibility
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
+
   // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [loginSuccess, setLoginSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Register form state
@@ -51,7 +62,7 @@ export default function AccountView({
   });
   const [registerError, setRegisterError] = useState('');
 
-  // Dashboard active sub-tab for logged-in user: 'profile' | 'orders' | 'wishlist'
+  // Dashboard active sub-tab for logged-in user: 'orders' | 'profile' | 'wishlist'
   const [activeTab, setActiveTab] = useState('orders');
 
   // Profile Edit State
@@ -64,9 +75,18 @@ export default function AccountView({
     deliveryNotes: currentUser?.deliveryNotes || ''
   }));
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
+  const [profileErrorMsg, setProfileErrorMsg] = useState('');
 
-  // Update profileForm if currentUser changes
-  React.useEffect(() => {
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  // Sync profileForm if currentUser changes
+  useEffect(() => {
     if (currentUser) {
       setProfileForm({
         name: currentUser.name || '',
@@ -83,13 +103,27 @@ export default function AccountView({
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     setLoginError('');
+
+    const cleanId = sanitizeString(loginIdentifier, 100);
+    const cleanPass = sanitizeString(loginPassword, 100);
+
+    if (!cleanId || !cleanPass) {
+      setLoginError('يرجى إدخال رقم الهاتف أو البريد وكلمة المرور.');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const result = onLogin(loginIdentifier.trim(), loginPassword.trim());
-    setIsSubmitting(false);
+    try {
+      const result = onLogin(cleanId, cleanPass);
+      setIsSubmitting(false);
 
-    if (result && !result.success) {
-      setLoginError(result.message || 'بيانات الدخول غير صحيحة، تأكد من رقم الهاتف/البريد وكلمة المرور');
+      if (result && !result.success) {
+        setLoginError(result.message || 'بيانات الدخول غير صحيحة، تأكد من رقم الهاتف/البريد وكلمة المرور');
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      setLoginError('حدث خطأ غير متوقع أثناء تسجيل الدخول. يرجى المحاولة لاحقاً.');
     }
   };
 
@@ -98,27 +132,62 @@ export default function AccountView({
     e.preventDefault();
     setRegisterError('');
 
-    if (!registerData.name.trim() || !registerData.phone.trim() || !registerData.address.trim()) {
+    const cleanName = sanitizeString(registerData.name, 80);
+    const cleanPhone = sanitizeString(registerData.phone, 20);
+    const cleanEmail = sanitizeString(registerData.email, 100);
+    const cleanCity = sanitizeString(registerData.city, 50);
+    const cleanAddress = sanitizeString(registerData.address, 250);
+    const cleanNotes = sanitizeString(registerData.deliveryNotes, 200);
+    const cleanPass = sanitizeString(registerData.password, 64);
+    const cleanConfirm = sanitizeString(registerData.confirmPassword, 64);
+
+    if (!cleanName || !cleanPhone || !cleanAddress) {
       setRegisterError('يرجى ملء جميع الحقول المطلوبة (الاسم، الجوال، العنوان)');
       return;
     }
 
-    if (registerData.password.length < 3) {
-      setRegisterError('كلمة المرور يجب أن لا تقل عن 3 أحرف/أرقام');
+    if (!validatePhone(cleanPhone)) {
+      setRegisterError('يرجى إدخال رقم جوال صحيح يتكون من 9 أرقام على الأقل');
       return;
     }
 
-    if (registerData.password !== registerData.confirmPassword) {
+    if (cleanEmail && !validateEmail(cleanEmail)) {
+      setRegisterError('يرجى إدخال بريد إلكتروني صحيح أو ترك الحقل فارغاً');
+      return;
+    }
+
+    if (cleanPass.length < 4) {
+      setRegisterError('كلمة المرور يجب أن لا تقل عن 4 خانات');
+      return;
+    }
+
+    if (cleanPass !== cleanConfirm) {
       setRegisterError('كلمتا المرور غير متطابقتين');
       return;
     }
 
     setIsSubmitting(true);
-    const result = onRegister(registerData);
-    setIsSubmitting(false);
 
-    if (result && !result.success) {
-      setRegisterError(result.message || 'حدث خطأ أثناء إنشاء الحساب، يرجى المحاولة مرة أخرى');
+    try {
+      const payload = {
+        name: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        city: cleanCity || 'الرياض',
+        address: cleanAddress,
+        deliveryNotes: cleanNotes,
+        password: cleanPass
+      };
+
+      const result = onRegister(payload);
+      setIsSubmitting(false);
+
+      if (result && !result.success) {
+        setRegisterError(result.message || 'حدث خطأ أثناء إنشاء الحساب، يرجى المحاولة مرة أخرى');
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      setRegisterError('حدث خطأ غير متوقع أثناء التسجيل. يرجى المحاولة لاحقاً.');
     }
   };
 
@@ -126,34 +195,90 @@ export default function AccountView({
   const handleProfileSave = (e) => {
     e.preventDefault();
     setProfileSuccessMsg('');
-    if (!profileForm.name.trim() || !profileForm.phone.trim() || !profileForm.address.trim()) {
-      alert('يرجى ملء الاسم ورقم الهاتف والعنوان التفصيلي');
+    setProfileErrorMsg('');
+
+    const cleanName = sanitizeString(profileForm.name, 80);
+    const cleanPhone = sanitizeString(profileForm.phone, 20);
+    const cleanEmail = sanitizeString(profileForm.email, 100);
+    const cleanCity = sanitizeString(profileForm.city, 50);
+    const cleanAddress = sanitizeString(profileForm.address, 250);
+    const cleanNotes = sanitizeString(profileForm.deliveryNotes, 200);
+
+    if (!cleanName || !cleanPhone || !cleanAddress) {
+      setProfileErrorMsg('يرجى ملء الاسم ورقم الهاتف والعنوان التفصيلي بشكل صحيح.');
       return;
     }
 
-    onUpdateProfile(profileForm);
-    setProfileSuccessMsg('تم حفظ وتحديث بيانات حسابك وموقع التوصيل بنجاح!');
-    setTimeout(() => setProfileSuccessMsg(''), 4000);
+    if (!validatePhone(cleanPhone)) {
+      setProfileErrorMsg('رقم الجوال المدخل غير صحيح، يرجى إدخال رقم هاتف سليم.');
+      return;
+    }
+
+    if (cleanEmail && !validateEmail(cleanEmail)) {
+      setProfileErrorMsg('صيغة البريد الإلكتروني غير صحيحة.');
+      return;
+    }
+
+    try {
+      const updatedData = {
+        name: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        city: cleanCity || 'الرياض',
+        address: cleanAddress,
+        deliveryNotes: cleanNotes
+      };
+
+      if (typeof onUpdateProfile === 'function') {
+        onUpdateProfile(updatedData);
+      }
+
+      setProfileSuccessMsg('تم حفظ وتحديث بيانات حسابك وموقع التوصيل بنجاح!');
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setProfileSuccessMsg(''), 4000);
+    } catch (err) {
+      setProfileErrorMsg('تعذر حفظ البيانات حالياً. يرجى إعادة المحاولة.');
+    }
   };
 
-  // Filter orders for the logged-in customer
-  const userOrders = orders.filter(order => {
-    if (!currentUser) return false;
+  // Filter orders safely for the logged-in customer
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeWishlist = Array.isArray(wishlist) ? wishlist : [];
+  const safeProducts = Array.isArray(products) ? products : [];
+
+  const userOrders = safeOrders.filter((order) => {
+    if (!currentUser || !order) return false;
     const matchId = order.customerId && order.customerId === currentUser.id;
-    const matchEmail = currentUser.email && order.customer?.email?.toLowerCase() === currentUser.email.toLowerCase();
-    const matchPhone = currentUser.phone && order.customer?.phone?.replace(/[^0-9]/g, '') === currentUser.phone.replace(/[^0-9]/g, '');
+    const matchEmail =
+      currentUser.email &&
+      order.customer?.email &&
+      order.customer.email.toLowerCase() === currentUser.email.toLowerCase();
+    const matchPhone =
+      currentUser.phone &&
+      order.customer?.phone &&
+      order.customer.phone.replace(/[^0-9]/g, '') === currentUser.phone.replace(/[^0-9]/g, '');
     return matchId || matchEmail || matchPhone;
   });
 
   // Favorite products
-  const favoriteProducts = products.filter(p => wishlist.includes(p.id));
+  const favoriteProducts = safeProducts.filter((p) => p && safeWishlist.includes(p.id));
 
-  // Quick WhatsApp tracking launcher
+  // Quick WhatsApp tracking launcher with safe URI encoding and noopener
   const openWhatsAppTracking = (order) => {
-    const whatsappNum = storeSettings.whatsappNumber || '967775302137';
-    const msg = `مرحباً متجر ${storeSettings.storeName || 'الملاك الصغير'}،%0Aأنا العميل: *${order.customer?.name || currentUser?.name}*%0Aأود الاستفسار عن حالة طلبي رقم: *${order.id}*%0Aالإجمالي: ${order.total} ر.س.`;
-    window.open(`https://wa.me/${whatsappNum}?text=${msg}`, '_blank');
+    if (!order) return;
+    const whatsappNum = storeSettings?.whatsappNumber || '967775302137';
+    const storeName = storeSettings?.storeName || 'الملاك الصغير';
+    const customerName = order.customer?.name || currentUser?.name || 'عميل المتجر';
+    const orderId = order.id || 'N/A';
+    const orderTotal = order.total || 0;
+
+    const messageText = `مرحباً متجر ${storeName}،\nأنا العميل: *${customerName}*\nأود الاستفسار عن حالة طلبي رقم: *${orderId}*\nالإجمالي: ${orderTotal} ر.س.`;
+    const waUrl = buildWhatsAppUrl(whatsappNum, messageText);
+    safeOpenExternal(waUrl);
   };
+
+  const fallbackProductImage =
+    'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=400&q=80';
 
   // =========================================================================
   // VIEW 1: GUEST AUTHENTICATION (Login / Register Tabs)
@@ -161,13 +286,12 @@ export default function AccountView({
   if (!currentUser) {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 animate-fadeIn">
-        
         {/* Back to Home Button */}
         <div className="mb-4">
           <button
             type="button"
             onClick={onNavigateHome}
-            className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors"
+            className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors focus:outline-none focus:underline"
           >
             <ArrowRight className="w-4 h-4" />
             <span>العودة للمتجر الرئيسي</span>
@@ -175,14 +299,13 @@ export default function AccountView({
         </div>
 
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-pink-200/80 shadow-md space-y-6">
-          
           {/* Header Branding */}
           <div className="text-center space-y-2">
             <div className="w-16 h-16 mx-auto rounded-3xl bg-pink-100/70 text-[#DF7E93] flex items-center justify-center shadow-inner">
               <User className="w-8 h-8" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
-              حسابي في {storeSettings.storeName || 'الملاك الصغير'}
+              حسابي في {storeSettings?.storeName || 'الملاك الصغير'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
               سجلي دخولك أو أنشئي حسابك الفاخر لحفظ بيانات التوصيل، متابعة حالة طلباتك، وسرعة الشراء بضغطة زر.
@@ -224,38 +347,52 @@ export default function AccountView({
           {/* ===================== TAB 1: LOGIN FORM ===================== */}
           {authMode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4 pt-2">
-              
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label htmlFor="login-id" className="block text-xs font-bold text-slate-700">
                   رقم الجوال أو البريد الإلكتروني *
                 </label>
                 <div className="relative">
                   <input
+                    id="login-id"
                     type="text"
                     required
+                    maxLength={100}
+                    autoComplete="username"
                     placeholder="مثال: 0551234567 أو sarah@gmail.com"
                     value={loginIdentifier}
                     onChange={(e) => setLoginIdentifier(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-3 pl-10 pr-4 text-xs font-bold outline-none transition-all text-right"
                   />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label htmlFor="login-pwd" className="block text-xs font-bold text-slate-700">
                   كلمة المرور *
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    id="login-pwd"
+                    type={showLoginPassword ? 'text' : 'password'}
                     required
+                    maxLength={64}
+                    autoComplete="current-password"
                     placeholder="••••••••"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-3 pl-10 pr-4 text-xs font-bold outline-none transition-all text-right"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-3 pl-10 pr-10 text-xs font-bold outline-none transition-all text-right"
                   />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    title={showLoginPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -271,17 +408,18 @@ export default function AccountView({
                 disabled={isSubmitting}
                 className="w-full bg-gradient-to-r from-[#DF7E93] to-pink-500 hover:from-[#d36b82] hover:to-pink-600 text-white font-black py-3.5 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99] disabled:opacity-50"
               >
-                <span>تسجيل الدخول إلى حسابي</span>
+                <span>{isSubmitting ? 'جاري التحقق...' : 'تسجيل الدخول إلى حسابي'}</span>
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              {/* Fast Admin Entrance Hint */}
+              {/* Fast Login Autofill Hints for Testing */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
                 <button
                   type="button"
                   onClick={() => {
                     setLoginIdentifier('msaawadi2016@gmail.com');
                     setLoginPassword('12345678');
+                    setLoginError('');
                   }}
                   className="text-[#DF7E93] hover:underline font-bold flex items-center gap-1"
                 >
@@ -294,6 +432,7 @@ export default function AccountView({
                   onClick={() => {
                     setLoginIdentifier('sarah@gmail.com');
                     setLoginPassword('123');
+                    setLoginError('');
                   }}
                   className="text-slate-600 hover:underline font-bold flex items-center gap-1"
                 >
@@ -301,23 +440,23 @@ export default function AccountView({
                   <span>تعبئة حساب عميل تجريبي</span>
                 </button>
               </div>
-
             </form>
           )}
 
           {/* ===================== TAB 2: REGISTER FORM ===================== */}
           {authMode === 'register' && (
             <form onSubmit={handleRegisterSubmit} className="space-y-4 pt-2">
-              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Full Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label htmlFor="reg-name" className="block text-xs font-bold text-slate-700">
                     الاسم الثلاثي أو المستعار *
                   </label>
                   <input
+                    id="reg-name"
                     type="text"
                     required
+                    maxLength={80}
                     placeholder="مثال: سارة أحمد الخالدي"
                     value={registerData.name}
                     onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
@@ -327,12 +466,14 @@ export default function AccountView({
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label htmlFor="reg-phone" className="block text-xs font-bold text-slate-700">
                     رقم الجوال (للتوصيل والواتساب) *
                   </label>
                   <input
+                    id="reg-phone"
                     type="tel"
                     required
+                    maxLength={20}
                     placeholder="مثال: 0551234567"
                     value={registerData.phone}
                     onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
@@ -345,11 +486,13 @@ export default function AccountView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label htmlFor="reg-email" className="block text-xs font-bold text-slate-700">
                     البريد الإلكتروني (اختياري)
                   </label>
                   <input
+                    id="reg-email"
                     type="email"
+                    maxLength={100}
                     placeholder="sarah@example.com"
                     value={registerData.email}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
@@ -360,10 +503,11 @@ export default function AccountView({
 
                 {/* City */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label htmlFor="reg-city" className="block text-xs font-bold text-slate-700">
                     المدينة *
                   </label>
                   <select
+                    id="reg-city"
                     value={registerData.city}
                     onChange={(e) => setRegisterData({ ...registerData, city: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 text-xs font-bold outline-none"
@@ -377,13 +521,15 @@ export default function AccountView({
 
               {/* Detailed Delivery Address */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <label htmlFor="reg-address" className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-rose-500" />
                   <span>عنوان وموقع التوصيل التفصيلي (يحفظ لتسريع طلباتك دائماً) *</span>
                 </label>
                 <textarea
+                  id="reg-address"
                   rows={2}
                   required
+                  maxLength={250}
                   placeholder="مثال: حي الياسمين، شارع أنس بن مالك، بجانب حديقة الياسمين، فيلا رقم 14"
                   value={registerData.address}
                   onChange={(e) => setRegisterData({ ...registerData, address: e.target.value })}
@@ -394,22 +540,36 @@ export default function AccountView({
               {/* Passwords */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">كلمة المرور *</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 text-xs font-bold outline-none"
-                  />
+                  <label htmlFor="reg-pwd" className="block text-xs font-bold text-slate-700">كلمة المرور *</label>
+                  <div className="relative">
+                    <input
+                      id="reg-pwd"
+                      type={showRegPassword ? 'text' : 'password'}
+                      required
+                      maxLength={64}
+                      placeholder="••••••••"
+                      value={registerData.password}
+                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 pr-10 text-xs font-bold outline-none"
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="absolute left-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    >
+                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">تأكيد كلمة المرور *</label>
+                  <label htmlFor="reg-pwd-confirm" className="block text-xs font-bold text-slate-700">تأكيد كلمة المرور *</label>
                   <input
-                    type="password"
+                    id="reg-pwd-confirm"
+                    type={showRegPassword ? 'text' : 'password'}
                     required
+                    maxLength={64}
                     placeholder="••••••••"
                     value={registerData.confirmPassword}
                     onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
@@ -431,14 +591,11 @@ export default function AccountView({
                 className="w-full bg-gradient-to-r from-[#DF7E93] to-pink-500 hover:from-[#d36b82] hover:to-pink-600 text-white font-black py-3.5 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99] disabled:opacity-50"
               >
                 <Check className="w-4 h-4" />
-                <span>إنشاء الحساب وتفعيل العضوية الملكية</span>
+                <span>{isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب وتفعيل العضوية الملكية'}</span>
               </button>
-
             </form>
           )}
-
         </div>
-
       </div>
     );
   }
@@ -448,10 +605,8 @@ export default function AccountView({
   // =========================================================================
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 animate-fadeIn">
-      
       {/* 1. Header Card: Welcome, User Avatar, and Navigation */}
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-pink-200/80 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-        
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#DF7E93] to-pink-400 text-white flex items-center justify-center font-black text-2xl shadow-md shrink-0">
             {currentUser.name ? currentUser.name.charAt(0) : 'م'}
@@ -478,7 +633,9 @@ export default function AccountView({
               {currentUser.email && ` | ${currentUser.email}`}
             </p>
             <p className="text-xs text-slate-400">
-              موقع التوصيل: <span className="font-bold text-slate-600">{currentUser.city}</span> - {currentUser.address}
+              موقع التوصيل:{' '}
+              <span className="font-bold text-slate-600">{currentUser.city || 'الرياض'}</span> -{' '}
+              {currentUser.address || 'العنوان غير مسجل'}
             </p>
           </div>
         </div>
@@ -513,7 +670,6 @@ export default function AccountView({
             <span>خروج</span>
           </button>
         </div>
-
       </div>
 
       {/* 2. Dashboard Segmented Tabs */}
@@ -595,17 +751,16 @@ export default function AccountView({
 
                 return (
                   <div key={order.id} className="bg-white rounded-3xl p-5 sm:p-6 border border-pink-100/90 shadow-xs space-y-4">
-                    
                     {/* Order Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-black text-slate-900 text-sm">{order.id}</span>
-                          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusColors[order.status] || 'bg-slate-100 text-slate-700'}`}>
+                          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${statusColors[order.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
                             {order.status || 'قيد التجهيز'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5">تاريخ الطلب: {order.date}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">تاريخ الطلب: {order.date || 'اليوم'}</p>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -625,8 +780,8 @@ export default function AccountView({
                       {(order.items || []).map((it, idx) => (
                         <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50/70 rounded-2xl border border-slate-100">
                           <img 
-                            src={it.image} 
-                            alt={it.name} 
+                            src={sanitizeUrl(it.image, fallbackProductImage)} 
+                            alt={it.name || 'منتج'} 
                             className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0" 
                           />
                           <div className="flex-1 text-xs">
@@ -643,7 +798,7 @@ export default function AccountView({
                           </div>
                           <div className="text-left shrink-0">
                             <span className="font-bold text-slate-900 text-xs">{it.price} ر.س</span>
-                            <span className="block text-[10px] text-slate-400">الكمية: {it.quantity}</span>
+                            <span className="block text-[10px] text-slate-400">الكمية: {it.quantity || 1}</span>
                           </div>
                         </div>
                       ))}
@@ -653,14 +808,13 @@ export default function AccountView({
                     <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2">
                       <div className="flex items-center gap-2 text-slate-500">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span>التوصيل إلى: {order.customer?.city} - {order.customer?.address}</span>
+                        <span>التوصيل إلى: {order.customer?.city || 'الرياض'} - {order.customer?.address || 'العنوان المسجل'}</span>
                       </div>
                       <div className="flex items-center gap-3 font-bold text-slate-800">
                         <span>الإجمالي المدفوع:</span>
-                        <span className="text-base font-black text-[#DF7E93]">{order.total} ر.س</span>
+                        <span className="text-base font-black text-[#DF7E93]">{order.total || 0} ر.س</span>
                       </div>
                     </div>
-
                   </div>
                 );
               })}
@@ -674,7 +828,6 @@ export default function AccountView({
       {/* ========================================================= */}
       {activeTab === 'profile' && (
         <form onSubmit={handleProfileSave} className="bg-white rounded-3xl p-6 sm:p-8 border border-pink-100 shadow-xs space-y-5">
-          
           <div>
             <h3 className="text-lg font-black text-slate-900">بياناتي الشخصية وموقع التوصيل</h3>
             <p className="text-xs text-slate-500">
@@ -689,12 +842,21 @@ export default function AccountView({
             </div>
           )}
 
+          {profileErrorMsg && (
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-2 text-rose-700 text-xs font-bold animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{profileErrorMsg}</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">الاسم الكامل *</label>
+              <label htmlFor="prof-name" className="block text-xs font-bold text-slate-700">الاسم الكامل *</label>
               <input
+                id="prof-name"
                 type="text"
                 required
+                maxLength={80}
                 value={profileForm.name}
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 text-xs font-bold outline-none"
@@ -702,10 +864,12 @@ export default function AccountView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">رقم الجوال *</label>
+              <label htmlFor="prof-phone" className="block text-xs font-bold text-slate-700">رقم الجوال *</label>
               <input
+                id="prof-phone"
                 type="tel"
                 required
+                maxLength={20}
                 value={profileForm.phone}
                 onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 text-xs font-bold outline-none text-left"
@@ -716,9 +880,11 @@ export default function AccountView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">البريد الإلكتروني</label>
+              <label htmlFor="prof-email" className="block text-xs font-bold text-slate-700">البريد الإلكتروني</label>
               <input
+                id="prof-email"
                 type="email"
+                maxLength={100}
                 value={profileForm.email}
                 onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 text-xs font-bold outline-none text-left"
@@ -727,8 +893,9 @@ export default function AccountView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">المدينة *</label>
+              <label htmlFor="prof-city" className="block text-xs font-bold text-slate-700">المدينة *</label>
               <select
+                id="prof-city"
                 value={profileForm.city}
                 onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl py-2.5 px-3.5 text-xs font-bold outline-none"
@@ -741,13 +908,15 @@ export default function AccountView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <label htmlFor="prof-address" className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-rose-500" />
               <span>العنوان الوطني وموقع التوصيل التفصيلي (الحي، الشارع، رقم المنزل) *</span>
             </label>
             <textarea
+              id="prof-address"
               rows={3}
               required
+              maxLength={250}
               value={profileForm.address}
               onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 focus:border-[#DF7E93] focus:bg-white rounded-2xl p-3 text-xs font-medium outline-none resize-none"
@@ -755,11 +924,13 @@ export default function AccountView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">
+            <label htmlFor="prof-notes" className="block text-xs font-bold text-slate-700">
               تعليمات خاصة لشركة الشحن والتوصيل (اختياري)
             </label>
             <input
+              id="prof-notes"
               type="text"
+              maxLength={200}
               placeholder="مثال: يرجى الاتصال قبل الوصول بنصف ساعة"
               value={profileForm.deliveryNotes}
               onChange={(e) => setProfileForm({ ...profileForm, deliveryNotes: e.target.value })}
@@ -776,7 +947,6 @@ export default function AccountView({
               <span>حفظ التعديلات وتحديث موقعي</span>
             </button>
           </div>
-
         </form>
       )}
 
@@ -795,7 +965,7 @@ export default function AccountView({
               <button
                 type="button"
                 onClick={onNavigateHome}
-                className="bg-[#DF7E93] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm"
+                className="bg-[#DF7E93] text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-sm hover:bg-[#d56b82] transition-colors"
               >
                 تصفح المنتجات
               </button>
@@ -805,16 +975,20 @@ export default function AccountView({
               {favoriteProducts.map((prod) => (
                 <div key={prod.id} className="bg-white rounded-3xl p-3 border border-pink-100 shadow-xs flex flex-col justify-between space-y-2">
                   <div 
-                    onClick={() => onOpenProduct && onOpenProduct(prod)}
+                    onClick={() => typeof onOpenProduct === 'function' && onOpenProduct(prod)}
                     className="cursor-pointer"
                   >
-                    <img src={prod.image} alt={prod.name} className="w-full h-36 object-cover rounded-2xl" />
+                    <img 
+                      src={sanitizeUrl(prod.image, fallbackProductImage)} 
+                      alt={prod.name || 'منتج'} 
+                      className="w-full h-36 object-cover rounded-2xl border border-slate-100" 
+                    />
                     <h4 className="font-bold text-slate-900 text-xs mt-2 line-clamp-2">{prod.name}</h4>
                     <span className="font-black text-[#DF7E93] text-xs mt-1 block">{prod.price} ر.س</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => onAddToCart && onAddToCart(prod)}
+                    onClick={() => typeof onAddToCart === 'function' && onAddToCart(prod)}
                     className="w-full bg-pink-50 hover:bg-[#DF7E93] hover:text-white text-[#DF7E93] font-bold py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
@@ -826,8 +1000,6 @@ export default function AccountView({
           )}
         </div>
       )}
-
     </div>
   );
 }
-

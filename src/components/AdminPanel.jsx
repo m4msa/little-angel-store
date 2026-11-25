@@ -1,11 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Package, ShoppingBag, Plus, Trash2, Edit3, Upload, Image as ImageIcon, 
-  DollarSign, FolderPlus, Folder, Layers, Check, Clock, Truck, 
-  X, LogOut, Store, Eye, Hash, Percent, Scissors, 
-  Palette, Ruler, Sparkles, Video, Play, MessageCircle, Phone, 
-  Tag, ShieldCheck, Search, Filter, CheckCircle2, Sliders, Globe, Send
+  DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
+  X, LogOut, Store, Eye, Percent, Palette, Video, MessageCircle, Phone, 
+  Tag, Search, CheckCircle2, AlertTriangle, AlertCircle
 } from 'lucide-react';
+import { 
+  sanitizeString, 
+  sanitizeUrl, 
+  sanitizeNumber, 
+  buildWhatsAppUrl, 
+  safeOpenExternal 
+} from '../utils/security';
 
 const PRESET_SIZES = [
   '0-3 أشهر', 
@@ -18,14 +24,14 @@ const PRESET_SIZES = [
 ];
 
 const PRESET_COLORS = [
-  { name: 'وردي هادئ', bg: 'bg-pink-300' },
-  { name: 'أزرق سماوي', bg: 'bg-sky-300' },
-  { name: 'أبيض قطني', bg: 'bg-slate-100' },
-  { name: 'بيج كريمي', bg: 'bg-amber-100' },
-  { name: 'رمادي ناعم', bg: 'bg-slate-300' },
-  { name: 'أخضر نعناعي', bg: 'bg-emerald-200' },
-  { name: 'كحلي فاخر', bg: 'bg-blue-900' },
-  { name: 'بني كراميل', bg: 'bg-amber-700' }
+  'وردي هادئ', 
+  'أزرق سماوي', 
+  'أبيض قطني', 
+  'بيج كريمي', 
+  'رمادي ناعم', 
+  'أخضر نعناعي', 
+  'كحلي فاخر', 
+  'بني كراميل'
 ];
 
 const COLOR_PALETTES = [
@@ -39,53 +45,65 @@ const COLOR_PALETTES = [
   { name: 'فحمي عصري راقي', primary: '#334155', secondary: '#64748B', bgClass: 'from-slate-700 to-slate-500' }
 ];
 
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80';
+const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
 export default function AdminPanel({
   products = [],
-  onAddProduct,
-  onUpdateProduct,
-  onDeleteProduct,
+  onAddProduct = () => {},
+  onUpdateProduct = () => {},
+  onDeleteProduct = () => {},
   categories = [],
-  onAddCategory,
-  onUpdateCategory,
-  onDeleteCategory,
+  onAddCategory = () => {},
+  onUpdateCategory = () => {},
+  onDeleteCategory = () => {},
   orders = [],
-  onUpdateOrderStatus,
-  onLogout,
-  onReturnToStore,
+  onUpdateOrderStatus = () => {},
+  onLogout = () => {},
+  onReturnToStore = () => {},
   storeSettings = {},
-  onUpdateSettings
+  onUpdateSettings = () => {}
 }) {
   // Navigation Tabs: 'products' | 'categories' | 'orders' | 'branding' | 'discounts' | 'contact'
   const [activeTab, setActiveTab] = useState('products');
   
-  // Feedback toast state
+  // Feedback toast state with timer cleanup
   const [toastMessage, setToastMessage] = useState('');
+  const toastTimerRef = useRef(null);
+
   const showToast = (msg) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 3000);
   };
 
-  // Local Settings Form State (Initialized from storeSettings)
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  // Safe defaults for settings
   const [settingsForm, setSettingsForm] = useState({
-    storeName: storeSettings.storeName || 'الملاك الصغير',
-    storeSubtitle: storeSettings.storeSubtitle || 'Little Angel Store',
-    storeDescription: storeSettings.storeDescription || 'المتجر الفاخر لأطقم استقبال المواليد الملكية، التفصيل حسب الطلب وتطريز اسم المولود مجاناً مع أسرع توصيل لجميع المدن.',
-    logoUrl: storeSettings.logoUrl || '/logo.png',
-    primaryColor: storeSettings.primaryColor || '#DF7E93',
-    secondaryColor: storeSettings.secondaryColor || '#E88E9F',
-    announcementText: storeSettings.announcementText || 'شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود FIRST10 لخصم 10%',
-    couponCode: storeSettings.couponCode || 'FIRST10',
-    couponDiscountPercent: storeSettings.couponDiscountPercent ?? 10,
-    freeShippingThreshold: storeSettings.freeShippingThreshold ?? 299,
-    standardShippingFee: storeSettings.standardShippingFee ?? 25,
-    whatsappNumber: storeSettings.whatsappNumber || '967775302137',
-    displayPhoneNumber: storeSettings.displayPhoneNumber || '+967 775 302 137',
-    instagramUrl: storeSettings.instagramUrl || 'https://instagram.com',
-    tiktokUrl: storeSettings.tiktokUrl || 'https://tiktok.com',
-    snapchatUrl: storeSettings.snapchatUrl || 'https://snapchat.com'
+    storeName: storeSettings?.storeName || 'الملاك الصغير',
+    storeSubtitle: storeSettings?.storeSubtitle || 'Little Angel Store',
+    storeDescription: storeSettings?.storeDescription || 'المتجر الفاخر لأطقم استقبال المواليد الملكية، التفصيل حسب الطلب وتطريز اسم المولود مجاناً مع أسرع توصيل لجميع المدن.',
+    logoUrl: storeSettings?.logoUrl || '/logo.png',
+    primaryColor: storeSettings?.primaryColor || '#DF7E93',
+    secondaryColor: storeSettings?.secondaryColor || '#E88E9F',
+    announcementText: storeSettings?.announcementText || 'شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود FIRST10 لخصم 10%',
+    couponCode: storeSettings?.couponCode || 'FIRST10',
+    couponDiscountPercent: storeSettings?.couponDiscountPercent ?? 10,
+    freeShippingThreshold: storeSettings?.freeShippingThreshold ?? 299,
+    standardShippingFee: storeSettings?.standardShippingFee ?? 25,
+    whatsappNumber: storeSettings?.whatsappNumber || '967775302137',
+    displayPhoneNumber: storeSettings?.displayPhoneNumber || '+967 775 302 137',
+    instagramUrl: storeSettings?.instagramUrl || 'https://instagram.com',
+    tiktokUrl: storeSettings?.tiktokUrl || 'https://tiktok.com',
+    snapchatUrl: storeSettings?.snapchatUrl || 'https://snapchat.com'
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (storeSettings && Object.keys(storeSettings).length > 0) {
       setSettingsForm(prev => ({
         ...prev,
@@ -96,21 +114,45 @@ export default function AdminPanel({
 
   const handleSaveSettings = (e) => {
     if (e) e.preventDefault();
-    if (onUpdateSettings) {
-      onUpdateSettings(settingsForm);
+    if (typeof onUpdateSettings === 'function') {
+      const sanitizedSettings = {
+        ...settingsForm,
+        storeName: sanitizeString(settingsForm.storeName, 100),
+        storeSubtitle: sanitizeString(settingsForm.storeSubtitle, 100),
+        storeDescription: sanitizeString(settingsForm.storeDescription, 500),
+        logoUrl: sanitizeUrl(settingsForm.logoUrl, '/logo.png'),
+        announcementText: sanitizeString(settingsForm.announcementText, 200),
+        couponCode: sanitizeString(settingsForm.couponCode, 30).toUpperCase(),
+        couponDiscountPercent: sanitizeNumber(settingsForm.couponDiscountPercent, { min: 1, max: 90, fallback: 10 }),
+        freeShippingThreshold: sanitizeNumber(settingsForm.freeShippingThreshold, { min: 0, fallback: 299 }),
+        standardShippingFee: sanitizeNumber(settingsForm.standardShippingFee, { min: 0, fallback: 25 }),
+        whatsappNumber: sanitizeString(settingsForm.whatsappNumber, 20).replace(/[^0-9]/g, ''),
+        displayPhoneNumber: sanitizeString(settingsForm.displayPhoneNumber, 30),
+        instagramUrl: sanitizeUrl(settingsForm.instagramUrl, ''),
+        tiktokUrl: sanitizeUrl(settingsForm.tiktokUrl, ''),
+        snapchatUrl: sanitizeUrl(settingsForm.snapchatUrl, '')
+      };
+      onUpdateSettings(sanitizedSettings);
       showToast('تم حفظ إعدادات المتجر بنجاح وتطبيقها فوراً!');
     }
   };
+
+  // Safe collections
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeOrders = Array.isArray(orders) ? orders : [];
 
   // Product Filter & Search
   const [productSearch, setProductSearch] = useState('');
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
   const [productStockFilter, setProductStockFilter] = useState('all');
 
-  const filteredProducts = products.filter(prod => {
-    const matchesSearch = !productSearch.trim() || 
-      prod.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-      (prod.tags && prod.tags.some(t => t.toLowerCase().includes(productSearch.toLowerCase())));
+  const filteredProducts = safeProducts.filter(prod => {
+    if (!prod) return false;
+    const cleanSearch = productSearch.trim().toLowerCase();
+    const nameMatch = prod.name && prod.name.toLowerCase().includes(cleanSearch);
+    const tagMatch = prod.tags && prod.tags.some(t => typeof t === 'string' && t.toLowerCase().includes(cleanSearch));
+    const matchesSearch = !cleanSearch || nameMatch || tagMatch;
     const matchesCategory = productCategoryFilter === 'all' || prod.category === productCategoryFilter;
     const matchesStock = productStockFilter === 'all' || 
       (productStockFilter === 'inStock' ? prod.inStock !== false : prod.inStock === false);
@@ -121,11 +163,13 @@ export default function AdminPanel({
   const [orderSearch, setOrderSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
 
-  const filteredOrders = orders.filter(ord => {
-    const matchesSearch = !orderSearch.trim() || 
-      ord.id?.toLowerCase().includes(orderSearch.toLowerCase()) ||
-      ord.customer?.name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
-      ord.customer?.phone?.includes(orderSearch);
+  const filteredOrders = safeOrders.filter(ord => {
+    if (!ord) return false;
+    const cleanSearch = orderSearch.trim().toLowerCase();
+    const idMatch = ord.id && ord.id.toLowerCase().includes(cleanSearch);
+    const nameMatch = ord.customer?.name && ord.customer.name.toLowerCase().includes(cleanSearch);
+    const phoneMatch = ord.customer?.phone && ord.customer.phone.includes(cleanSearch);
+    const matchesSearch = !cleanSearch || idMatch || nameMatch || phoneMatch;
     const matchesStatus = orderStatusFilter === 'all' || ord.status === orderStatusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -133,6 +177,7 @@ export default function AdminPanel({
   // Product Modal State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [productFormError, setProductFormError] = useState('');
   const [productForm, setProductForm] = useState({
     name: '',
     category: '',
@@ -153,8 +198,6 @@ export default function AdminPanel({
 
   const [tagInput, setTagInput] = useState('');
   const [urlImageInput, setUrlImageInput] = useState('');
-  const [customSizeInput, setCustomSizeInput] = useState('');
-  const [customColorInput, setCustomColorInput] = useState('');
   const fileInputRef = useRef(null);
 
   // Category Modal State
@@ -164,19 +207,29 @@ export default function AdminPanel({
   const [categoryStoryName, setCategoryStoryName] = useState('');
   const [categoryImage, setCategoryImage] = useState('');
   const [categorySubtitle, setCategorySubtitle] = useState('');
+  const [categoryFormError, setCategoryFormError] = useState('');
 
   // Selected Order details Modal
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-  const pendingOrdersCount = orders.filter(o => o.status === 'قيد التجهيز' || o.status === 'قيد المراجعة').length;
+  // Safe Confirmation Modal (Replaces browser confirm)
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null
+  });
+
+  const totalSales = safeOrders.reduce((sum, order) => sum + (Number(order?.total) || 0), 0);
+  const pendingOrdersCount = safeOrders.filter(o => o && (o.status === 'قيد التجهيز' || o.status === 'قيد المراجعة')).length;
 
   // Handlers for products
   const handleOpenAddProduct = () => {
     setEditingProduct(null);
+    setProductFormError('');
     setProductForm({
       name: '',
-      category: categories.filter(c => c.id !== 'all')[0]?.id || 'baby-clothes',
+      category: safeCategories.filter(c => c.id !== 'all')[0]?.id || 'baby-clothes',
       price: '125',
       originalPrice: '',
       hasDiscount: false,
@@ -193,30 +246,37 @@ export default function AdminPanel({
     });
     setTagInput('');
     setUrlImageInput('');
-    setCustomSizeInput('');
-    setCustomColorInput('');
     setIsProductModalOpen(true);
   };
 
   const handleOpenEditProduct = (prod) => {
+    if (!prod) return;
     setEditingProduct(prod);
-    const existingImages = prod.images && prod.images.length > 0 ? prod.images : [prod.image].filter(Boolean);
-    const existingTags = prod.tags && prod.tags.length > 0 
+    setProductFormError('');
+    const existingImages = Array.isArray(prod.images) && prod.images.length > 0 
+      ? prod.images.map(img => sanitizeUrl(img, DEFAULT_IMAGE)) 
+      : [sanitizeUrl(prod.image, DEFAULT_IMAGE)].filter(Boolean);
+
+    const existingTags = Array.isArray(prod.tags) && prod.tags.length > 0 
       ? prod.tags 
       : (prod.tag ? [prod.tag.startsWith('#') ? prod.tag : `#${prod.tag}`] : ['#الملاك_الصغير']);
     const hasDisc = Boolean(prod.originalPrice && Number(prod.originalPrice) > Number(prod.price));
 
     setProductForm({
-      name: prod.name,
-      category: prod.category,
+      name: prod.name || '',
+      category: prod.category || 'baby-clothes',
       price: prod.price ?? '',
       originalPrice: prod.originalPrice ?? '',
       hasDiscount: hasDisc,
       hasCustomName: prod.hasCustomName !== false,
-      availableSizes: prod.availableSizes && prod.availableSizes.length > 0 ? prod.availableSizes : ['0-3 أشهر', '3-6 أشهر', '6-12 شهر'],
-      availableColors: prod.availableColors && prod.availableColors.length > 0 ? prod.availableColors : ['وردي هادئ', 'أزرق سماوي', 'أبيض قطني', 'بيج كريمي'],
+      availableSizes: Array.isArray(prod.availableSizes) && prod.availableSizes.length > 0 
+        ? prod.availableSizes 
+        : ['0-3 أشهر', '3-6 أشهر', '6-12 شهر'],
+      availableColors: Array.isArray(prod.availableColors) && prod.availableColors.length > 0 
+        ? prod.availableColors 
+        : ['وردي هادئ', 'أزرق سماوي', 'أبيض قطني', 'بيج كريمي'],
       images: existingImages,
-      video: prod.video || '',
+      video: sanitizeUrl(prod.video, ''),
       primaryMediaType: prod.primaryMediaType || 'image',
       primaryImageIndex: prod.primaryImageIndex ?? 0,
       description: prod.description || '',
@@ -225,23 +285,31 @@ export default function AdminPanel({
     });
     setTagInput('');
     setUrlImageInput('');
-    setCustomSizeInput('');
-    setCustomColorInput('');
     setIsProductModalOpen(true);
   };
 
   const handleMultipleFilesUpload = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
     files.forEach((file) => {
-      if (!file.type.startsWith('image/')) return;
+      if (!file.type.startsWith('image/')) {
+        showToast('تنبيه: يمكن رفع ملفات الصور فقط!');
+        return;
+      }
+      if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+        showToast('حجم الصورة كبير جداً! الحد الأقصى 5 ميجابايت لكل صورة.');
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProductForm(prev => ({
-          ...prev,
-          images: [...prev.images, reader.result]
-        }));
+        const result = reader.result;
+        if (typeof result === 'string' && result.startsWith('data:image/')) {
+          setProductForm(prev => ({
+            ...prev,
+            images: [...prev.images, result]
+          }));
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -250,10 +318,14 @@ export default function AdminPanel({
 
   const handleAddImageUrl = (e) => {
     e.preventDefault();
-    if (!urlImageInput.trim()) return;
+    const safeUrl = sanitizeUrl(urlImageInput.trim(), '');
+    if (!safeUrl) {
+      showToast('يرجى إدخال رابط صورة صحيح وآمن (HTTP/HTTPS)!');
+      return;
+    }
     setProductForm(prev => ({
       ...prev,
-      images: [...prev.images, urlImageInput.trim()]
+      images: [...prev.images, safeUrl]
     }));
     setUrlImageInput('');
   };
@@ -267,7 +339,7 @@ export default function AdminPanel({
 
   const handleAddTag = (e) => {
     e.preventDefault();
-    let clean = tagInput.trim();
+    let clean = sanitizeString(tagInput, 30);
     if (!clean) return;
     if (!clean.startsWith('#')) clean = `#${clean}`;
     if (!productForm.tags.includes(clean)) {
@@ -288,40 +360,56 @@ export default function AdminPanel({
 
   const handleProductSubmit = (e) => {
     e.preventDefault();
-    if (!productForm.name || !productForm.price) return;
+    setProductFormError('');
 
-    const defaultImage = 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80';
-    const finalImages = productForm.images.length > 0 ? productForm.images : [defaultImage];
+    const cleanName = sanitizeString(productForm.name, 120);
+    const cleanPrice = sanitizeNumber(productForm.price, { min: 1, fallback: 0 });
+
+    if (!cleanName) {
+      setProductFormError('يرجى إدخال اسم المنتج.');
+      return;
+    }
+
+    if (cleanPrice <= 0) {
+      setProductFormError('يرجى إدخال سعر صحيح أكبر من الصفر.');
+      return;
+    }
+
+    const finalImages = productForm.images.length > 0 ? productForm.images : [DEFAULT_IMAGE];
     const chosenPrimaryIndex = Math.min(productForm.primaryImageIndex || 0, Math.max(0, finalImages.length - 1));
     const primaryImg = finalImages[chosenPrimaryIndex] || finalImages[0];
 
+    const cleanOriginalPrice = productForm.hasDiscount && productForm.originalPrice
+      ? sanitizeNumber(productForm.originalPrice, { min: cleanPrice + 1, fallback: null })
+      : null;
+
     const productPayload = {
       id: editingProduct ? editingProduct.id : Date.now(),
-      name: productForm.name,
-      category: productForm.category,
-      price: Number(productForm.price),
-      originalPrice: productForm.hasDiscount && productForm.originalPrice ? Number(productForm.originalPrice) : null,
-      rating: editingProduct ? editingProduct.rating : 5.0,
-      reviewsCount: editingProduct ? editingProduct.reviewsCount : 1,
+      name: cleanName,
+      category: sanitizeString(productForm.category, 50) || 'baby-clothes',
+      price: cleanPrice,
+      originalPrice: cleanOriginalPrice,
+      rating: editingProduct ? (editingProduct.rating || 5.0) : 5.0,
+      reviewsCount: editingProduct ? (editingProduct.reviewsCount || 1) : 1,
       image: primaryImg,
       images: finalImages,
-      video: productForm.video ? productForm.video.trim() : null,
+      video: sanitizeUrl(productForm.video, null),
       primaryMediaType: productForm.primaryMediaType || 'image',
       primaryImageIndex: chosenPrimaryIndex,
-      description: productForm.description,
-      tags: productForm.tags,
-      tag: productForm.tags[0] ? productForm.tags[0].replace('#', '') : 'مميز',
-      inStock: productForm.inStock,
-      hasCustomName: productForm.hasCustomName,
+      description: sanitizeString(productForm.description, 800),
+      tags: productForm.tags.map(t => sanitizeString(t, 30)),
+      tag: productForm.tags[0] ? sanitizeString(productForm.tags[0].replace('#', ''), 20) : 'مميز',
+      inStock: Boolean(productForm.inStock),
+      hasCustomName: Boolean(productForm.hasCustomName),
       availableSizes: productForm.availableSizes,
       availableColors: productForm.availableColors
     };
 
     if (editingProduct) {
-      onUpdateProduct(productPayload);
+      if (typeof onUpdateProduct === 'function') onUpdateProduct(productPayload);
       showToast(`تم تعديل منتج "${productPayload.name}" بنجاح!`);
     } else {
-      onAddProduct(productPayload);
+      if (typeof onAddProduct === 'function') onAddProduct(productPayload);
       showToast(`تم إضافة منتج "${productPayload.name}" بنجاح!`);
     }
 
@@ -331,27 +419,41 @@ export default function AdminPanel({
   // Category Submit
   const handleCategorySubmit = (e) => {
     e.preventDefault();
-    if (!categoryName.trim()) return;
+    setCategoryFormError('');
+
+    const cleanCatName = sanitizeString(categoryName, 80);
+    const cleanStoryName = sanitizeString(categoryStoryName, 40) || cleanCatName;
+    const cleanSubtitle = sanitizeString(categorySubtitle, 200);
+    const cleanCatImage = sanitizeUrl(categoryImage, '');
+
+    if (!cleanCatName) {
+      setCategoryFormError('يرجى إدخال اسم القسم.');
+      return;
+    }
 
     if (editingCategory) {
-      onUpdateCategory({
-        ...editingCategory,
-        name: categoryName.trim(),
-        storyName: categoryStoryName.trim() || categoryName.trim(),
-        image: categoryImage.trim(),
-        subtitle: categorySubtitle.trim()
-      });
-      showToast(`تم تحديث قسم "${categoryName.trim()}" بنجاح!`);
+      if (typeof onUpdateCategory === 'function') {
+        onUpdateCategory({
+          ...editingCategory,
+          name: cleanCatName,
+          storyName: cleanStoryName,
+          image: cleanCatImage,
+          subtitle: cleanSubtitle
+        });
+      }
+      showToast(`تم تحديث قسم "${cleanCatName}" بنجاح!`);
     } else {
       const newId = 'cat-' + Date.now();
-      onAddCategory({
-        id: newId,
-        name: categoryName.trim(),
-        storyName: categoryStoryName.trim() || categoryName.trim(),
-        image: categoryImage.trim(),
-        subtitle: categorySubtitle.trim()
-      });
-      showToast(`تم إنشاء قسم جديد "${categoryName.trim()}" بنجاح!`);
+      if (typeof onAddCategory === 'function') {
+        onAddCategory({
+          id: newId,
+          name: cleanCatName,
+          storyName: cleanStoryName,
+          image: cleanCatImage,
+          subtitle: cleanSubtitle
+        });
+      }
+      showToast(`تم إنشاء قسم جديد "${cleanCatName}" بنجاح!`);
     }
     setCategoryName('');
     setCategoryStoryName('');
@@ -360,20 +462,21 @@ export default function AdminPanel({
     setIsCategoryModalOpen(false);
   };
 
-  // WhatsApp quick launcher for orders
+  // WhatsApp launcher for orders with secure URI encoding
   const openOrderWhatsApp = (ord) => {
-    if (!ord || !ord.customer?.phone) return;
-    let phone = ord.customer.phone.replace(/[^0-9]/g, '');
-    if (phone.startsWith('0')) phone = '966' + phone.substring(1);
-    if (!phone.startsWith('966') && !phone.startsWith('967') && phone.length === 9) {
-      phone = '966' + phone;
+    if (!ord || !ord.customer?.phone) {
+      showToast('رقم هاتف العميل غير متوفر في الطلب!');
+      return;
     }
-    const itemsText = (ord.items || []).map(it => 
-      `• ${it.name} (كمية: ${it.quantity}${it.customBabyName ? `، تطريز: "${it.customBabyName}"` : ''}${it.selectedSize ? `، مقاس: ${it.selectedSize}` : ''})`
-    ).join('%0A');
+    const phone = ord.customer.phone;
+    const itemsText = (Array.isArray(ord.items) ? ord.items : [])
+      .map(it => `• ${it.name} (كمية: ${it.quantity}${it.customBabyName ? `، تطريز: "${it.customBabyName}"` : ''}${it.selectedSize ? `، مقاس: ${it.selectedSize}` : ''})`)
+      .join('\n');
 
-    const msg = `مرحباً ${ord.customer.name}، معك متجر ${settingsForm.storeName}.%0A%0Aبخصوص طلبك رقم (${ord.id}) بقيمة ${ord.total} ر.س:%0A${itemsText}%0A%0Aعنوان التوصيل: ${ord.customer.city} - ${ord.customer.address}%0Aحالة الطلب الحالية: ${ord.status}%0A%0Aهل تود تأكيد شحن الطلب؟`;
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    const message = `مرحباً ${ord.customer?.name || 'عميلنا العزيز'}، معك متجر ${settingsForm.storeName}.\n\nبخصوص طلبك رقم (${ord.id}) بقيمة ${ord.total} ر.س:\n${itemsText}\n\nعنوان التوصيل: ${ord.customer?.city || ''} - ${ord.customer?.address || ''}\nحالة الطلب الحالية: ${ord.status || 'قيد التجهيز'}\n\nهل تود تأكيد شحن الطلب؟`;
+    
+    const waUrl = buildWhatsAppUrl(phone, message);
+    safeOpenExternal(waUrl);
   };
 
   return (
@@ -401,12 +504,13 @@ export default function AdminPanel({
             لوحة إدارة المتجر - تحكم المبرمج الكامل
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            بضغطات بسيطة يمكنك تعديل الألوان، الأسماء، المنتجات، الأقسام، الشحن، والكوبونات بكل حرية.
+            بضغطات بسيطة يمكنك تعديل الألوان، الأسماء، المنتجات، الأقسام، الشحن، والكوبونات بكل حرية وأمان.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
           <button
+            type="button"
             onClick={onReturnToStore}
             className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-xs active:scale-95"
           >
@@ -415,6 +519,7 @@ export default function AdminPanel({
           </button>
 
           <button
+            type="button"
             onClick={onLogout}
             className="flex items-center gap-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all active:scale-95"
             title="تسجيل خروج"
@@ -440,7 +545,7 @@ export default function AdminPanel({
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400 font-bold">الطلبات المسجلة</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{orders.length} طلب</h3>
+            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeOrders.length} طلب</h3>
           </div>
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
             <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -450,7 +555,7 @@ export default function AdminPanel({
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400 font-bold">المنتجات المعروضة</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{products.length} منتج</h3>
+            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeProducts.length} منتج</h3>
           </div>
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
             <Package className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -460,7 +565,7 @@ export default function AdminPanel({
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400 font-bold">الأقسام النشطة</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{categories.filter(c => c.id !== 'all').length} قسم</h3>
+            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeCategories.filter(c => c && c.id !== 'all').length} قسم</h3>
           </div>
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
             <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -468,11 +573,11 @@ export default function AdminPanel({
         </div>
       </div>
 
-      {/* 3. Main Navigation Tab Bar (Segmented 6 Master Tabs) */}
+      {/* 3. Main Navigation Tab Bar */}
       <div className="bg-white p-2 rounded-3xl border border-slate-200/80 shadow-xs overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-1.5 min-w-max">
-          
           <button
+            type="button"
             onClick={() => setActiveTab('products')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'products'
@@ -481,10 +586,11 @@ export default function AdminPanel({
             }`}
           >
             <Package className="w-4 h-4" />
-            <span>المنتجات والمخزون ({products.length})</span>
+            <span>المنتجات والمخزون ({safeProducts.length})</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('categories')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'categories'
@@ -493,10 +599,11 @@ export default function AdminPanel({
             }`}
           >
             <FolderPlus className="w-4 h-4" />
-            <span>الأقسام والبنرات ({categories.filter(c => c.id !== 'all').length})</span>
+            <span>الأقسام والبنرات ({safeCategories.filter(c => c && c.id !== 'all').length})</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('orders')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'orders'
@@ -505,7 +612,7 @@ export default function AdminPanel({
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>الطلبات والمبيعات ({orders.length})</span>
+            <span>الطلبات والمبيعات ({safeOrders.length})</span>
             {pendingOrdersCount > 0 && (
               <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
                 {pendingOrdersCount} جديد
@@ -514,6 +621,7 @@ export default function AdminPanel({
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('branding')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'branding'
@@ -526,6 +634,7 @@ export default function AdminPanel({
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('discounts')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'discounts'
@@ -538,6 +647,7 @@ export default function AdminPanel({
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('contact')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'contact'
@@ -548,7 +658,6 @@ export default function AdminPanel({
             <Phone className="w-4 h-4" />
             <span>التواصل وخدمة العملاء</span>
           </button>
-
         </div>
       </div>
 
@@ -564,6 +673,7 @@ export default function AdminPanel({
               <p className="text-xs text-slate-500">إضافة منتج جديد، تعديل الصور والأسعار والألوان، وضبط حالة التوفر.</p>
             </div>
             <button
+              type="button"
               onClick={handleOpenAddProduct}
               className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
             >
@@ -582,7 +692,7 @@ export default function AdminPanel({
                 onChange={(e) => setProductSearch(e.target.value)}
                 className="w-full bg-white border border-slate-200 rounded-2xl pr-10 pl-4 py-2.5 text-xs font-bold outline-none focus:border-brand-500 shadow-2xs"
               />
-              <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
 
             <div>
@@ -591,8 +701,8 @@ export default function AdminPanel({
                 onChange={(e) => setProductCategoryFilter(e.target.value)}
                 className="w-full bg-white border border-slate-200 rounded-2xl px-3 py-2.5 text-xs font-bold outline-none focus:border-brand-500 shadow-2xs text-slate-700"
               >
-                <option value="all">جميع الأقسام ({products.length})</option>
-                {categories.filter(c => c.id !== 'all').map(cat => (
+                <option value="all">جميع الأقسام ({safeProducts.length})</option>
+                {safeCategories.filter(c => c && c.id !== 'all').map(cat => (
                   <option key={cat.id} value={cat.id}>قسم: {cat.name}</option>
                 ))}
               </select>
@@ -632,11 +742,11 @@ export default function AdminPanel({
                       <td className="p-4">
                         <div className="relative inline-block">
                           <img
-                            src={prod.image || (prod.images && prod.images[0])}
-                            alt={prod.name}
+                            src={sanitizeUrl(prod.image || (prod.images && prod.images[0]), DEFAULT_IMAGE)}
+                            alt={prod.name || 'منتج'}
                             className="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-xs"
                           />
-                          {prod.images && prod.images.length > 1 && (
+                          {Array.isArray(prod.images) && prod.images.length > 1 && (
                             <span className="absolute -bottom-1 -left-1 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full border border-white">
                               +{prod.images.length - 1}
                             </span>
@@ -646,7 +756,7 @@ export default function AdminPanel({
                       <td className="p-4">
                         <p className="font-bold text-slate-900 text-sm max-w-xs">{prod.name}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {prod.tags && prod.tags.slice(0, 3).map((t, idx) => (
+                          {Array.isArray(prod.tags) && prod.tags.slice(0, 3).map((t, idx) => (
                             <span key={idx} className="bg-pink-50 text-[#DF7E93] font-bold px-1.5 py-0.2 rounded text-[10px]">
                               {t}
                             </span>
@@ -654,7 +764,7 @@ export default function AdminPanel({
                         </div>
                       </td>
                       <td className="p-4 font-bold text-brand-600">
-                        {categories.find(c => c.id === prod.category)?.name || prod.category}
+                        {safeCategories.find(c => c && c.id === prod.category)?.name || prod.category}
                       </td>
                       <td className="p-4">
                         <span className="font-black text-slate-900 text-sm">{prod.price} ر.س</span>
@@ -676,7 +786,7 @@ export default function AdminPanel({
                           type="button"
                           onClick={() => {
                             const updated = { ...prod, inStock: !prod.inStock };
-                            onUpdateProduct(updated);
+                            if (typeof onUpdateProduct === 'function') onUpdateProduct(updated);
                             showToast(`تم تغيير حالة مخزون "${prod.name}"`);
                           }}
                           className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
@@ -691,6 +801,7 @@ export default function AdminPanel({
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
+                            type="button"
                             onClick={() => handleOpenEditProduct(prod)}
                             className="p-2 text-slate-600 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors"
                             title="تعديل المنتج"
@@ -698,11 +809,17 @@ export default function AdminPanel({
                             <Edit3 className="w-4 h-4" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => {
-                              if (confirm(`هل أنت متأكد من حذف منتج "${prod.name}"؟`)) {
-                                onDeleteProduct(prod.id);
-                                showToast(`تم حذف منتج "${prod.name}"`);
-                              }
+                              setConfirmDialog({
+                                isOpen: true,
+                                title: 'تأكيد حذف المنتج',
+                                message: `هل أنت متأكد من رغبتك في حذف منتج "${prod.name}" نهائياً من المتجر؟`,
+                                onConfirm: () => {
+                                  if (typeof onDeleteProduct === 'function') onDeleteProduct(prod.id);
+                                  showToast(`تم حذف منتج "${prod.name}" بنجاح`);
+                                }
+                              });
                             }}
                             className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
                             title="حذف المنتج"
@@ -731,12 +848,14 @@ export default function AdminPanel({
               <p className="text-xs text-slate-500">إضافة وحذف الأقسام، تحديد صور البنرات العريضة، وضبط نصوص الستوري والوصف.</p>
             </div>
             <button
+              type="button"
               onClick={() => {
                 setEditingCategory(null);
                 setCategoryName('');
                 setCategoryStoryName('');
                 setCategoryImage('');
                 setCategorySubtitle('');
+                setCategoryFormError('');
                 setIsCategoryModalOpen(true);
               }}
               className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
@@ -747,14 +866,14 @@ export default function AdminPanel({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.filter(c => c.id !== 'all').map((cat) => {
-              const productCount = products.filter(p => p.category === cat.id).length;
+            {safeCategories.filter(c => c && c.id !== 'all').map((cat) => {
+              const productCount = safeProducts.filter(p => p && p.category === cat.id).length;
               return (
                 <div key={cat.id} className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
                   {/* Category Banner Preview */}
                   <div className="relative h-28 sm:h-32 bg-slate-100 overflow-hidden">
                     {cat.image ? (
-                      <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                      <img src={sanitizeUrl(cat.image, DEFAULT_IMAGE)} alt={cat.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
                         <Folder className="w-8 h-8 text-brand-300" />
@@ -781,12 +900,14 @@ export default function AdminPanel({
 
                     <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 mt-2">
                       <button
+                        type="button"
                         onClick={() => {
                           setEditingCategory(cat);
-                          setCategoryName(cat.name);
-                          setCategoryStoryName(cat.storyName || cat.name);
+                          setCategoryName(cat.name || '');
+                          setCategoryStoryName(cat.storyName || cat.name || '');
                           setCategoryImage(cat.image || '');
                           setCategorySubtitle(cat.subtitle || '');
+                          setCategoryFormError('');
                           setIsCategoryModalOpen(true);
                         }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-pink-50 text-slate-700 hover:text-brand-600 text-xs font-bold transition-all border border-slate-200/70"
@@ -796,11 +917,17 @@ export default function AdminPanel({
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => {
-                          if (confirm(`هل أنت متأكد من حذف قسم "${cat.name}"؟`)) {
-                            onDeleteCategory(cat.id);
-                            showToast(`تم حذف قسم "${cat.name}"`);
-                          }
+                          setConfirmDialog({
+                            isOpen: true,
+                            title: 'تأكيد حذف القسم',
+                            message: `هل أنت متأكد من حذف قسم "${cat.name}"؟ سيتم حذف التصنيف من القائمة.`,
+                            onConfirm: () => {
+                              if (typeof onDeleteCategory === 'function') onDeleteCategory(cat.id);
+                              showToast(`تم حذف قسم "${cat.name}"`);
+                            }
+                          });
                         }}
                         className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
                         title="حذف القسم"
@@ -839,7 +966,7 @@ export default function AdminPanel({
                   onChange={(e) => setOrderSearch(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl pr-10 pl-4 py-2.5 text-xs font-bold outline-none focus:border-brand-500"
                 />
-                <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
 
               <div>
@@ -848,7 +975,7 @@ export default function AdminPanel({
                   onChange={(e) => setOrderStatusFilter(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5 text-xs font-bold outline-none focus:border-brand-500 text-slate-700"
                 >
-                  <option value="all">كافة حالات الطلب ({orders.length})</option>
+                  <option value="all">كافة حالات الطلب ({safeOrders.length})</option>
                   <option value="قيد التجهيز">قيد التجهيز</option>
                   <option value="قيد المراجعة">قيد المراجعة</option>
                   <option value="تم الشحن">تم الشحن</option>
@@ -902,9 +1029,9 @@ export default function AdminPanel({
                         </td>
                         <td className="p-4">
                           <select
-                            value={ord.status}
+                            value={ord.status || 'قيد التجهيز'}
                             onChange={(e) => {
-                              onUpdateOrderStatus(ord.id, e.target.value);
+                              if (typeof onUpdateOrderStatus === 'function') onUpdateOrderStatus(ord.id, e.target.value);
                               showToast(`تم تحديث حالة الطلب (${ord.id}) إلى "${e.target.value}"`);
                             }}
                             className={`rounded-xl p-1.5 text-xs font-bold outline-none border ${
@@ -934,6 +1061,7 @@ export default function AdminPanel({
                         </td>
                         <td className="p-4 text-center">
                           <button
+                            type="button"
                             onClick={() => setSelectedOrder(ord)}
                             className="p-2 text-slate-500 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors"
                             title="عرض أصناف وتطريزات الطلب"
@@ -963,24 +1091,24 @@ export default function AdminPanel({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-              {/* Store Name Arabic */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5">اسم المتجر بالعربية *</label>
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   value={settingsForm.storeName}
                   onChange={(e) => setSettingsForm({ ...settingsForm, storeName: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white"
                 />
               </div>
 
-              {/* Store Name English */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5">اسم المتجر بالإنجليزية *</label>
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   value={settingsForm.storeSubtitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, storeSubtitle: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white"
@@ -988,12 +1116,12 @@ export default function AdminPanel({
               </div>
             </div>
 
-            {/* Store Description in Footer */}
             <div>
               <label className="block font-bold text-slate-700 text-xs mb-1.5">وصف المتجر ونبذة من نحن (تظهر في الفوتر) *</label>
               <textarea
                 rows={3}
                 required
+                maxLength={500}
                 value={settingsForm.storeDescription}
                 onChange={(e) => setSettingsForm({ ...settingsForm, storeDescription: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-medium outline-none focus:border-brand-500 focus:bg-white leading-relaxed"
@@ -1005,7 +1133,7 @@ export default function AdminPanel({
               <label className="block font-bold text-slate-800 text-xs">شعار المتجر الرسمي (Logo)</label>
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="w-24 h-24 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center p-2 shrink-0">
-                  <img src={settingsForm.logoUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                  <img src={sanitizeUrl(settingsForm.logoUrl, '/logo.png')} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
                 </div>
                 <div className="flex-1 w-full space-y-2">
                   <input
@@ -1026,9 +1154,15 @@ export default function AdminPanel({
                         onChange={(e) => {
                           const file = e.target.files[0];
                           if (file) {
+                            if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+                              showToast('حجم الشعار كبير! يرجى اختيار ملف أقل من 5 ميجابايت.');
+                              return;
+                            }
                             const reader = new FileReader();
                             reader.onloadend = () => {
-                              setSettingsForm(prev => ({ ...prev, logoUrl: reader.result }));
+                              if (typeof reader.result === 'string') {
+                                setSettingsForm(prev => ({ ...prev, logoUrl: reader.result }));
+                              }
                             };
                             reader.readAsDataURL(file);
                           }
@@ -1050,14 +1184,12 @@ export default function AdminPanel({
                   </h4>
                   <p className="text-[11px] text-slate-500">اختر قالباً لونياً بضغطة زر أو حدد أي لون مخصص يعجبك.</p>
                 </div>
-                {/* Live color badge */}
                 <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
                   <span className="w-4 h-4 rounded-full border border-slate-300" style={{ backgroundColor: settingsForm.primaryColor }}></span>
                   <span className="font-mono text-xs font-black text-slate-800" dir="ltr">{settingsForm.primaryColor}</span>
                 </div>
               </div>
 
-              {/* Presets Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {COLOR_PALETTES.map((palette, idx) => {
                   const isSelected = settingsForm.primaryColor.toLowerCase() === palette.primary.toLowerCase();
@@ -1085,7 +1217,6 @@ export default function AdminPanel({
                 })}
               </div>
 
-              {/* Custom Color Input */}
               <div className="pt-2 flex items-center gap-3">
                 <label className="text-xs font-bold text-slate-700">أو اختيار درجة لون مخصصة (Custom HEX):</label>
                 <input
@@ -1097,18 +1228,17 @@ export default function AdminPanel({
               </div>
             </div>
 
-            {/* Announcement Bar */}
             <div>
               <label className="block font-bold text-slate-700 text-xs mb-1.5">شريط الإعلانات أعلى المتجر (Announcement Bar)</label>
               <input
                 type="text"
+                maxLength={200}
                 value={settingsForm.announcementText}
                 onChange={(e) => setSettingsForm({ ...settingsForm, announcementText: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white"
               />
             </div>
 
-            {/* Save Button */}
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
@@ -1134,7 +1264,6 @@ export default function AdminPanel({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-              {/* Coupon Code */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
                 <label className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
                   <Tag className="w-4 h-4 text-brand-600" />
@@ -1143,6 +1272,7 @@ export default function AdminPanel({
                 <input
                   type="text"
                   required
+                  maxLength={30}
                   placeholder="مثال: FIRST10"
                   value={settingsForm.couponCode}
                   onChange={(e) => setSettingsForm({ ...settingsForm, couponCode: e.target.value.toUpperCase() })}
@@ -1150,7 +1280,6 @@ export default function AdminPanel({
                 />
               </div>
 
-              {/* Discount Percentage */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
                 <label className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
                   <Percent className="w-4 h-4 text-brand-600" />
@@ -1172,7 +1301,6 @@ export default function AdminPanel({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Free Shipping Threshold */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
                 <label className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
                   <Truck className="w-4 h-4 text-emerald-600" />
@@ -1191,7 +1319,6 @@ export default function AdminPanel({
                 </div>
               </div>
 
-              {/* Standard Shipping Fee */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
                 <label className="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4 text-slate-600" />
@@ -1211,7 +1338,6 @@ export default function AdminPanel({
               </div>
             </div>
 
-            {/* Save Button */}
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
@@ -1237,7 +1363,6 @@ export default function AdminPanel({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-              {/* WhatsApp Number */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5 flex items-center gap-1.5">
                   <MessageCircle className="w-4 h-4 text-emerald-600" />
@@ -1246,6 +1371,7 @@ export default function AdminPanel({
                 <input
                   type="text"
                   required
+                  maxLength={20}
                   placeholder="مثال: 967775302137"
                   value={settingsForm.whatsappNumber}
                   onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value.replace(/[^0-9]/g, '') })}
@@ -1255,7 +1381,6 @@ export default function AdminPanel({
                 <p className="text-[10px] text-slate-400 mt-1">يُكتب بصيغة دولية بدون أصفار أو رمز + (مثال: 967775302137 أو 966500000000)</p>
               </div>
 
-              {/* Display Phone Number */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5 flex items-center gap-1.5">
                   <Phone className="w-4 h-4 text-slate-700" />
@@ -1264,6 +1389,7 @@ export default function AdminPanel({
                 <input
                   type="text"
                   required
+                  maxLength={30}
                   value={settingsForm.displayPhoneNumber}
                   onChange={(e) => setSettingsForm({ ...settingsForm, displayPhoneNumber: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white text-left"
@@ -1273,11 +1399,11 @@ export default function AdminPanel({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {/* Instagram URL */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5">رابط إنستغرام (Instagram)</label>
                 <input
                   type="url"
+                  maxLength={200}
                   value={settingsForm.instagramUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white text-left"
@@ -1285,11 +1411,11 @@ export default function AdminPanel({
                 />
               </div>
 
-              {/* TikTok URL */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5">رابط تيك توك (TikTok)</label>
                 <input
                   type="url"
+                  maxLength={200}
                   value={settingsForm.tiktokUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white text-left"
@@ -1297,11 +1423,11 @@ export default function AdminPanel({
                 />
               </div>
 
-              {/* Snapchat URL */}
               <div>
                 <label className="block font-bold text-slate-700 text-xs mb-1.5">رابط سناب شات (Snapchat)</label>
                 <input
                   type="url"
+                  maxLength={200}
                   value={settingsForm.snapchatUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, snapchatUrl: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-bold outline-none focus:border-brand-500 focus:bg-white text-left"
@@ -1310,7 +1436,6 @@ export default function AdminPanel({
               </div>
             </div>
 
-            {/* Save Button */}
             <div className="pt-4 border-t border-slate-100 flex justify-end">
               <button
                 type="submit"
@@ -1328,7 +1453,11 @@ export default function AdminPanel({
       {/* MODAL 1: ADD / EDIT PRODUCT MODAL */}
       {/* ======================================================== */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+        >
           <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-6 max-h-[90vh] overflow-y-auto">
             
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -1339,6 +1468,7 @@ export default function AdminPanel({
                 <p className="text-xs text-slate-400 mt-0.5">أدخل تفاصيل المنتج وارفع عدة صور وحدد الهاشتاغات.</p>
               </div>
               <button
+                type="button"
                 onClick={() => setIsProductModalOpen(false)}
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
               >
@@ -1346,14 +1476,20 @@ export default function AdminPanel({
               </button>
             </div>
 
+            {productFormError && (
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-2 text-rose-700 text-xs font-bold">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{productFormError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleProductSubmit} className="space-y-4 text-xs">
-              
-              {/* Product Name */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">اسم المنتج *</label>
                 <input
                   type="text"
                   required
+                  maxLength={120}
                   placeholder="مثال: طقم بيجاما مواليد قطن عضوي ناعم"
                   value={productForm.name}
                   onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
@@ -1361,7 +1497,6 @@ export default function AdminPanel({
                 />
               </div>
 
-              {/* Category */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">القسم / التصنيف *</label>
                 <select
@@ -1369,7 +1504,7 @@ export default function AdminPanel({
                   onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 focus:bg-white text-xs font-bold"
                 >
-                  {categories.filter(c => c.id !== 'all').map(cat => (
+                  {safeCategories.filter(c => c && c.id !== 'all').map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
@@ -1477,12 +1612,11 @@ export default function AdminPanel({
                   </label>
                 </div>
 
-                {/* Thumbnails list */}
                 {productForm.images.length > 0 && (
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
                     {productForm.images.map((img, idx) => (
                       <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white">
-                        <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                        <img src={sanitizeUrl(img, DEFAULT_IMAGE)} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
@@ -1516,6 +1650,41 @@ export default function AdminPanel({
                 />
               </div>
 
+              {/* Tags Section */}
+              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <label className="block font-bold text-slate-700 flex items-center gap-1.5">
+                  <Tag className="w-4 h-4 text-brand-600" />
+                  <span>الوسوم والهاشتاغات للمنتج</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    maxLength={30}
+                    placeholder="أضف هاشتاغ جديد (مثال: #جديد)..."
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTag}
+                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0"
+                  >
+                    إضافة وسم
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {productForm.tags.map((tg, idx) => (
+                    <span key={idx} className="bg-pink-100 text-[#DF7E93] text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1">
+                      <span>{tg}</span>
+                      <button type="button" onClick={() => handleRemoveTag(tg)} className="hover:text-rose-700">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               {/* Custom Embroidery & Stock */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
@@ -1544,6 +1713,7 @@ export default function AdminPanel({
                 <label className="block font-bold text-slate-700 mb-1">وصف المنتج ومميزاته</label>
                 <textarea
                   rows={3}
+                  maxLength={800}
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-500 text-xs font-medium"
@@ -1576,13 +1746,18 @@ export default function AdminPanel({
       {/* MODAL 2: ADD / EDIT CATEGORY MODAL */}
       {/* ======================================================== */}
       {isCategoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+        >
           <div className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4 my-6">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-lg font-black text-slate-900">
                 {editingCategory ? `تعديل قسم: ${editingCategory.name}` : 'إضافة قسم جديد'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsCategoryModalOpen(false)}
                 className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
               >
@@ -1590,12 +1765,20 @@ export default function AdminPanel({
               </button>
             </div>
 
+            {categoryFormError && (
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-center gap-2 text-rose-700 text-xs font-bold">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{categoryFormError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleCategorySubmit} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">اسم القسم المعروض *</label>
                 <input
                   type="text"
                   required
+                  maxLength={80}
                   placeholder="مثال: أطقم الاستقبال الملكية"
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
@@ -1608,6 +1791,7 @@ export default function AdminPanel({
                 <input
                   type="text"
                   required
+                  maxLength={40}
                   placeholder="مثال: استقبال"
                   value={categoryStoryName}
                   onChange={(e) => setCategoryStoryName(e.target.value)}
@@ -1619,6 +1803,7 @@ export default function AdminPanel({
                 <label className="block font-bold text-slate-700 mb-1">وصف القسم (يظهر أسفل عنوان القسم)</label>
                 <input
                   type="text"
+                  maxLength={200}
                   placeholder="مثال: أطقم استقبال للمستشفى والزيارات من أقمشة تركية فاخرة"
                   value={categorySubtitle}
                   onChange={(e) => setCategorySubtitle(e.target.value)}
@@ -1646,8 +1831,16 @@ export default function AdminPanel({
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
+                          if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+                            showToast('حجم بنر القسم كبير جداً! الحد الأقصى 5 ميجابايت.');
+                            return;
+                          }
                           const reader = new FileReader();
-                          reader.onloadend = () => setCategoryImage(reader.result);
+                          reader.onloadend = () => {
+                            if (typeof reader.result === 'string') {
+                              setCategoryImage(reader.result);
+                            }
+                          };
                           reader.readAsDataURL(file);
                         }
                       }}
@@ -1680,14 +1873,19 @@ export default function AdminPanel({
       {/* MODAL 3: ORDER DETAILS MODAL */}
       {/* ======================================================== */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+        >
           <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-6">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-lg font-black text-slate-900">تفاصيل الطلب: {selectedOrder.id}</h3>
-                <p className="text-xs text-slate-400 mt-0.5">تاريخ الطلب: {selectedOrder.date}</p>
+                <p className="text-xs text-slate-400 mt-0.5">تاريخ الطلب: {selectedOrder.date || 'اليوم'}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedOrder(null)}
                 className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
               >
@@ -1697,19 +1895,23 @@ export default function AdminPanel({
 
             {/* Customer Details Box */}
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5 text-xs">
-              <p><strong className="text-slate-900">العميل:</strong> {selectedOrder.customer?.name}</p>
-              <p><strong className="text-slate-900">الهاتف:</strong> <span dir="ltr">{selectedOrder.customer?.phone}</span></p>
-              <p><strong className="text-slate-900">العنوان:</strong> {selectedOrder.customer?.city} - {selectedOrder.customer?.address}</p>
-              <p><strong className="text-slate-900">طريقة الدفع:</strong> {selectedOrder.customer?.paymentMethod}</p>
+              <p><strong className="text-slate-900">العميل:</strong> {selectedOrder.customer?.name || 'غير معروف'}</p>
+              <p><strong className="text-slate-900">الهاتف:</strong> <span dir="ltr">{selectedOrder.customer?.phone || 'غير مسجل'}</span></p>
+              <p><strong className="text-slate-900">العنوان:</strong> {selectedOrder.customer?.city || ''} - {selectedOrder.customer?.address || ''}</p>
+              <p><strong className="text-slate-900">طريقة الدفع:</strong> {selectedOrder.customer?.paymentMethod || 'الدفع عند الاستلام'}</p>
             </div>
 
             {/* Order Items List */}
             <div className="space-y-3">
               <h4 className="font-bold text-slate-800 text-xs">الأصناف والتطريز المطلوب ({selectedOrder.items?.length || 0}):</h4>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {(selectedOrder.items || []).map((item, idx) => (
+                {(Array.isArray(selectedOrder.items) ? selectedOrder.items : []).map((item, idx) => (
                   <div key={idx} className="p-3 bg-white rounded-2xl border border-slate-200 flex items-center gap-3">
-                    <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                    <img 
+                      src={sanitizeUrl(item.image, DEFAULT_IMAGE)} 
+                      alt={item.name || 'منتج'} 
+                      className="w-12 h-12 rounded-xl object-cover shrink-0" 
+                    />
                     <div className="flex-1 text-xs">
                       <p className="font-bold text-slate-900">{item.name}</p>
                       <div className="flex flex-wrap gap-1 mt-1 text-[11px] text-slate-600">
@@ -1724,7 +1926,7 @@ export default function AdminPanel({
                     </div>
                     <div className="text-left shrink-0">
                       <span className="font-bold text-slate-900 text-xs">{item.price} ر.س</span>
-                      <span className="block text-[10px] text-slate-400">الكمية: {item.quantity}</span>
+                      <span className="block text-[10px] text-slate-400">الكمية: {item.quantity || 1}</span>
                     </div>
                   </div>
                 ))}
@@ -1735,7 +1937,7 @@ export default function AdminPanel({
             <div className="pt-3 border-t border-slate-100 space-y-1 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>المجموع الفرعي:</span>
-                <span>{selectedOrder.subtotal || selectedOrder.total} ر.س</span>
+                <span>{selectedOrder.subtotal || selectedOrder.total || 0} ر.س</span>
               </div>
               {selectedOrder.discountAmount > 0 && (
                 <div className="flex justify-between text-rose-600">
@@ -1745,7 +1947,7 @@ export default function AdminPanel({
               )}
               <div className="flex justify-between font-black text-slate-900 text-sm pt-1 border-t border-slate-100">
                 <span>الإجمالي النهائي:</span>
-                <span>{selectedOrder.total} ر.س</span>
+                <span>{selectedOrder.total || 0} ر.س</span>
               </div>
             </div>
 
@@ -1765,6 +1967,46 @@ export default function AdminPanel({
                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-xs"
               >
                 إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL 4: IN-APP CONFIRMATION DIALOG (Non-blocking) */}
+      {/* ======================================================== */}
+      {confirmDialog.isOpen && (
+        <div 
+          role="alertdialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-black text-slate-900">{confirmDialog.title}</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">{confirmDialog.message}</p>
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null })}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof confirmDialog.onConfirm === 'function') {
+                    confirmDialog.onConfirm();
+                  }
+                  setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null });
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-colors"
+              >
+                تأكيد الحذف
               </button>
             </div>
           </div>
