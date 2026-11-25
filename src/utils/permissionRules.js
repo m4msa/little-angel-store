@@ -201,3 +201,4 @@ export function canPerformProductAction(user, action, categoryId) {
       return false;
   }
 }
+

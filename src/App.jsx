@@ -17,6 +17,7 @@ import CheckoutModal from './components/CheckoutModal';
 import AccountView from './components/AccountView';
 import AdminLoginPage from './components/AdminLoginPage';
 import AdminPanel from './components/AdminPanel';
+import ErrorBoundary from './components/ErrorBoundary';
 import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import QuickNavSubHeader from './components/QuickNavSubHeader';
@@ -1170,28 +1171,30 @@ export default function App() {
 
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-brand-500 selection:text-white">
-        <AdminPanel
-          products={products}
-          onAddProduct={handleAddProduct}
-          onUpdateProduct={handleUpdateProduct}
-          onDeleteProduct={handleDeleteProduct}
-          categories={categories}
-          onAddCategory={handleAddCategory}
-          onUpdateCategory={handleUpdateCategory}
-          onDeleteCategory={handleDeleteCategory}
-          orders={orders}
-          onUpdateOrderStatus={handleUpdateOrderStatus}
-          onLogout={handleAdminLogout}
-          onReturnToStore={() => navigateTo('store')}
-          storeSettings={storeSettings}
-          onUpdateSettings={handleUpdateSettings}
-          users={usersList}
-          onAddUser={handleAddUser}
-          onUpdateUser={handleUpdateUser}
-          onDeleteUser={handleDeleteUser}
-          onUpdateUserPermissions={handleUpdateUserPermissions}
-          currentUser={currentUser}
-        />
+        <ErrorBoundary onReset={() => window.location.reload()}>
+          <AdminPanel
+            products={products}
+            onAddProduct={handleAddProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+            categories={categories}
+            onAddCategory={handleAddCategory}
+            onUpdateCategory={handleUpdateCategory}
+            onDeleteCategory={handleDeleteCategory}
+            orders={orders}
+            onUpdateOrderStatus={handleUpdateOrderStatus}
+            onLogout={handleAdminLogout}
+            onReturnToStore={() => navigateTo('store')}
+            storeSettings={storeSettings}
+            onUpdateSettings={handleUpdateSettings}
+            users={usersList}
+            onAddUser={handleAddUser}
+            onUpdateUser={handleUpdateUser}
+            onDeleteUser={handleDeleteUser}
+            onUpdateUserPermissions={handleUpdateUserPermissions}
+            currentUser={currentUser}
+          />
+        </ErrorBoundary>
       </div>
     );
   }

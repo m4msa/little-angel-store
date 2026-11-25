@@ -171,11 +171,19 @@ export default function AdminPanel({
 
   const filteredUsers = safeUsers.filter(u => {
     if (!u) return false;
-    const cleanSearch = userSearch.trim().toLowerCase();
-    const nameMatch = u.name && u.name.toLowerCase().includes(cleanSearch);
-    const emailMatch = u.email && u.email.toLowerCase().includes(cleanSearch);
-    const phoneMatch = u.phone && u.phone.includes(cleanSearch);
-    const cityMatch = u.city && u.city.toLowerCase().includes(cleanSearch);
+    const cleanSearch = (userSearch || '').trim().toLowerCase();
+    const nameStr = u.name ? String(u.name).toLowerCase() : '';
+    const emailStr = u.email ? String(u.email).toLowerCase() : '';
+    const phoneRaw = u.phone ? String(u.phone) : '';
+    const phoneDigits = phoneRaw.replace(/[^0-9]/g, '');
+    const cityStr = u.city ? String(u.city).toLowerCase() : '';
+    const searchDigits = cleanSearch.replace(/[^0-9]/g, '');
+
+    const nameMatch = nameStr.includes(cleanSearch);
+    const emailMatch = emailStr.includes(cleanSearch);
+    const phoneMatch = (searchDigits && phoneDigits.includes(searchDigits)) || phoneRaw.includes(cleanSearch);
+    const cityMatch = cityStr.includes(cleanSearch);
+
     const matchesSearch = !cleanSearch || nameMatch || emailMatch || phoneMatch || cityMatch;
     const matchesRole = userRoleFilter === 'all' || u.role === userRoleFilter;
     return matchesSearch && matchesRole;
@@ -1571,7 +1579,7 @@ export default function AdminPanel({
               <div>
                 <p className="text-[11px] font-bold text-slate-400">المدراء والمشرفين</p>
                 <h4 className="text-lg font-black text-slate-900 mt-0.5">
-                  {safeUsers.filter(u => u.role === 'admin' || u.role === 'supervisor').length} مشرف
+                  {safeUsers.filter(u => u && (u.role === 'admin' || u.role === 'supervisor')).length} مشرف
                 </h4>
               </div>
               <div className="w-9 h-9 rounded-xl bg-pink-50 text-[#DF7E93] flex items-center justify-center shrink-0">
@@ -1583,7 +1591,7 @@ export default function AdminPanel({
               <div>
                 <p className="text-[11px] font-bold text-slate-400">مسؤولو المنتجات والأقسام</p>
                 <h4 className="text-lg font-black text-slate-900 mt-0.5">
-                  {safeUsers.filter(u => u.role === 'editor' || u.role === 'order_specialist').length} موظف
+                  {safeUsers.filter(u => u && (u.role === 'editor' || u.role === 'order_specialist')).length} موظف
                 </h4>
               </div>
               <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
@@ -1595,7 +1603,7 @@ export default function AdminPanel({
               <div>
                 <p className="text-[11px] font-bold text-slate-400">العملاء المسجلين</p>
                 <h4 className="text-lg font-black text-slate-900 mt-0.5">
-                  {safeUsers.filter(u => u.role === 'customer').length} عميل
+                  {safeUsers.filter(u => u && u.role === 'customer').length} عميل
                 </h4>
               </div>
               <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1643,11 +1651,11 @@ export default function AdminPanel({
               </div>
             ) : (
               filteredUsers.map((user) => {
-                const perms = getEffectivePermissions(user);
-                const roleData = ROLE_PRESETS[user.role] || ROLE_PRESETS.customer;
-                const isAdmin = user.role === 'admin';
-                const isSuper = user.role === 'supervisor';
-                const isCust = user.role === 'customer';
+                const perms = (user && getEffectivePermissions(user)) || EMPTY_PERMISSIONS;
+                const roleData = (user && ROLE_PRESETS[user.role]) || ROLE_PRESETS.customer;
+                const isAdmin = user && user.role === 'admin';
+                const isSuper = user && user.role === 'supervisor';
+                const isCust = user && user.role === 'customer';
 
                 return (
                   <div 
@@ -1666,12 +1674,12 @@ export default function AdminPanel({
                                 ? 'bg-slate-100 text-slate-700 border border-slate-200' 
                                 : 'bg-sky-100 text-sky-700 border border-sky-200'
                         }`}>
-                          {user.name ? user.name.charAt(0) : 'م'}
+                          {user && user.name ? String(user.name).charAt(0) : 'م'}
                         </div>
 
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm font-black text-slate-900">{user.name}</h4>
+                            <h4 className="text-sm font-black text-slate-900">{user?.name || 'مستخدم بدون اسم'}</h4>
                             <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
                               isAdmin
                                 ? 'bg-purple-50 text-purple-700 border-purple-200'
@@ -1681,7 +1689,7 @@ export default function AdminPanel({
                                     ? 'bg-slate-50 text-slate-600 border-slate-200'
                                     : 'bg-sky-50 text-sky-700 border-sky-200'
                             }`}>
-                              {roleData.label}
+                              {roleData?.label || 'عميل'}
                             </span>
                             <span className="text-[10px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
                               {user.id}
@@ -1691,21 +1699,21 @@ export default function AdminPanel({
                           <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                             <span className="flex items-center gap-1 font-mono">
                               <Phone className="w-3 h-3 text-slate-400" />
-                              <span dir="ltr">{user.phone || 'بدون جوال'}</span>
+                              <span dir="ltr">{user?.phone ? String(user.phone) : 'بدون جوال'}</span>
                             </span>
                             {user.email && (
                               <span className="flex items-center gap-1 font-mono">
                                 <Mail className="w-3 h-3 text-slate-400" />
-                                <span>{user.email}</span>
+                                <span>{String(user.email)}</span>
                               </span>
                             )}
                             <span className="flex items-center gap-1">
                               <MapPin className="w-3 h-3 text-slate-400" />
-                              <span>{user.city || 'الرياض'}</span>
+                              <span>{user?.city ? String(user.city) : 'الرياض'}</span>
                             </span>
                             {user.createdAt && (
                               <span className="text-[11px] text-slate-400">
-                                مسجل في: {user.createdAt}
+                                مسجل في: {String(user.createdAt)}
                               </span>
                             )}
                           </div>
@@ -1745,7 +1753,7 @@ export default function AdminPanel({
                             onClick={() => {
                               setConfirmDialog({
                                 isOpen: true,
-                                title: `تأكيد حذف حساب (${user.name})`,
+                                title: `تأكيد حذف حساب (${user?.name || ''})`,
                                 message: `هل أنت متأكد من حذف حساب المستخدم نهائياً؟ لن يتمكن من تسجيل الدخول بعد الآن.`,
                                 onConfirm: () => onDeleteUser(user.id)
                               });
@@ -1789,7 +1797,7 @@ export default function AdminPanel({
                       {perms.categoriesMode === 'custom' && Array.isArray(perms.allowedCategories) && perms.allowedCategories.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           {perms.allowedCategories.map(catId => {
-                            const catObj = safeCategories.find(c => c.id === catId);
+                            const catObj = safeCategories.find(c => c && c.id === catId);
                             return (
                               <span key={catId} className="bg-white border border-pink-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs">
                                 📁 {catObj?.name || catId}
