@@ -23,6 +23,7 @@ import QuickNavSubHeader from './components/QuickNavSubHeader';
 import SplashTransition from './components/SplashTransition';
 import { initialProducts, initialCategories } from './data/mockProducts';
 import { Sparkles, CheckCircle2, Heart, MessageCircle, ArrowLeft, Search, X } from 'lucide-react';
+import { ROLE_PRESETS, EMPTY_PERMISSIONS, getEffectivePermissions } from './utils/permissionRules';
 
 export default function App() {
   // Routing state based on URL (e.g. /admin or #admin)
@@ -165,18 +166,88 @@ export default function App() {
     }
   }, [storeSettings]);
 
-  // Default Seed Users (Admin & Sample Customer)
+  // Default Seed Users (Admin, Supervisors with category permissions, & Sample Customers)
   const defaultUsers = [
     {
       id: 'USR-ADMIN',
-      name: 'مدير المتجر',
+      name: 'مدير المتجر العام',
       email: 'msaawadi2016@gmail.com',
       phone: '0550000000',
       city: 'الرياض',
       address: 'حي النرجس، شارع عثمان بن عفان',
       password: '12345678',
       role: 'admin',
-      createdAt: '2026-01-01'
+      createdAt: '2026-01-01',
+      permissions: {
+        categoriesMode: 'all',
+        allowedCategories: [],
+        canAddProduct: true,
+        canEditProduct: true,
+        canDeleteProduct: true,
+        canEditPrice: true,
+        canToggleStock: true,
+        canToggleCustomName: true,
+        canAddCategory: true,
+        canEditCategory: true,
+        canDeleteCategory: true,
+        canManageOrders: true,
+        canManageSettings: true,
+        canManageUsers: true
+      }
+    },
+    {
+      id: 'USR-SUP-1',
+      name: 'ريم القحطاني (مشرفة أطقم وتطريز)',
+      email: 'reem@littleangel.com',
+      phone: '0551122334',
+      city: 'الرياض',
+      address: 'حي الملقا - شارع التحلية',
+      password: '123',
+      role: 'supervisor',
+      createdAt: '2026-02-01',
+      permissions: {
+        categoriesMode: 'custom',
+        allowedCategories: ['hospital-sets', 'custom-embroidery', 'baby-clothes', 'swaddles'],
+        canAddProduct: true,
+        canEditProduct: true,
+        canDeleteProduct: false,
+        canEditPrice: true,
+        canToggleStock: true,
+        canToggleCustomName: true,
+        canAddCategory: false,
+        canEditCategory: false,
+        canDeleteCategory: false,
+        canManageOrders: true,
+        canManageSettings: false,
+        canManageUsers: false
+      }
+    },
+    {
+      id: 'USR-ORD-1',
+      name: 'خالد الدوسري (مسؤول مبيعات وشحن)',
+      email: 'khaled@littleangel.com',
+      phone: '0559988776',
+      city: 'جدة',
+      address: 'حي الشاطئ - طريق الكورنيش',
+      password: '123',
+      role: 'order_specialist',
+      createdAt: '2026-02-10',
+      permissions: {
+        categoriesMode: 'all',
+        allowedCategories: [],
+        canAddProduct: false,
+        canEditProduct: false,
+        canDeleteProduct: false,
+        canEditPrice: false,
+        canToggleStock: false,
+        canToggleCustomName: false,
+        canAddCategory: false,
+        canEditCategory: false,
+        canDeleteCategory: false,
+        canManageOrders: true,
+        canManageSettings: false,
+        canManageUsers: false
+      }
     },
     {
       id: 'USR-101',
@@ -187,22 +258,71 @@ export default function App() {
       address: 'حي الياسمين، شارع أنس بن مالك، فيلا 14',
       password: '123',
       role: 'customer',
-      createdAt: '2026-02-15'
+      createdAt: '2026-02-15',
+      permissions: {
+        categoriesMode: 'none',
+        allowedCategories: [],
+        canAddProduct: false,
+        canEditProduct: false,
+        canDeleteProduct: false,
+        canEditPrice: false,
+        canToggleStock: false,
+        canToggleCustomName: false,
+        canAddCategory: false,
+        canEditCategory: false,
+        canDeleteCategory: false,
+        canManageOrders: false,
+        canManageSettings: false,
+        canManageUsers: false
+      }
+    },
+    {
+      id: 'USR-102',
+      name: 'نورة العتيبي',
+      email: 'noura@gmail.com',
+      phone: '0501239876',
+      city: 'الدمام',
+      address: 'حي المزروعية - شارع الملك سعود',
+      password: '123',
+      role: 'customer',
+      createdAt: '2026-02-20',
+      permissions: {
+        categoriesMode: 'none',
+        allowedCategories: [],
+        canAddProduct: false,
+        canEditProduct: false,
+        canDeleteProduct: false,
+        canEditPrice: false,
+        canToggleStock: false,
+        canToggleCustomName: false,
+        canAddCategory: false,
+        canEditCategory: false,
+        canDeleteCategory: false,
+        canManageOrders: false,
+        canManageSettings: false,
+        canManageUsers: false
+      }
     }
   ];
 
   const [usersList, setUsersList] = useState(() => {
-    const saved = localStorage.getItem('angel_users');
+    const saved = localStorage.getItem('angel_users_v2') || localStorage.getItem('angel_users');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length >= 3) {
+          return parsed.map(u => ({
+            ...u,
+            permissions: u.permissions || getEffectivePermissions(u)
+          }));
+        }
       } catch (e) {}
     }
     return defaultUsers;
   });
 
   useEffect(() => {
+    localStorage.setItem('angel_users_v2', JSON.stringify(usersList));
     localStorage.setItem('angel_users', JSON.stringify(usersList));
   }, [usersList]);
 
@@ -752,13 +872,65 @@ export default function App() {
       deliveryNotes: (data.deliveryNotes || '').trim(),
       password: data.password.trim(),
       role: 'customer',
-      createdAt: new Date().toLocaleDateString('ar-SA')
+      createdAt: new Date().toLocaleDateString('ar-SA'),
+      permissions: { ...EMPTY_PERMISSIONS, categoriesMode: 'none' }
     };
 
     setUsersList(prev => [...prev, newUser]);
     setCurrentUser(newUser);
     showToast(`أهلاً بك يا ${newUser.name}! تم إنشاء حسابك وحفظ موقعك بنجاح`);
     return { success: true };
+  };
+
+  // User & Staff Management Handlers for Admin
+  const handleAddUser = (newUserData) => {
+    const userRole = newUserData.role || 'customer';
+    const basePreset = ROLE_PRESETS[userRole]?.permissions || EMPTY_PERMISSIONS;
+    const finalUser = {
+      ...newUserData,
+      permissions: newUserData.permissions || basePreset
+    };
+    setUsersList(prev => [...prev, finalUser]);
+    showToast(`تمت إضافة المستخدم (${finalUser.name}) بنجاح`);
+  };
+
+  const handleUpdateUser = (userId, updatedData) => {
+    setUsersList(prev => prev.map(u => u.id === userId ? { ...u, ...updatedData } : u));
+    if (currentUser && currentUser.id === userId) {
+      setCurrentUser(prev => ({ ...prev, ...updatedData }));
+    }
+    showToast('تم حفظ وتحديث بيانات المستخدم بنجاح');
+  };
+
+  const handleDeleteUser = (userId) => {
+    const userToDelete = usersList.find(u => u.id === userId);
+    if (userToDelete?.role === 'admin' && usersList.filter(u => u.role === 'admin').length <= 1) {
+      showToast('تحذير: لا يمكن حذف حساب المدير العام الأساسي للمتجر!');
+      return;
+    }
+    setUsersList(prev => prev.filter(u => u.id !== userId));
+    showToast('تم حذف حساب المستخدم بنجاح');
+  };
+
+  const handleUpdateUserPermissions = (userId, newPermissions, newRole) => {
+    setUsersList(prev => prev.map(u => {
+      if (u.id === userId) {
+        return {
+          ...u,
+          role: newRole || u.role,
+          permissions: newPermissions
+        };
+      }
+      return u;
+    }));
+    if (currentUser && currentUser.id === userId) {
+      setCurrentUser(prev => ({
+        ...prev,
+        role: newRole || prev.role,
+        permissions: newPermissions
+      }));
+    }
+    showToast('تم تحديث وتثبيت صلاحيات المستخدم بنجاح!');
   };
 
   const handleUpdateProfile = (updatedData) => {
@@ -1013,6 +1185,12 @@ export default function App() {
           onReturnToStore={() => navigateTo('store')}
           storeSettings={storeSettings}
           onUpdateSettings={handleUpdateSettings}
+          users={usersList}
+          onAddUser={handleAddUser}
+          onUpdateUser={handleUpdateUser}
+          onDeleteUser={handleDeleteUser}
+          onUpdateUserPermissions={handleUpdateUserPermissions}
+          currentUser={currentUser}
         />
       </div>
     );

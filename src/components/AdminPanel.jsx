@@ -3,7 +3,8 @@ import {
   Package, ShoppingBag, Plus, Trash2, Edit3, Upload, Image as ImageIcon, 
   DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
   X, LogOut, Store, Eye, Percent, Palette, Video, MessageCircle, Phone, 
-  Tag, Search, CheckCircle2, AlertTriangle, AlertCircle
+  Tag, Search, CheckCircle2, AlertTriangle, AlertCircle,
+  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus
 } from 'lucide-react';
 import { 
   sanitizeString, 
@@ -12,6 +13,14 @@ import {
   buildWhatsAppUrl, 
   safeOpenExternal 
 } from '../utils/security';
+import UserPermissionsModal from './UserPermissionsModal';
+import UserEditModal from './UserEditModal';
+import { 
+  getEffectivePermissions, 
+  canPerformProductAction, 
+  hasCategoryPermission, 
+  ROLE_PRESETS 
+} from '../utils/permissionRules';
 
 const PRESET_SIZES = [
   '0-3 أشهر', 
@@ -62,9 +71,15 @@ export default function AdminPanel({
   onLogout = () => {},
   onReturnToStore = () => {},
   storeSettings = {},
-  onUpdateSettings = () => {}
+  onUpdateSettings = () => {},
+  users = [],
+  onAddUser = () => {},
+  onUpdateUser = () => {},
+  onDeleteUser = () => {},
+  onUpdateUserPermissions = () => {},
+  currentUser = null
 }) {
-  // Navigation Tabs: 'products' | 'categories' | 'orders' | 'branding' | 'discounts' | 'contact'
+  // Navigation Tabs: 'products' | 'categories' | 'orders' | 'users' | 'branding' | 'discounts' | 'contact'
   const [activeTab, setActiveTab] = useState('products');
   
   // Feedback toast state with timer cleanup
@@ -141,6 +156,30 @@ export default function AdminPanel({
   const safeProducts = Array.isArray(products) ? products : [];
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  // Active Operator Permissions (for enforcement)
+  const currentOperatorPerms = getEffectivePermissions(currentUser || { role: 'admin' });
+
+  // Users Filter & Modals State
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState(null);
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [editingUserForEdit, setEditingUserForEdit] = useState(null);
+  const [isUserEditModalOpen, setIsUserEditModalOpen] = useState(false);
+
+  const filteredUsers = safeUsers.filter(u => {
+    if (!u) return false;
+    const cleanSearch = userSearch.trim().toLowerCase();
+    const nameMatch = u.name && u.name.toLowerCase().includes(cleanSearch);
+    const emailMatch = u.email && u.email.toLowerCase().includes(cleanSearch);
+    const phoneMatch = u.phone && u.phone.includes(cleanSearch);
+    const cityMatch = u.city && u.city.toLowerCase().includes(cleanSearch);
+    const matchesSearch = !cleanSearch || nameMatch || emailMatch || phoneMatch || cityMatch;
+    const matchesRole = userRoleFilter === 'all' || u.role === userRoleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   // Product Filter & Search
   const [productSearch, setProductSearch] = useState('');
@@ -225,6 +264,10 @@ export default function AdminPanel({
 
   // Handlers for products
   const handleOpenAddProduct = () => {
+    if (!currentOperatorPerms.canAddProduct) {
+      showToast('عذراً: ليس لديك صلاحية لإضافة منتجات جديدة. تواصل مع المدير العام.');
+      return;
+    }
     setEditingProduct(null);
     setProductFormError('');
     setProductForm({
@@ -622,6 +665,22 @@ export default function AdminPanel({
 
           <button
             type="button"
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              activeTab === 'users'
+                ? 'bg-[#DF7E93] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>المستخدمين والصلاحيات ({safeUsers.length})</span>
+            <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+              RBAC
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('branding')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
               activeTab === 'branding'
@@ -785,6 +844,10 @@ export default function AdminPanel({
                         <button
                           type="button"
                           onClick={() => {
+                            if (!currentOperatorPerms.canToggleStock) {
+                              showToast('عذراً: ليس لديك صلاحية لتعديل حالة توفر المخزون!');
+                              return;
+                            }
                             const updated = { ...prod, inStock: !prod.inStock };
                             if (typeof onUpdateProduct === 'function') onUpdateProduct(updated);
                             showToast(`تم تغيير حالة مخزون "${prod.name}"`);
@@ -802,7 +865,13 @@ export default function AdminPanel({
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => handleOpenEditProduct(prod)}
+                            onClick={() => {
+                              if (!currentOperatorPerms.canEditProduct) {
+                                showToast('عذراً: ليس لديك صلاحية لتعديل بيانات المنتجات!');
+                                return;
+                              }
+                              handleOpenEditProduct(prod);
+                            }}
                             className="p-2 text-slate-600 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors"
                             title="تعديل المنتج"
                           >
@@ -811,6 +880,10 @@ export default function AdminPanel({
                           <button
                             type="button"
                             onClick={() => {
+                              if (!currentOperatorPerms.canDeleteProduct) {
+                                showToast('عذراً: ليس لديك صلاحية لحذف المنتجات من المتجر!');
+                                return;
+                              }
                               setConfirmDialog({
                                 isOpen: true,
                                 title: 'تأكيد حذف المنتج',
@@ -1450,6 +1523,351 @@ export default function AdminPanel({
       )}
 
       {/* ======================================================== */}
+      {/* TAB 7: 👥 USERS & FINE-GRAINED RBAC (إدارة المستخدمين والصلاحيات) */}
+      {/* ======================================================== */}
+      {activeTab === 'users' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header & Add User Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+                <span className="text-xs font-black text-purple-700">نظام الصلاحيات المتقدم (RBAC)</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-1">
+                إدارة المستخدمين وفريق العمل والصلاحيات الدقيقة
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                يمكنك هنا رؤية جميع المستخدمين المسجلين، منح صلاحيات الأقسام، التحكم في حذف وإضافة وتعديل المنتجات، تعديل الأسعار، توفر المخزون، وتطريز اسم المولود.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEditingUserForEdit(null);
+                setIsUserEditModalOpen(true);
+              }}
+              className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>إضافة مستخدم / موظف جديد</span>
+            </button>
+          </div>
+
+          {/* Quick Metrics Bar for Users */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400">إجمالي الحسابات</p>
+                <h4 className="text-lg font-black text-slate-900 mt-0.5">{safeUsers.length} مستخدم</h4>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400">المدراء والمشرفين</p>
+                <h4 className="text-lg font-black text-slate-900 mt-0.5">
+                  {safeUsers.filter(u => u.role === 'admin' || u.role === 'supervisor').length} مشرف
+                </h4>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-pink-50 text-[#DF7E93] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400">مسؤولو المنتجات والأقسام</p>
+                <h4 className="text-lg font-black text-slate-900 mt-0.5">
+                  {safeUsers.filter(u => u.role === 'editor' || u.role === 'order_specialist').length} موظف
+                </h4>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                <Package className="w-5 h-5" />
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400">العملاء المسجلين</p>
+                <h4 className="text-lg font-black text-slate-900 mt-0.5">
+                  {safeUsers.filter(u => u.role === 'customer').length} عميل
+                </h4>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <UserCheck className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Search & Filter */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2 relative">
+              <input
+                type="text"
+                placeholder="ابحث بالاسم، البريد الإلكتروني، رقم الجوال أو المدينة..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-2xl pr-10 pl-4 py-2.5 text-xs font-bold outline-none focus:border-brand-500 shadow-2xs"
+              />
+              <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
+
+            <div>
+              <select
+                value={userRoleFilter}
+                onChange={(e) => setUserRoleFilter(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-2xl px-3 py-2.5 text-xs font-bold outline-none focus:border-brand-500 shadow-2xs text-slate-700"
+              >
+                <option value="all">جميع الأدوار ({safeUsers.length})</option>
+                <option value="admin">المدير العام فقط (Admin)</option>
+                <option value="supervisor">المشرفون (Supervisor)</option>
+                <option value="editor">مديرو المنتجات والمخزون</option>
+                <option value="order_specialist">مسؤولو الطلبات والشحن</option>
+                <option value="customer">العملاء العاديون</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Users List Cards */}
+          <div className="space-y-4">
+            {filteredUsers.length === 0 ? (
+              <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 space-y-2">
+                <Users className="w-10 h-10 text-slate-300 mx-auto" />
+                <h4 className="text-sm font-bold text-slate-700">لم يتم العثور على أي مستخدمين مطابقين للبحث</h4>
+                <p className="text-xs text-slate-400">جرب البحث بكلمات أخرى أو اختر دوراً مختلفاً</p>
+              </div>
+            ) : (
+              filteredUsers.map((user) => {
+                const perms = getEffectivePermissions(user);
+                const roleData = ROLE_PRESETS[user.role] || ROLE_PRESETS.customer;
+                const isAdmin = user.role === 'admin';
+                const isSuper = user.role === 'supervisor';
+                const isCust = user.role === 'customer';
+
+                return (
+                  <div 
+                    key={user.id}
+                    className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all space-y-4"
+                  >
+                    {/* User Header Row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shrink-0 shadow-xs ${
+                          isAdmin 
+                            ? 'bg-purple-100 text-purple-700 border border-purple-200' 
+                            : isSuper 
+                              ? 'bg-pink-100 text-[#DF7E93] border border-pink-200' 
+                              : isCust 
+                                ? 'bg-slate-100 text-slate-700 border border-slate-200' 
+                                : 'bg-sky-100 text-sky-700 border border-sky-200'
+                        }`}>
+                          {user.name ? user.name.charAt(0) : 'م'}
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-sm font-black text-slate-900">{user.name}</h4>
+                            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                              isAdmin
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                : isSuper
+                                  ? 'bg-pink-50 text-brand-700 border-pink-200'
+                                  : isCust
+                                    ? 'bg-slate-50 text-slate-600 border-slate-200'
+                                    : 'bg-sky-50 text-sky-700 border-sky-200'
+                            }`}>
+                              {roleData.label}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-100">
+                              {user.id}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                            <span className="flex items-center gap-1 font-mono">
+                              <Phone className="w-3 h-3 text-slate-400" />
+                              <span dir="ltr">{user.phone || 'بدون جوال'}</span>
+                            </span>
+                            {user.email && (
+                              <span className="flex items-center gap-1 font-mono">
+                                <Mail className="w-3 h-3 text-slate-400" />
+                                <span>{user.email}</span>
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400" />
+                              <span>{user.city || 'الرياض'}</span>
+                            </span>
+                            {user.createdAt && (
+                              <span className="text-[11px] text-slate-400">
+                                مسجل في: {user.createdAt}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedUserForPermissions(user);
+                            setIsPermissionsModalOpen(true);
+                          }}
+                          className="flex items-center gap-1.5 bg-[#DF7E93] hover:bg-[#d46b82] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95"
+                          title="تعديل وتعيين الصلاحيات الدقيقة"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>تعديل الصلاحيات 🛡️</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingUserForEdit(user);
+                            setIsUserEditModalOpen(true);
+                          }}
+                          className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+                          title="تعديل بيانات الحساب"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+
+                        {!isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setConfirmDialog({
+                                isOpen: true,
+                                title: `تأكيد حذف حساب (${user.name})`,
+                                message: `هل أنت متأكد من حذف حساب المستخدم نهائياً؟ لن يتمكن من تسجيل الدخول بعد الآن.`,
+                                onConfirm: () => onDeleteUser(user.id)
+                              });
+                            }}
+                            className="p-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="حذف الحساب"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Permissions Badges Row */}
+                    <div className="bg-slate-50/80 p-3 sm:p-4 rounded-2xl border border-slate-200/60 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700 flex-wrap gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <Sliders className="w-3.5 h-3.5 text-[#DF7E93]" />
+                          <span>الصلاحيات الممنوحة حالياً لهذا الحساب:</span>
+                        </div>
+                        
+                        {/* Categories Mode Badge */}
+                        <div className="text-[11px]">
+                          {perms.categoriesMode === 'all' ? (
+                            <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-lg font-bold">
+                              أقسام المتجر: جميع الأقسام مصرح بها (كامل الكتالوج)
+                            </span>
+                          ) : perms.categoriesMode === 'custom' ? (
+                            <span className="bg-pink-100 text-brand-800 px-2.5 py-0.5 rounded-lg font-bold">
+                              أقسام المتجر: ({Array.isArray(perms.allowedCategories) ? perms.allowedCategories.length : 0} قسم مخصص)
+                            </span>
+                          ) : (
+                            <span className="bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-lg font-bold">
+                              أقسام المتجر: لا توجد صلاحيات إدارة (عميل)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Display Allowed Categories if custom */}
+                      {perms.categoriesMode === 'custom' && Array.isArray(perms.allowedCategories) && perms.allowedCategories.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {perms.allowedCategories.map(catId => {
+                            const catObj = safeCategories.find(c => c.id === catId);
+                            return (
+                              <span key={catId} className="bg-white border border-pink-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-2xs">
+                                📁 {catObj?.name || catId}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Product & General Action Permissions Badges */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canAddProduct 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <Plus className="w-2.5 h-2.5" /> إضافة منتجات
+                        </span>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canEditProduct 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <Edit3 className="w-2.5 h-2.5" /> تعديل منتجات
+                        </span>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canDeleteProduct 
+                            ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <Trash2 className="w-2.5 h-2.5" /> حذف منتجات
+                        </span>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canEditPrice 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <DollarSign className="w-2.5 h-2.5" /> تعديل الأسعار
+                        </span>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canToggleStock 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <Package className="w-2.5 h-2.5" /> توفر الصنف بالمخزون
+                        </span>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canToggleCustomName 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <Sparkles className="w-2.5 h-2.5" /> تطريز وتعديل اسم المولود
+                        </span>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                          perms.canManageOrders 
+                            ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                            : 'bg-slate-100 text-slate-400 border-slate-200 line-through opacity-60'
+                        }`}>
+                          <ShoppingBag className="w-2.5 h-2.5" /> إدارة ومتابعة الطلبات
+                        </span>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
       {/* MODAL 1: ADD / EDIT PRODUCT MODAL */}
       {/* ======================================================== */}
       {isProductModalOpen && (
@@ -1504,10 +1922,18 @@ export default function AdminPanel({
                   onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 focus:bg-white text-xs font-bold"
                 >
-                  {safeCategories.filter(c => c && c.id !== 'all').map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
+                  {safeCategories
+                    .filter(c => c && c.id !== 'all')
+                    .filter(c => currentOperatorPerms.categoriesMode === 'all' || (Array.isArray(currentOperatorPerms.allowedCategories) && currentOperatorPerms.allowedCategories.includes(c.id)))
+                    .map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
                 </select>
+                {currentOperatorPerms.categoriesMode === 'custom' && (
+                  <p className="text-[10px] text-pink-600 font-bold mt-1">
+                    ملاحظة: تظهر فقط الأقسام المصرح لك بإدارتها ({Array.isArray(currentOperatorPerms.allowedCategories) ? currentOperatorPerms.allowedCategories.length : 0} قسم).
+                  </p>
+                )}
               </div>
 
               {/* Prices & Discount Controls */}
@@ -1518,27 +1944,33 @@ export default function AdminPanel({
                     <span>تحديد السعر والخصم</span>
                   </label>
 
-                  <button
-                    type="button"
-                    onClick={() => setProductForm(prev => {
-                      const nextDiscount = !prev.hasDiscount;
-                      return {
-                        ...prev,
-                        hasDiscount: nextDiscount,
-                        originalPrice: nextDiscount && !prev.originalPrice
-                          ? Math.round(Number(prev.price || 100) * 1.3)
-                          : prev.originalPrice
-                      };
-                    })}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
-                      productForm.hasDiscount
-                        ? 'bg-rose-500 text-white'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    <Percent className="w-3.5 h-3.5" />
-                    <span>{productForm.hasDiscount ? 'إطفاء الخصم (سعر واحد)' : 'تشغيل الخصم (سعرين)'}</span>
-                  </button>
+                  {currentOperatorPerms.canEditPrice ? (
+                    <button
+                      type="button"
+                      onClick={() => setProductForm(prev => {
+                        const nextDiscount = !prev.hasDiscount;
+                        return {
+                          ...prev,
+                          hasDiscount: nextDiscount,
+                          originalPrice: nextDiscount && !prev.originalPrice
+                            ? Math.round(Number(prev.price || 100) * 1.3)
+                            : prev.originalPrice
+                        };
+                      })}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                        productForm.hasDiscount
+                          ? 'bg-rose-500 text-white'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Percent className="w-3.5 h-3.5" />
+                      <span>{productForm.hasDiscount ? 'إطفاء الخصم (سعر واحد)' : 'تشغيل الخصم (سعرين)'}</span>
+                    </button>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 font-bold bg-slate-200 px-2 py-0.5 rounded-md">
+                      تعديل السعر مقفل للصلاحيات
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1550,11 +1982,17 @@ export default function AdminPanel({
                       type="number"
                       required
                       min="1"
+                      disabled={!currentOperatorPerms.canEditPrice}
                       placeholder="مثال: 125"
                       value={productForm.price}
                       onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 text-xs font-bold"
+                      className={`w-full bg-white border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 text-xs font-bold ${
+                        !currentOperatorPerms.canEditPrice ? 'bg-slate-100 cursor-not-allowed opacity-75' : ''
+                      }`}
                     />
+                    {!currentOperatorPerms.canEditPrice && (
+                      <span className="text-[10px] text-rose-500 font-bold block mt-1">ليس لديك صلاحية لتعديل السعر</span>
+                    )}
                   </div>
 
                   {productForm.hasDiscount && (
@@ -1563,10 +2001,13 @@ export default function AdminPanel({
                       <input
                         type="number"
                         min="1"
+                        disabled={!currentOperatorPerms.canEditPrice}
                         placeholder="مثال: 180"
                         value={productForm.originalPrice}
                         onChange={(e) => setProductForm({ ...productForm, originalPrice: e.target.value })}
-                        className="w-full bg-white border border-rose-200 rounded-xl p-2.5 outline-none focus:border-rose-400 text-xs font-bold text-rose-700"
+                        className={`w-full bg-white border border-rose-200 rounded-xl p-2.5 outline-none focus:border-rose-400 text-xs font-bold text-rose-700 ${
+                          !currentOperatorPerms.canEditPrice ? 'bg-slate-100 cursor-not-allowed opacity-75' : ''
+                        }`}
                       />
                     </div>
                   )}
@@ -1687,24 +2128,50 @@ export default function AdminPanel({
 
               {/* Custom Embroidery & Stock */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                <label className={`flex items-start gap-2.5 p-3 rounded-xl border select-none ${
+                  !currentOperatorPerms.canToggleCustomName 
+                    ? 'bg-slate-100 opacity-60 cursor-not-allowed border-slate-200' 
+                    : 'bg-slate-50 border-slate-200 cursor-pointer hover:bg-slate-100/70'
+                }`}>
                   <input
                     type="checkbox"
+                    disabled={!currentOperatorPerms.canToggleCustomName}
                     checked={productForm.hasCustomName}
                     onChange={(e) => setProductForm({ ...productForm, hasCustomName: e.target.checked })}
-                    className="w-4 h-4 accent-brand-600 rounded"
+                    className="w-4 h-4 accent-brand-600 rounded mt-0.5"
                   />
-                  <span className="font-bold text-slate-800 text-xs">تطريز اسم المولود متاح ومجاني</span>
+                  <div>
+                    <span className="font-bold text-slate-800 text-xs block">تطريز وتعديل اسم المولود متاح</span>
+                    {!currentOperatorPerms.canToggleCustomName ? (
+                      <span className="text-[10px] text-rose-500 font-bold block mt-0.5">ليس لديك صلاحية لتعديل خيار التطريز</span>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 block mt-0.5">يتيح للعميل كتابة اسم المولود واختيار لون الخيط</span>
+                    )}
+                  </div>
                 </label>
 
-                <label className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+                <label className={`flex items-start gap-2.5 p-3 rounded-xl border select-none ${
+                  !currentOperatorPerms.canToggleStock 
+                    ? 'bg-slate-100 opacity-60 cursor-not-allowed border-slate-200' 
+                    : 'bg-slate-50 border-slate-200 cursor-pointer hover:bg-slate-100/70'
+                }`}>
                   <input
                     type="checkbox"
+                    disabled={!currentOperatorPerms.canToggleStock}
                     checked={productForm.inStock}
                     onChange={(e) => setProductForm({ ...productForm, inStock: e.target.checked })}
-                    className="w-4 h-4 accent-emerald-600 rounded"
+                    className="w-4 h-4 accent-emerald-600 rounded mt-0.5"
                   />
-                  <span className="font-bold text-slate-800 text-xs">المنتج متوفر بالمخزون حالياً</span>
+                  <div>
+                    <span className="font-bold text-slate-800 text-xs block">
+                      {productForm.inStock ? 'المنتج متوفر بالمخزون حالياً ✓' : 'المنتج غير متوفر (نفدت الكمية) ✕'}
+                    </span>
+                    {!currentOperatorPerms.canToggleStock ? (
+                      <span className="text-[10px] text-rose-500 font-bold block mt-0.5">ليس لديك صلاحية لتعديل توفر المخزون</span>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 block mt-0.5">التحكم في ظهور زر الشراء أو شارة نفدت الكمية</span>
+                    )}
+                  </div>
                 </label>
               </div>
 
@@ -2012,6 +2479,44 @@ export default function AdminPanel({
           </div>
         </div>
       )}
+
+      {/* ======================================================== */}
+      {/* MODAL 5: USER PERMISSIONS MODAL (RBAC) */}
+      {/* ======================================================== */}
+      <UserPermissionsModal
+        isOpen={isPermissionsModalOpen}
+        user={selectedUserForPermissions}
+        categories={safeCategories}
+        onClose={() => {
+          setIsPermissionsModalOpen(false);
+          setSelectedUserForPermissions(null);
+        }}
+        onSave={(userId, newPerms, newRole) => {
+          onUpdateUserPermissions(userId, newPerms, newRole);
+          showToast('تم حفظ وتحديث صلاحيات المستخدم بنجاح وتطبيقها فوراً!');
+        }}
+      />
+
+      {/* ======================================================== */}
+      {/* MODAL 6: ADD / EDIT USER MODAL */}
+      {/* ======================================================== */}
+      <UserEditModal
+        isOpen={isUserEditModalOpen}
+        user={editingUserForEdit}
+        onClose={() => {
+          setIsUserEditModalOpen(false);
+          setEditingUserForEdit(null);
+        }}
+        onSave={(userData) => {
+          if (editingUserForEdit && editingUserForEdit.id) {
+            onUpdateUser(editingUserForEdit.id, userData);
+            showToast(`تم تحديث بيانات المستخدم (${userData.name}) بنجاح!`);
+          } else {
+            onAddUser(userData);
+            showToast(`تمت إضافة المستخدم الجديد (${userData.name}) بنجاح!`);
+          }
+        }}
+      />
 
     </div>
   );
