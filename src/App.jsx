@@ -617,7 +617,31 @@ export default function App() {
     }
   };
 
+  const [pendingCheckout, setPendingCheckout] = useState(() => {
+    return sessionStorage.getItem('angel_pending_checkout') === 'true';
+  });
+
   const handleOpenCheckout = () => {
+    if (!currentUser) {
+      setPendingCheckout(true);
+      sessionStorage.setItem('angel_pending_checkout', 'true');
+      showToast('يرجى تسجيل الدخول أو إنشاء حسابك أولاً لحفظ موقع التوصيل وإتمام طلبك');
+      navigateTo('account');
+      return;
+    }
+    setIsCheckoutOpen(true);
+    window.history.pushState({ modal: 'checkout' }, '', '#checkout');
+  };
+
+  const handleDirectCheckout = (prod, qty, customData) => {
+    handleAddToCart(prod, qty, customData);
+    if (!currentUser) {
+      setPendingCheckout(true);
+      sessionStorage.setItem('angel_pending_checkout', 'true');
+      showToast('يرجى تسجيل الدخول أو إنشاء حسابك أولاً لحفظ موقع التوصيل وإتمام طلبك');
+      navigateTo('account');
+      return;
+    }
     setIsCheckoutOpen(true);
     window.history.pushState({ modal: 'checkout' }, '', '#checkout');
   };
@@ -855,7 +879,20 @@ export default function App() {
       setCurrentUser(adminUser);
       setIsAdminLoggedIn(true);
       sessionStorage.setItem('angel_admin_logged', 'true');
-      showToast('أهلاً بك يا مدير المتجر! تم تسجيل الدخول بنجاح');
+
+      const hasPendingCheckout = pendingCheckout || sessionStorage.getItem('angel_pending_checkout') === 'true';
+      if (hasPendingCheckout) {
+        setPendingCheckout(false);
+        sessionStorage.removeItem('angel_pending_checkout');
+        navigateTo('store');
+        setTimeout(() => {
+          setIsCheckoutOpen(true);
+          window.history.pushState({ modal: 'checkout' }, '', '#checkout');
+          showToast('أهلاً بك يا مدير المتجر! جاري نقلك لإتمام طلبك والدفع');
+        }, 200);
+      } else {
+        showToast('أهلاً بك يا مدير المتجر! تم تسجيل الدخول بنجاح');
+      }
       return { success: true, role: 'admin' };
     }
 
@@ -876,6 +913,20 @@ export default function App() {
         setIsAdminLoggedIn(true);
         sessionStorage.setItem('angel_admin_logged', 'true');
       }
+
+      const hasPendingCheckout = pendingCheckout || sessionStorage.getItem('angel_pending_checkout') === 'true';
+      if (hasPendingCheckout) {
+        setPendingCheckout(false);
+        sessionStorage.removeItem('angel_pending_checkout');
+        navigateTo('store');
+        setTimeout(() => {
+          setIsCheckoutOpen(true);
+          window.history.pushState({ modal: 'checkout' }, '', '#checkout');
+          showToast(`مرحباً بعودتك يا ${foundUser.name}! جاري نقلك لإتمام طلبك والدفع`);
+        }, 200);
+        return { success: true, role: foundUser.role, isStaff: isStaffOrAdmin };
+      }
+
       showToast(`مرحباً بعودتك يا ${foundUser.name}! تم تسجيل الدخول`);
       return { success: true, role: foundUser.role, isStaff: isStaffOrAdmin };
     }
@@ -913,6 +964,20 @@ export default function App() {
 
     setUsersList(prev => [...prev, newUser]);
     setCurrentUser(newUser);
+
+    const hasPendingCheckout = pendingCheckout || sessionStorage.getItem('angel_pending_checkout') === 'true';
+    if (hasPendingCheckout) {
+      setPendingCheckout(false);
+      sessionStorage.removeItem('angel_pending_checkout');
+      navigateTo('store');
+      setTimeout(() => {
+        setIsCheckoutOpen(true);
+        window.history.pushState({ modal: 'checkout' }, '', '#checkout');
+        showToast(`أهلاً بك يا ${newUser.name}! تم إنشاء حسابك وجاري نقلك لإتمام طلبك والدفع`);
+      }, 200);
+      return { success: true };
+    }
+
     showToast(`أهلاً بك يا ${newUser.name}! تم إنشاء حسابك وحفظ موقعك بنجاح`);
     return { success: true };
   };
@@ -1313,10 +1378,7 @@ export default function App() {
           <ProductDetailView
             product={selectedProduct}
             onAddToCart={handleAddToCart}
-            onDirectCheckout={(prod, qty, customData) => {
-              handleAddToCart(prod, qty, customData);
-              setIsCheckoutOpen(true);
-            }}
+            onDirectCheckout={handleDirectCheckout}
             isFavorite={wishlist.includes(selectedProduct.id)}
             onToggleFavorite={handleToggleFavorite}
             onSelectProduct={handleOpenProduct}
@@ -1388,6 +1450,7 @@ export default function App() {
             onGoToAdmin={() => navigateTo('admin')}
             isAdminLoggedIn={isAdminLoggedIn}
             storeSettings={storeSettings}
+            isPendingCheckout={pendingCheckout || sessionStorage.getItem('angel_pending_checkout') === 'true'}
           />
         ) : (
           <>

@@ -34,7 +34,8 @@ export default function AccountView({
   onAddToCart = () => {},
   onGoToAdmin = () => {},
   isAdminLoggedIn = false,
-  storeSettings = {}
+  storeSettings = {},
+  isPendingCheckout = false
 }) {
   // If not logged in: 'login' | 'register'
   const [authMode, setAuthMode] = useState('login');
@@ -311,6 +312,23 @@ export default function AccountView({
               سجلي دخولك أو أنشئي حسابك الفاخر لحفظ بيانات التوصيل، متابعة حالة طلباتك، وسرعة الشراء بضغطة زر.
             </p>
           </div>
+
+          {/* Pending Checkout Notice */}
+          {isPendingCheckout && (
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-pink-50 border border-emerald-200/90 rounded-2xl p-4 flex items-center gap-3.5 shadow-xs text-right animate-fadeIn">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-xs sm:text-sm font-black text-emerald-950">
+                  سلة مشترياتك جاهزة لإتمام الطلب!
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 font-medium leading-relaxed">
+                  سجّلي دخولكِ أو أنشئي حسابكِ لحفظ عنوان التوصيل، وسننقلكِ فوراً لصفحة الدفع وإتمام الطلب مع كافة اختياراتكِ.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Tab Switcher (دخول / إنشاء حساب) */}
           <div className="flex bg-slate-100 p-1 rounded-2xl">
