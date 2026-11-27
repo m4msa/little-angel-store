@@ -404,19 +404,21 @@ export default function App() {
               return {
                 ...defaultAmjad,
                 ...u,
-                role: u.role === 'order_specialist' ? 'editor' : (u.role || 'editor'),
+                role: u.role || 'editor',
                 permissions: {
                   ...EMPTY_PERMISSIONS,
                   ...(defaultAmjad ? defaultAmjad.permissions : {}),
-                  ...(u.permissions || {}),
-                  canManageOrders: u.role === 'order_specialist' ? false : Boolean(u.permissions?.canManageOrders),
-                  canToggleStock: true
+                  ...(u.permissions || {})
                 }
               };
             }
             return {
               ...u,
-              permissions: u.permissions || getEffectivePermissions(u)
+              permissions: {
+                ...EMPTY_PERMISSIONS,
+                ...(getEffectivePermissions(u) || {}),
+                ...(u.permissions || {})
+              }
             };
           });
         }
@@ -520,6 +522,159 @@ export default function App() {
       localStorage.removeItem('angel_current_user');
     }
   }, [currentUser]);
+
+  // Synchronize currentUser with usersList whenever usersList changes (0ms instant reactivity)
+  useEffect(() => {
+    if (!currentUser) return;
+    const freshUser = usersList.find(u => 
+      u && (
+        (u.id && currentUser.id && u.id === currentUser.id) ||
+        (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase())
+      )
+    );
+    if (freshUser) {
+      const permsChanged = JSON.stringify(freshUser.permissions) !== JSON.stringify(currentUser.permissions);
+      const roleChanged = freshUser.role !== currentUser.role;
+      const nameChanged = freshUser.name !== currentUser.name;
+      if (permsChanged || roleChanged || nameChanged) {
+        console.log('[RBAC Sync] Instant reactive update for currentUser:', freshUser.id, freshUser.permissions);
+        setCurrentUser(prev => ({
+          ...prev,
+          ...freshUser,
+          role: freshUser.role || prev.role,
+          permissions: {
+            ...EMPTY_PERMISSIONS,
+            ...(freshUser.permissions || {})
+          }
+        }));
+      }
+    }
+  }, [usersList, currentUser]);
+
+  // Instant Cross-Tab Real-time Sync (0ms delay across tabs on same device)
+  useEffect(() => {
+    let channel;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('angel_realtime_channel');
+        channel.onmessage = (event) => {
+          if (!event || !event.data) return;
+          const { type, payload } = event.data;
+          if (type === 'PERMISSIONS_UPDATED' && payload) {
+            const { userId, user, permissions, role } = payload;
+            setUsersList(prev => prev.map(u => {
+              if (u.id === userId || (user && user.email && u.email && u.email.toLowerCase() === user.email.toLowerCase())) {
+                return {
+                  ...u,
+                  ...(user || {}),
+                  role: role || (user ? user.role : u.role),
+                  permissions: { ...EMPTY_PERMISSIONS, ...(permissions || (user ? user.permissions : {})) }
+                };
+              }
+              return u;
+            }));
+            setCurrentUser(prev => {
+              if (!prev) return prev;
+              if (prev.id === userId || (user && user.email && prev.email && prev.email.toLowerCase() === user.email.toLowerCase())) {
+                return {
+                  ...prev,
+                  ...(user || {}),
+                  role: role || (user ? user.role : prev.role),
+                  permissions: { ...EMPTY_PERMISSIONS, ...(permissions || (user ? user.permissions : {})) }
+                };
+              }
+              return prev;
+            });
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('[Sync] BroadcastChannel not supported:', e.message);
+    }
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'angel_users_v2' && e.newValue) {
+        try {
+          const updatedUsers = JSON.parse(e.newValue);
+          if (Array.isArray(updatedUsers)) {
+            setUsersList(updatedUsers);
+          }
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      if (channel) channel.close();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Live Cross-Device Push via Server-Sent Events (SSE) & Fast Sync Polling
+  useEffect(() => {
+    let evtSource = null;
+    let pollInterval = null;
+
+    try {
+      if (typeof EventSource !== 'undefined') {
+        evtSource = new EventSource('/api/realtime-stream');
+        evtSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'PERMISSIONS_UPDATED' && data.payload) {
+              const { userId, user, permissions, role } = data.payload;
+              setUsersList(prev => prev.map(u => {
+                if (u.id === userId || (user && user.email && u.email && u.email.toLowerCase() === user.email.toLowerCase())) {
+                  return {
+                    ...u,
+                    ...(user || {}),
+                    role: role || (user ? user.role : u.role),
+                    permissions: { ...EMPTY_PERMISSIONS, ...(permissions || (user ? user.permissions : {})) }
+                  };
+                }
+                return u;
+              }));
+              setCurrentUser(prev => {
+                if (!prev) return prev;
+                if (prev.id === userId || (user && user.email && prev.email && prev.email.toLowerCase() === user.email.toLowerCase())) {
+                  return {
+                    ...prev,
+                    ...(user || {}),
+                    role: role || (user ? user.role : prev.role),
+                    permissions: { ...EMPTY_PERMISSIONS, ...(permissions || (user ? user.permissions : {})) }
+                  };
+                }
+                return prev;
+              });
+            }
+          } catch (e) {}
+        };
+        evtSource.onerror = () => {
+          // EventSource will auto-reconnect
+        };
+      }
+    } catch (e) {
+      console.warn('[Sync] EventSource initialization failed:', e.message);
+    }
+
+    // Fast polling fallback every 2.5 seconds to guarantee instant updates on mobile phones across tunnels
+    pollInterval = setInterval(async () => {
+      try {
+        const freshUsers = await api.getUsers();
+        if (Array.isArray(freshUsers) && freshUsers.length > 0) {
+          setUsersList(prev => {
+            const hasChanged = JSON.stringify(freshUsers) !== JSON.stringify(prev);
+            return hasChanged ? freshUsers : prev;
+          });
+        }
+      } catch (err) {}
+    }, 2500);
+
+    return () => {
+      if (evtSource) evtSource.close();
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, []);
 
   // Admin authentication state
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
@@ -1171,6 +1326,7 @@ export default function App() {
   };
 
   const handleUpdateUserPermissions = async (userId, newPermissions, newRole) => {
+    // 1. Instant local state update
     setUsersList(prev => prev.map(u => {
       if (u.id === userId) {
         return {
@@ -1181,6 +1337,7 @@ export default function App() {
       }
       return u;
     }));
+
     if (currentUser && currentUser.id === userId) {
       setCurrentUser(prev => ({
         ...prev,
@@ -1188,12 +1345,30 @@ export default function App() {
         permissions: newPermissions
       }));
     }
+
+    // 2. Broadcast immediately across tabs on this browser
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('angel_realtime_channel');
+        bc.postMessage({
+          type: 'PERMISSIONS_UPDATED',
+          payload: {
+            userId,
+            permissions: newPermissions,
+            role: newRole
+          }
+        });
+        bc.close();
+      }
+    } catch (e) {}
+
+    // 3. Persist to Express backend which broadcasts via SSE to all mobile devices
     try {
       await api.updateUserPermissions(userId, newPermissions, newRole);
     } catch (err) {
       console.warn('[API] Permissions update fallback:', err.message);
     }
-    showToast('تم تحديث وتثبيت صلاحيات المستخدم بنجاح!');
+    showToast('تم تحديث وتثبيت صلاحيات المستخدم بنجاح في نفس اللحظة!');
   };
 
   const handleUpdateProfile = (updatedData) => {

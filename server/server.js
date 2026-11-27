@@ -54,6 +54,37 @@ app.use((req, res, next) => {
 });
 
 // ---------------- HEALTH & OVERVIEW ----------------
+const sseClients = new Set();
+
+app.get('/api/realtime-stream', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+
+  const client = { id: Date.now() + Math.random(), res };
+  sseClients.add(client);
+
+  res.write(`data: ${JSON.stringify({ type: 'CONNECTED', timestamp: Date.now() })}\n\n`);
+
+  req.on('close', () => {
+    sseClients.delete(client);
+  });
+});
+
+function broadcastRealtimeEvent(type, payload = {}) {
+  const msg = `data: ${JSON.stringify({ type, payload, timestamp: Date.now() })}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.res.write(msg);
+    } catch (e) {
+      sseClients.delete(client);
+    }
+  }
+}
+
 app.get('/api/health', (req, res) => {
   const db = loadDb();
   res.json({
@@ -293,6 +324,15 @@ app.put('/api/users/:id/permissions', (req, res) => {
     if (role) updates.role = role;
     const updated = updateUser(req.params.id, updates);
     if (!updated) return res.status(404).json({ error: 'User not found' });
+    
+    // Broadcast instantly to all connected browser sessions & mobile devices
+    broadcastRealtimeEvent('PERMISSIONS_UPDATED', {
+      userId: req.params.id,
+      user: updated,
+      permissions: updated.permissions,
+      role: updated.role
+    });
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update permissions', details: err.message });

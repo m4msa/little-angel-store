@@ -35,7 +35,8 @@
         "أبيض قطني",
         "وردي هادئ",
         "أزرق سماوي"
-      ]
+      ],
+      "updatedAt": "2026-11-27T21:42:23.861Z"
     },
     {
       "id": 2,
@@ -69,7 +70,8 @@
       "availableColors": [
         "أبيض قطني",
         "بيج كريمي"
-      ]
+      ],
+      "updatedAt": "2026-11-27T21:41:40.305Z"
     },
     {
       "id": 3,
@@ -2086,15 +2088,15 @@
         "canEditPrice": false,
         "canEditProductImages": false,
         "canEditProductVideos": false,
-        "canDeleteProduct": false,
-        "canToggleStock": true,
+        "canToggleStock": false,
         "canToggleCustomName": false,
+        "canDeleteProduct": false,
         "canAddCategory": false,
         "canEditCategory": false,
         "canDeleteCategory": false,
         "canManageCategories": false,
         "canManageOrders": false,
-        "canManageReviews": false,
+        "canManageReviews": true,
         "canManageSettings": false,
         "canManageUsers": false
       }
@@ -2238,7 +2240,7 @@
   },
   "meta": {
     "createdAt": "2026-11-25T20:50:51.008Z",
-    "updatedAt": "2026-11-27T20:54:22.850Z",
+    "updatedAt": "2026-11-27T21:43:08.980Z",
     "version": "1.0.0"
   },
   "reviews": [
