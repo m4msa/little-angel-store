@@ -2084,7 +2084,11 @@ export default function App() {
         </section>
 
         {/* Customer Testimonials & Reviews */}
-        <Testimonials customReviews={reviewsList} />
+        <Testimonials 
+          customReviews={reviewsList} 
+          onAddReview={handleAddReview}
+          currentUser={currentUser}
+        />
       </>
     )}
   </main>
