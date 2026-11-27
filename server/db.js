@@ -137,6 +137,61 @@ const DEFAULT_SETTINGS = {
   ]
 };
 
+export const DEFAULT_REVIEWS = [
+  {
+    id: 'REV-101',
+    productId: 1,
+    productName: 'بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)',
+    customerName: 'أم ريان السبيعي',
+    customerEmail: 'am.rayan@gmail.com',
+    customerPhone: '0559988776',
+    rating: 5,
+    comment: 'ما شاء الله تبارك الله، جودة القماش والتطريز تفوق الخيال! التغليف ملكي فاخر والتوصيل سريع جداً.',
+    createdAt: '2026-11-26T14:20:00Z',
+    isVisible: true,
+    status: 'approved'
+  },
+  {
+    id: 'REV-102',
+    productId: 2,
+    productName: 'طقم استقبال لؤلؤي دانتيل ناعم مع تطريز الاسم بالخيط الذهبي',
+    customerName: 'نورة الشمري',
+    customerEmail: 'noura.alshammari@gmail.com',
+    customerPhone: '0561234890',
+    rating: 5,
+    comment: 'الخامة جداً ناعمة ومناسبة للمستشفى، وتطريز الاسم بالخيط الذهبي أعطى فخامة لا توصف. شكراً لكم!',
+    createdAt: '2026-11-26T18:45:00Z',
+    isVisible: true,
+    status: 'approved'
+  },
+  {
+    id: 'REV-103',
+    productId: 1,
+    productName: 'بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)',
+    customerName: 'فيصل الحربي',
+    customerEmail: 'faisal.harbi99@gmail.com',
+    customerPhone: '0505544332',
+    rating: 5,
+    comment: 'وصلني في وقت قياسي والهدية نالت إعجاب الأهل كثيراً، التغليف يبيض الوجه وتفاصيل الاسم متقنة للغاية.',
+    createdAt: '2026-11-27T10:15:00Z',
+    isVisible: false,
+    status: 'pending'
+  },
+  {
+    id: 'REV-104',
+    productId: 3,
+    productName: 'مهاد بيبي شتوي ثقيل بطانة صوف تيدي دافئ',
+    customerName: 'هند القحطاني',
+    customerEmail: 'hend.qahtani@gmail.com',
+    customerPhone: '0558877112',
+    rating: 4,
+    comment: 'المهاد دافئ جداً ومريح للطفل في الشتاء.',
+    createdAt: '2026-11-27T11:30:00Z',
+    isVisible: false,
+    status: 'hidden'
+  }
+];
+
 const DEFAULT_ORDERS = [
   {
     id: 'ORD-17955701',
@@ -177,6 +232,7 @@ function getInitialDb() {
     categories: initialCategories,
     users: DEFAULT_USERS,
     orders: DEFAULT_ORDERS,
+    reviews: DEFAULT_REVIEWS,
     settings: DEFAULT_SETTINGS,
     meta: {
       createdAt: new Date().toISOString(),
@@ -199,6 +255,10 @@ export function loadDb() {
       // Validate structure
       if (!cachedDb.products || !cachedDb.categories || !cachedDb.users) {
         throw new Error('Corrupted db structure, restoring defaults');
+      }
+      if (!cachedDb.reviews || !Array.isArray(cachedDb.reviews)) {
+        cachedDb.reviews = DEFAULT_REVIEWS;
+        saveDbImmediate(cachedDb);
       }
       return cachedDb;
     }
@@ -481,3 +541,109 @@ export function updateSettings(updates) {
   saveDb(db);
   return db.settings;
 }
+
+// ---------------- REVIEWS & RATINGS ----------------
+export function getReviews(filters = {}) {
+  const db = loadDb();
+  let list = db.reviews || [];
+
+  if (filters.productId) {
+    list = list.filter(r => String(r.productId) === String(filters.productId));
+  }
+  if (filters.status && filters.status !== 'all') {
+    list = list.filter(r => r.status === filters.status);
+  }
+  if (filters.isVisible !== undefined && filters.isVisible !== null && filters.isVisible !== '') {
+    const visibleBool = String(filters.isVisible) === 'true';
+    list = list.filter(r => Boolean(r.isVisible) === visibleBool);
+  }
+  if (filters.search) {
+    const q = filters.search.trim().toLowerCase();
+    list = list.filter(r =>
+      (r.customerName && r.customerName.toLowerCase().includes(q)) ||
+      (r.customerEmail && r.customerEmail.toLowerCase().includes(q)) ||
+      (r.customerPhone && String(r.customerPhone).includes(q)) ||
+      (r.productName && r.productName.toLowerCase().includes(q)) ||
+      (r.comment && r.comment.toLowerCase().includes(q))
+    );
+  }
+
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+export function getReviewById(id) {
+  const db = loadDb();
+  return (db.reviews || []).find(r => r.id === id) || null;
+}
+
+export function addReview(reviewData) {
+  const db = loadDb();
+  if (!db.reviews) db.reviews = [];
+
+  const newReview = {
+    id: reviewData.id || `REV-${Date.now()}`,
+    productId: reviewData.productId || null,
+    productName: reviewData.productName || 'منتج عام',
+    productImage: reviewData.productImage || '',
+    customerName: reviewData.customerName || 'عميل المتجر',
+    customerEmail: reviewData.customerEmail || '',
+    customerPhone: reviewData.customerPhone || '',
+    rating: Math.min(5, Math.max(1, Number(reviewData.rating) || 5)),
+    comment: reviewData.comment || '',
+    createdAt: reviewData.createdAt || new Date().toISOString(),
+    // New reviews are hidden & pending by default for admin approval!
+    isVisible: reviewData.isVisible !== undefined ? Boolean(reviewData.isVisible) : false,
+    status: reviewData.status || (reviewData.isVisible ? 'approved' : 'pending')
+  };
+
+  db.reviews = [newReview, ...db.reviews];
+  saveDb(db);
+  return newReview;
+}
+
+export function updateReviewVisibility(id, isVisible) {
+  const db = loadDb();
+  if (!db.reviews) db.reviews = [];
+  const index = db.reviews.findIndex(r => r.id === id);
+  if (index === -1) return null;
+
+  const visibleBool = Boolean(isVisible);
+  db.reviews[index] = {
+    ...db.reviews[index],
+    isVisible: visibleBool,
+    status: visibleBool ? 'approved' : 'hidden',
+    updatedAt: new Date().toISOString()
+  };
+  saveDb(db);
+  return db.reviews[index];
+}
+
+export function updateReviewStatus(id, status) {
+  const db = loadDb();
+  if (!db.reviews) db.reviews = [];
+  const index = db.reviews.findIndex(r => r.id === id);
+  if (index === -1) return null;
+
+  db.reviews[index] = {
+    ...db.reviews[index],
+    status,
+    isVisible: status === 'approved',
+    updatedAt: new Date().toISOString()
+  };
+  saveDb(db);
+  return db.reviews[index];
+}
+
+export function deleteReview(id) {
+  const db = loadDb();
+  if (!db.reviews) return false;
+  const initialLen = db.reviews.length;
+  db.reviews = db.reviews.filter(r => r.id !== id);
+  if (db.reviews.length !== initialLen) {
+    saveDb(db);
+    return true;
+  }
+  return false;
+}
+
+

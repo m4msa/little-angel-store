@@ -165,12 +165,13 @@ export default function App() {
     let isMounted = true;
     async function syncWithBackend() {
       try {
-        const [pRes, cRes, oRes, uRes, sRes] = await Promise.allSettled([
+        const [pRes, cRes, oRes, uRes, sRes, rRes] = await Promise.allSettled([
           api.getProducts(),
           api.getCategories(),
           api.getOrders(),
           api.getUsers(),
-          api.getSettings()
+          api.getSettings(),
+          api.getReviews()
         ]);
 
         if (!isMounted) return;
@@ -189,6 +190,9 @@ export default function App() {
         }
         if (sRes.status === 'fulfilled' && sRes.value && typeof sRes.value === 'object') {
           setStoreSettings(prev => ({ ...prev, ...sRes.value }));
+        }
+        if (rRes.status === 'fulfilled' && Array.isArray(rRes.value) && rRes.value.length > 0) {
+          setReviewsList(rRes.value);
         }
       } catch (err) {
         console.warn('[API] Backend sync fallback to local storage:', err.message);
@@ -401,6 +405,75 @@ export default function App() {
     localStorage.setItem('angel_users_v2', JSON.stringify(usersList));
     localStorage.setItem('angel_users', JSON.stringify(usersList));
   }, [usersList]);
+
+  // Customer Reviews & Ratings state
+  const [reviewsList, setReviewsList] = useState(() => {
+    const saved = localStorage.getItem('angel_store_reviews');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 'REV-101',
+        productId: 1,
+        productName: 'بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)',
+        customerName: 'أم ريان السبيعي',
+        customerEmail: 'am.rayan@gmail.com',
+        customerPhone: '0559988776',
+        rating: 5,
+        comment: 'ما شاء الله تبارك الله، جودة القماش والتطريز تفوق الخيال! التغليف ملكي فاخر والتوصيل سريع جداً.',
+        createdAt: '2026-11-26T14:20:00Z',
+        isVisible: true,
+        status: 'approved'
+      },
+      {
+        id: 'REV-102',
+        productId: 2,
+        productName: 'طقم استقبال لؤلؤي دانتيل ناعم مع تطريز الاسم بالخيط الذهبي',
+        customerName: 'نورة الشمري',
+        customerEmail: 'noura.alshammari@gmail.com',
+        customerPhone: '0561234890',
+        rating: 5,
+        comment: 'الخامة جداً ناعمة ومناسبة للمستشفى، وتطريز الاسم بالخيط الذهبي أعطى فخامة لا توصف. شكراً لكم!',
+        createdAt: '2026-11-26T18:45:00Z',
+        isVisible: true,
+        status: 'approved'
+      },
+      {
+        id: 'REV-103',
+        productId: 1,
+        productName: 'بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)',
+        customerName: 'فيصل الحربي',
+        customerEmail: 'faisal.harbi99@gmail.com',
+        customerPhone: '0505544332',
+        rating: 5,
+        comment: 'وصلني في وقت قياسي والهدية نالت إعجاب الأهل كثيراً، التغليف يبيض الوجه وتفاصيل الاسم متقنة للغاية.',
+        createdAt: '2026-11-27T10:15:00Z',
+        isVisible: false,
+        status: 'pending'
+      },
+      {
+        id: 'REV-104',
+        productId: 3,
+        productName: 'مهاد بيبي شتوي ثقيل بطانة صوف تيدي دافئ',
+        customerName: 'هند القحطاني',
+        customerEmail: 'hend.qahtani@gmail.com',
+        customerPhone: '0558877112',
+        rating: 4,
+        comment: 'المهاد دافئ جداً ومريح للطفل في الشتاء.',
+        createdAt: '2026-11-27T11:30:00Z',
+        isVisible: false,
+        status: 'hidden'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('angel_store_reviews', JSON.stringify(reviewsList));
+  }, [reviewsList]);
 
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('angel_current_user');
@@ -1121,6 +1194,56 @@ export default function App() {
     showToast('تم تسجيل الخروج بنجاح');
   };
 
+  // Review & Rating Handlers
+  const handleAddReview = async (reviewData) => {
+    const tempId = `REV-${Date.now()}`;
+    const newRev = {
+      ...reviewData,
+      id: reviewData.id || tempId,
+      createdAt: reviewData.createdAt || new Date().toISOString(),
+      isVisible: false,
+      status: 'pending'
+    };
+    setReviewsList(prev => [newRev, ...prev]);
+
+    try {
+      const created = await api.createReview(newRev);
+      if (created && created.id) {
+        setReviewsList(prev => prev.map(r => r.id === tempId ? created : r));
+      }
+    } catch (err) {
+      console.warn('[API] Review stored locally in offline mode:', err.message);
+    }
+  };
+
+  const handleToggleReviewVisibility = async (reviewId, newVisibility) => {
+    setReviewsList(prev => prev.map(r => {
+      if (r.id === reviewId) {
+        return {
+          ...r,
+          isVisible: Boolean(newVisibility),
+          status: newVisibility ? 'approved' : 'hidden'
+        };
+      }
+      return r;
+    }));
+
+    try {
+      await api.toggleReviewVisibility(reviewId, newVisibility);
+    } catch (err) {
+      console.warn('[API] Visibility toggle stored locally in offline mode:', err.message);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    setReviewsList(prev => prev.filter(r => r.id !== reviewId));
+    try {
+      await api.deleteReview(reviewId);
+    } catch (err) {
+      console.warn('[API] Review deletion stored locally in offline mode:', err.message);
+    }
+  };
+
   const openAccountView = () => {
     triggerSplash(380);
     setSelectedProduct(null);
@@ -1397,6 +1520,10 @@ export default function App() {
             onDeleteUser={handleDeleteUser}
             onUpdateUserPermissions={handleUpdateUserPermissions}
             currentUser={currentUser}
+            reviews={reviewsList}
+            onToggleReviewVisibility={handleToggleReviewVisibility}
+            onDeleteReview={handleDeleteReview}
+            onAddReview={handleAddReview}
           />
         </ErrorBoundary>
       </div>
@@ -1496,6 +1623,9 @@ export default function App() {
             onReturnHome={navigateHome}
             onGoBack={handleBackFromProduct}
             storeSettings={storeSettings}
+            reviews={reviewsList}
+            onAddReview={handleAddReview}
+            currentUser={currentUser}
           />
         ) : currentTab === 'categories' ? (
           <CategoriesView
@@ -1753,7 +1883,7 @@ export default function App() {
         </section>
 
         {/* Customer Testimonials & Reviews */}
-        <Testimonials />
+        <Testimonials customReviews={reviewsList} />
       </>
     )}
   </main>

@@ -23,7 +23,13 @@ import {
   updateUser,
   deleteUser,
   getSettings,
-  updateSettings
+  updateSettings,
+  getReviews,
+  getReviewById,
+  addReview,
+  updateReviewVisibility,
+  updateReviewStatus,
+  deleteReview
 } from './db.js';
 
 const app = express();
@@ -59,7 +65,8 @@ app.get('/api/health', (req, res) => {
       products: db.products.length,
       categories: db.categories.length,
       orders: db.orders.length,
-      users: db.users.length
+      users: db.users.length,
+      reviews: (db.reviews || []).length
     }
   });
 });
@@ -67,8 +74,10 @@ app.get('/api/health', (req, res) => {
 app.get('/api/overview', (req, res) => {
   const db = loadDb();
   const orders = db.orders || [];
+  const reviews = db.reviews || [];
   const totalSales = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+  const pendingReviews = reviews.filter(r => r.status === 'pending' || !r.isVisible).length;
 
   res.json({
     totalSales: Math.round(totalSales * 100) / 100,
@@ -77,6 +86,8 @@ app.get('/api/overview', (req, res) => {
     productsCount: db.products.length,
     categoriesCount: db.categories.filter(c => c && c.id !== 'all').length,
     usersCount: db.users.length,
+    reviewsCount: reviews.length,
+    pendingReviewsCount: pendingReviews,
     storeSettings: db.settings
   });
 });
@@ -396,6 +407,68 @@ app.put('/api/settings', (req, res) => {
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update settings', details: err.message });
+  }
+});
+
+// ---------------- REVIEWS & RATINGS ----------------
+app.get('/api/reviews', (req, res) => {
+  try {
+    const { productId, status, isVisible, search } = req.query;
+    const reviews = getReviews({ productId, status, isVisible, search });
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch reviews', details: err.message });
+  }
+});
+
+app.get('/api/reviews/:id', (req, res) => {
+  const review = getReviewById(req.params.id);
+  if (!review) return res.status(404).json({ error: 'التعليق غير موجود' });
+  res.json(review);
+});
+
+app.post('/api/reviews', (req, res) => {
+  try {
+    const { customerName, comment, rating } = req.body;
+    if (!customerName || !comment) {
+      return res.status(400).json({ error: 'اسم العميل والتعليق مطلوبان' });
+    }
+    const newReview = addReview(req.body);
+    res.status(201).json(newReview);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save review', details: err.message });
+  }
+});
+
+app.patch('/api/reviews/:id/visibility', (req, res) => {
+  try {
+    const { isVisible } = req.body;
+    const updated = updateReviewVisibility(req.params.id, isVisible);
+    if (!updated) return res.status(404).json({ error: 'التعليق غير موجود' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update review visibility', details: err.message });
+  }
+});
+
+app.patch('/api/reviews/:id/status', (req, res) => {
+  try {
+    const { status } = req.body;
+    const updated = updateReviewStatus(req.params.id, status);
+    if (!updated) return res.status(404).json({ error: 'التعليق غير موجود' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update review status', details: err.message });
+  }
+});
+
+app.delete('/api/reviews/:id', (req, res) => {
+  try {
+    const deleted = deleteReview(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'التعليق غير موجود' });
+    res.json({ success: true, message: 'تم حذف التعليق بنجاح' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete review', details: err.message });
   }
 });
 

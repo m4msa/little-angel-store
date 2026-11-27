@@ -221,7 +221,48 @@ export const api = {
       method: 'PUT',
       body: settingsData
     });
+  },
+
+  // ---------------- Reviews & Ratings ----------------
+  async getReviews(params = {}) {
+    const query = new URLSearchParams();
+    if (params.productId) query.set('productId', String(params.productId));
+    if (params.status && params.status !== 'all') query.set('status', params.status);
+    if (params.isVisible !== undefined && params.isVisible !== null && params.isVisible !== '') {
+      query.set('isVisible', String(params.isVisible));
+    }
+    if (params.search) query.set('search', params.search);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return request(`/reviews${qs}`);
+  },
+
+  async createReview(reviewData) {
+    return request('/reviews', {
+      method: 'POST',
+      body: reviewData
+    });
+  },
+
+  async toggleReviewVisibility(id, isVisible) {
+    return request(`/reviews/${id}/visibility`, {
+      method: 'PATCH',
+      body: { isVisible }
+    });
+  },
+
+  async updateReviewStatus(id, status) {
+    return request(`/reviews/${id}/status`, {
+      method: 'PATCH',
+      body: { status }
+    });
+  },
+
+  async deleteReview(id) {
+    return request(`/reviews/${id}`, {
+      method: 'DELETE'
+    });
   }
 };
 
 export default api;
+

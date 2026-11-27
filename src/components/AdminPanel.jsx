@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   Package, ShoppingBag, Plus, Trash2, Edit3, Upload, Image as ImageIcon, 
   DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
-  X, LogOut, Store, Eye, Percent, Palette, Video, MessageCircle, Phone, Mail, MapPin, Sparkles,
-  Tag, Search, CheckCircle2, AlertTriangle, AlertCircle,
+  X, LogOut, Store, Eye, EyeOff, Percent, Palette, Video, MessageCircle, Phone, Mail, MapPin, Sparkles,
+  Tag, Search, CheckCircle2, AlertTriangle, AlertCircle, Star, Power, ThumbsUp,
   Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus
 } from 'lucide-react';
 import { 
@@ -77,9 +77,13 @@ export default function AdminPanel({
   onUpdateUser = () => {},
   onDeleteUser = () => {},
   onUpdateUserPermissions = () => {},
-  currentUser = null
+  currentUser = null,
+  reviews = [],
+  onToggleReviewVisibility = () => {},
+  onDeleteReview = () => {},
+  onAddReview = () => {}
 }) {
-  // Navigation Tabs: 'products' | 'categories' | 'orders' | 'users' | 'branding' | 'discounts' | 'contact'
+  // Navigation Tabs: 'products' | 'categories' | 'orders' | 'users' | 'reviews' | 'branding' | 'discounts' | 'contact'
   const [activeTab, setActiveTab] = useState('products');
   
   // Feedback toast state with timer cleanup
@@ -97,6 +101,10 @@ export default function AdminPanel({
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     };
   }, []);
+
+  // Reviews Filter & Search State
+  const [reviewFilter, setReviewFilter] = useState('all'); // 'all' | 'pending' | 'approved' | 'hidden'
+  const [reviewSearch, setReviewSearch] = useState('');
 
   // Safe defaults for settings
   const [settingsForm, setSettingsForm] = useState({
@@ -157,6 +165,42 @@ export default function AdminPanel({
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeOrders = Array.isArray(orders) ? orders : [];
   const safeUsers = Array.isArray(users) ? users : [];
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
+
+  const pendingReviewsCount = safeReviews.filter(r => r.status === 'pending' || !r.isVisible).length;
+  const approvedReviewsCount = safeReviews.filter(r => r.isVisible && r.status === 'approved').length;
+  const hiddenReviewsCount = safeReviews.filter(r => !r.isVisible && r.status === 'hidden').length;
+
+  // Filtered Reviews for Admin Panel Tab
+  const filteredReviews = useMemo(() => {
+    return safeReviews.filter(rev => {
+      if (!rev) return false;
+
+      // Status Filter
+      if (reviewFilter === 'pending') {
+        if (rev.status !== 'pending' && rev.isVisible) return false;
+      } else if (reviewFilter === 'approved') {
+        if (!rev.isVisible || rev.status !== 'approved') return false;
+      } else if (reviewFilter === 'hidden') {
+        if (rev.isVisible || rev.status !== 'hidden') return false;
+      }
+
+      // Search Query
+      if (reviewSearch.trim()) {
+        const q = reviewSearch.trim().toLowerCase();
+        const matchName = rev.customerName && rev.customerName.toLowerCase().includes(q);
+        const matchEmail = rev.customerEmail && rev.customerEmail.toLowerCase().includes(q);
+        const matchPhone = rev.customerPhone && String(rev.customerPhone).includes(q);
+        const matchProduct = rev.productName && rev.productName.toLowerCase().includes(q);
+        const matchComment = rev.comment && rev.comment.toLowerCase().includes(q);
+        if (!matchName && !matchEmail && !matchPhone && !matchProduct && !matchComment) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [safeReviews, reviewFilter, reviewSearch]);
 
   // Active Operator Permissions (for enforcement)
   const currentOperatorPerms = getEffectivePermissions(currentUser || { role: 'admin' });
@@ -708,6 +752,24 @@ export default function AdminPanel({
               </span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('reviews')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'reviews'
+                ? 'bg-[#DF7E93] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <Star className={`w-4 h-4 ${activeTab === 'reviews' ? 'text-amber-200 fill-amber-300' : 'text-amber-500 fill-amber-400'}`} />
+            <span>التقييمات والتعليقات ({safeReviews.length})</span>
+            {pendingReviewsCount > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse">
+                {pendingReviewsCount} بانتظار الاعتماد
+              </span>
+            )}
+          </button>
 
           <button
             type="button"
@@ -1886,6 +1948,328 @@ export default function AdminPanel({
                         }`}>
                           <ShoppingBag className="w-2.5 h-2.5" /> إدارة ومتابعة الطلبات
                         </span>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 8: ⭐ REVIEWS & RATINGS MODERATION (واجهة التعليقات والتحكم بظهورها) */}
+      {/* ======================================================== */}
+      {activeTab === 'reviews' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header & Quick Intro */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="p-2.5 bg-amber-50 rounded-2xl text-amber-500 border border-amber-200/70">
+                  <Star className="w-5 h-5 fill-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                    إدارة تقييمات وتعليقات العملاء
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    تحكم فوري بظهور التعليقات في المتجر، مع مراجعة اسم العميل وإيميله (Gmail) وعدد النجوم.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics Badges */}
+            <div className="flex items-center gap-2 text-xs flex-wrap">
+              <span className="bg-amber-50 text-amber-900 border border-amber-200/90 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                <span>إجمالي: {safeReviews.length} تقييم</span>
+              </span>
+              {pendingReviewsCount > 0 && (
+                <span className="bg-rose-50 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 animate-pulse">
+                  <AlertCircle className="w-4 h-4 text-rose-500" />
+                  <span>{pendingReviewsCount} بانتظار الموافقة</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Metrics Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-slate-400">إجمالي التعليقات</span>
+              <p className="text-xl font-black text-slate-900 mt-1">{safeReviews.length}</p>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-amber-600">متوسط التقييم العام</span>
+              <p className="text-xl font-black text-amber-600 mt-1 flex items-center gap-1">
+                <Star className="w-4 h-4 fill-amber-400 text-amber-500 inline" />
+                <span>
+                  {safeReviews.length > 0 
+                    ? (safeReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / safeReviews.length).toFixed(1) 
+                    : '5.0'} / 5
+                </span>
+              </p>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-emerald-600">المعروضة بالمتجر (مفعّلة)</span>
+              <p className="text-xl font-black text-emerald-600 mt-1">{approvedReviewsCount}</p>
+            </div>
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-rose-500">بانتظار الاعتماد (مخفية)</span>
+              <p className="text-xl font-black text-rose-600 mt-1">{pendingReviewsCount}</p>
+            </div>
+          </div>
+
+          {/* Search & Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            {/* Filter Buttons */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setReviewFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                  reviewFilter === 'all'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                الكل ({safeReviews.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setReviewFilter('pending')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                  reviewFilter === 'pending'
+                    ? 'bg-amber-500 text-white shadow-xs'
+                    : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                ⏳ بانتظار الاعتماد ({pendingReviewsCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setReviewFilter('approved')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                  reviewFilter === 'approved'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+              >
+                🟢 المعروضة بالمتجر ({approvedReviewsCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setReviewFilter('hidden')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                  reviewFilter === 'hidden'
+                    ? 'bg-slate-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                ⚪ المخفية ({hiddenReviewsCount})
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="بحث باسم العميل، الإيميل، المنتج..."
+                value={reviewSearch}
+                onChange={(e) => setReviewSearch(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-9 pl-3 py-2 text-xs font-bold outline-none focus:border-[#DF7E93] focus:bg-white transition-all"
+              />
+              {reviewSearch && (
+                <button
+                  type="button"
+                  onClick={() => setReviewSearch('')}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Reviews List */}
+          <div className="space-y-4">
+            {filteredReviews.length === 0 ? (
+              <div className="bg-white p-12 text-center rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
+                <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center text-amber-400 mx-auto">
+                  <Star className="w-8 h-8" />
+                </div>
+                <h4 className="text-base font-black text-slate-800">لا توجد تعليقات مطابقة</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  لم يتم العثور على أي تعليق يطابق الفلتر أو كلمة البحث الحالية.
+                </p>
+              </div>
+            ) : (
+              filteredReviews.map((rev) => {
+                const isCurrentlyVisible = Boolean(rev.isVisible && rev.status === 'approved');
+                const isPendingReview = rev.status === 'pending' || (!rev.isVisible && rev.status !== 'hidden');
+
+                return (
+                  <div
+                    key={rev.id}
+                    className={`bg-white rounded-3xl p-5 sm:p-6 border transition-all duration-200 shadow-xs hover:shadow-md ${
+                      isPendingReview
+                        ? 'border-amber-300 ring-2 ring-amber-100 bg-amber-50/20'
+                        : isCurrentlyVisible
+                        ? 'border-emerald-200/90'
+                        : 'border-slate-200 opacity-80'
+                    }`}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+                      
+                      {/* Left: Review details, customer info, rating, comment */}
+                      <div className="space-y-3 flex-1 min-w-0">
+                        
+                        {/* Top Meta Line: Status badge, Date, and Product Badge */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          {isPendingReview ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                              <span>⏳ بانتظار موافقة الإدارة (مخفي حالياً)</span>
+                            </span>
+                          ) : isCurrentlyVisible ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span>🟢 مفعّل ومعروض لجميع زوار المتجر</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-slate-100 text-slate-700 border border-slate-300">
+                              <span className="w-2 h-2 rounded-full bg-slate-400" />
+                              <span>⚪ معطّل (مخفي عن زوار المتجر)</span>
+                            </span>
+                          )}
+
+                          <span className="text-slate-400 text-[11px] font-bold">
+                            {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'تاريخ غير محدد'}
+                          </span>
+
+                          {rev.productName && (
+                            <span className="bg-pink-50 text-[#DF7E93] border border-pink-200 px-2.5 py-0.5 rounded-lg text-[11px] font-bold truncate max-w-xs">
+                              المنتج: {rev.productName}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Customer Info Card: Name, Gmail, Phone */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 bg-slate-50/70 p-3 rounded-2xl border border-slate-100 text-xs">
+                          <div className="flex items-center gap-1.5 font-black text-slate-900">
+                            <span className="w-6 h-6 rounded-full bg-pink-100 text-[#DF7E93] flex items-center justify-center text-[11px]">
+                              {rev.customerName ? rev.customerName.charAt(0) : 'ع'}
+                            </span>
+                            <span>{rev.customerName || 'عميل المتجر'}</span>
+                          </div>
+
+                          {rev.customerEmail && (
+                            <div className="flex items-center gap-1 text-slate-600 font-semibold dir-ltr">
+                              <Mail className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                              <span className="text-[11px] text-slate-700 select-all font-mono">{rev.customerEmail}</span>
+                            </div>
+                          )}
+
+                          {rev.customerPhone && (
+                            <div className="flex items-center gap-1 text-slate-600 font-semibold dir-ltr">
+                              <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span className="text-[11px] text-slate-700 font-mono">{rev.customerPhone}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Star Rating Display */}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-amber-400">
+                            {[1, 2, 3, 4, 5].map((starIndex) => (
+                              <Star
+                                key={starIndex}
+                                className={`w-5 h-5 ${
+                                  starIndex <= (Number(rev.rating) || 5)
+                                    ? 'fill-amber-400 text-amber-500'
+                                    : 'text-slate-200 fill-slate-100'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs font-black text-amber-600">
+                            ({rev.rating || 5} من 5 نجوم)
+                          </span>
+                        </div>
+
+                        {/* Review Comment Quote */}
+                        <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
+                          "{rev.comment}"
+                        </div>
+
+                      </div>
+
+                      {/* Right: ON/OFF Switch & Delete */}
+                      <div className="flex lg:flex-col items-center justify-between lg:justify-center gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 lg:border-r border-slate-100 lg:pr-6">
+                        
+                        {/* TOGGLE SWITCH BUTTON (تشغيل / إيقاف) */}
+                        <div className="flex flex-col items-center gap-1.5 text-center">
+                          <span className="text-[10px] font-black text-slate-500">
+                            {isCurrentlyVisible ? 'حالة الظهور: مفعّل' : 'حالة الظهور: معطّل'}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newVisibility = !isCurrentlyVisible;
+                              onToggleReviewVisibility(rev.id, newVisibility);
+                              showToast(newVisibility 
+                                ? `تم تفعيل ونشر تعليق (${rev.customerName}) في المتجر بنجاح!` 
+                                : `تم إيقاف وإخفاء تعليق (${rev.customerName}) عن المتجر مع حفظه هنا.`);
+                            }}
+                            className={`relative inline-flex items-center h-10 w-24 rounded-full transition-colors duration-300 focus:outline-none shadow-inner cursor-pointer p-1 ${
+                              isCurrentlyVisible ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
+                            }`}
+                            title={isCurrentlyVisible ? 'اضغط لإخفاء التعليق عن المتجر' : 'اضغط لإظهار واعتماد التعليق في المتجر'}
+                          >
+                            <span className="sr-only">تبديل ظهور التعليق</span>
+                            
+                            {/* Sliding Knob */}
+                            <span
+                              className={`inline-block w-8 h-8 transform rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${
+                                isCurrentlyVisible ? '-translate-x-14' : 'translate-x-0'
+                              }`}
+                            >
+                              <Power className={`w-4 h-4 ${isCurrentlyVisible ? 'text-emerald-600' : 'text-slate-400'}`} />
+                            </span>
+
+                            {/* Text label inside switch */}
+                            <span className={`text-[10px] font-black absolute ${isCurrentlyVisible ? 'right-2.5 text-white' : 'left-2.5 text-slate-700'}`}>
+                              {isCurrentlyVisible ? 'شغال' : 'مطفأ'}
+                            </span>
+                          </button>
+
+                          <span className="text-[9px] text-slate-400 font-semibold">
+                            {isCurrentlyVisible ? 'اضغط للإيقاف' : 'اضغط للتشغيل'}
+                          </span>
+                        </div>
+
+                        {/* Permanent Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`هل أنت متأكد من حذف تعليق "${rev.customerName}" نهائياً؟`)) {
+                              onDeleteReview(rev.id);
+                              showToast(`تم حذف تعليق "${rev.customerName}" بنجاح.`);
+                            }
+                          }}
+                          className="flex items-center gap-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border border-transparent hover:border-rose-200"
+                          title="حذف التعليق نهائياً"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف</span>
+                        </button>
+
                       </div>
 
                     </div>

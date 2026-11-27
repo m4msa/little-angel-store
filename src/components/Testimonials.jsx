@@ -1,36 +1,52 @@
 import React from 'react';
 import { Star, ShieldCheck, User } from 'lucide-react';
 
-export default function Testimonials() {
-  const reviews = [
-    {
-      id: 1,
-      name: 'نورة الشمري',
-      city: 'الرياض',
-      rating: 5,
-      date: 'منذ يومين',
-      comment: 'وصلني طقم الاستقبال الملكي والخامة قطن تركي بارد وفائق النعومة، والتطريز بالاسم فخم جداً ومرتب. التوصيل كان سريعاً وتغليف يواجه كهدية فاخرة.',
-      product: 'بكج استقبال روز بيبي - تفصيل ملكي'
-    },
-    {
-      id: 2,
-      name: 'أم فيصل',
-      city: 'جدة',
-      rating: 5,
-      date: 'منذ أسبوع',
-      comment: 'السرير الهزاز جودته ممتازة ومتين جداً والناموسية تحمي الطفل وسهل الطي والتنقل به بالسفر، تجربة تسوق راقية وخدمة عملاء متعاونة جداً.',
-      product: 'سرير أطفال متعدد الارتفاعات'
-    },
-    {
-      id: 3,
-      name: 'سارة القحطاني',
-      city: 'الخبر',
-      rating: 5,
-      date: 'منذ 4 أيام',
-      comment: 'المهادات القطنية الموسلين خفيفة ومسامية، وخيوط التطريز الذهبية ثابتة حتى مع الغسيل المتكرر. متجر معتمد لكل مستلزمات طفلي.',
-      product: 'مجموعة مهادات قطن نقي'
-    }
-  ];
+const DEFAULT_TESTIMONIALS = [
+  {
+    id: 1,
+    name: 'نورة الشمري',
+    city: 'الرياض',
+    rating: 5,
+    date: 'منذ يومين',
+    comment: 'وصلني طقم الاستقبال الملكي والخامة قطن تركي بارد وفائق النعومة، والتطريز بالاسم فخم جداً ومرتب. التوصيل كان سريعاً وتغليف يواجه كهدية فاخرة.',
+    product: 'بكج استقبال روز بيبي - تفصيل ملكي'
+  },
+  {
+    id: 2,
+    name: 'أم فيصل',
+    city: 'جدة',
+    rating: 5,
+    date: 'منذ أسبوع',
+    comment: 'السرير الهزاز جودته ممتازة ومتين جداً والناموسية تحمي الطفل وسهل الطي والتنقل به بالسفر، تجربة تسوق راقية وخدمة عملاء متعاونة جداً.',
+    product: 'سرير أطفال متعدد الارتفاعات'
+  },
+  {
+    id: 3,
+    name: 'سارة القحطاني',
+    city: 'الخبر',
+    rating: 5,
+    date: 'منذ 4 أيام',
+    comment: 'المهادات القطنية الموسلين خفيفة ومسامية، وخيوط التطريز الذهبية ثابتة حتى مع الغسيل المتكرر. متجر معتمد لكل مستلزمات طفلي.',
+    product: 'مجموعة مهادات قطن نقي'
+  }
+];
+
+export default function Testimonials({ customReviews = [] }) {
+  const approvedCustom = Array.isArray(customReviews)
+    ? customReviews
+        .filter(r => r && (r.isVisible || r.status === 'approved'))
+        .map(r => ({
+          id: r.id,
+          name: r.customerName || 'عميل موثق',
+          city: 'مشتري معتمد',
+          rating: Number(r.rating) || 5,
+          date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA') : 'مؤخراً',
+          comment: r.comment,
+          product: r.productName || 'منتج مميز'
+        }))
+    : [];
+
+  const reviews = approvedCustom.length >= 2 ? approvedCustom.slice(0, 3) : DEFAULT_TESTIMONIALS;
 
   return (
     <section className="py-12 border-t border-pink-100/60 my-8">

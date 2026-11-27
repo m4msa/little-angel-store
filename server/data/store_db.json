@@ -2185,13 +2185,13 @@
     }
   ],
   "settings": {
-    "storeName": "الملاك الصغير",
+    "storeName": "شركه تجهيز المواليد",
     "storeSlogan": "عالم الأناقة والفخامة لمولودك الصغير",
     "storeDescription": "متجر سعودي رائد متخصص في أرقى مستلزمات واستقبال المواليد والتطريز الفاخر بالاسم حسب الطلب.",
     "whatsappNumber": "967775302137",
     "brandColor": "#DF7E93",
     "brandColorHover": "#d06a80",
-    "logoUrl": "",
+    "logoUrl": "/logo.png",
     "announcementText": "✨ شحن مجاني للطلبات الأكثر من 299 ر.س | استخدمي كود FIRST10 لخصم 10%",
     "shippingFee": 25,
     "freeShippingThreshold": 299,
@@ -2210,11 +2210,75 @@
         "minOrder": 250,
         "isActive": true
       }
-    ]
+    ],
+    "storeSubtitle": "Little Angel Store",
+    "primaryColor": "#DF7E93",
+    "secondaryColor": "#E88E9F",
+    "couponCode": "FIRST10",
+    "couponDiscountPercent": 10,
+    "standardShippingFee": 25,
+    "displayPhoneNumber": "+967 775 302 137",
+    "instagramUrl": "https://instagram.com",
+    "tiktokUrl": "https://tiktok.com",
+    "snapchatUrl": "https://snapchat.com"
   },
   "meta": {
     "createdAt": "2026-11-25T20:50:51.008Z",
-    "updatedAt": "2026-11-25T20:50:51.009Z",
+    "updatedAt": "2026-11-27T20:33:38.072Z",
     "version": "1.0.0"
-  }
+  },
+  "reviews": [
+    {
+      "id": "REV-101",
+      "productId": 1,
+      "productName": "بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)",
+      "customerName": "أم ريان السبيعي",
+      "customerEmail": "am.rayan@gmail.com",
+      "customerPhone": "0559988776",
+      "rating": 5,
+      "comment": "ما شاء الله تبارك الله، جودة القماش والتطريز تفوق الخيال! التغليف ملكي فاخر والتوصيل سريع جداً.",
+      "createdAt": "2026-11-26T14:20:00Z",
+      "isVisible": true,
+      "status": "approved"
+    },
+    {
+      "id": "REV-102",
+      "productId": 2,
+      "productName": "طقم استقبال لؤلؤي دانتيل ناعم مع تطريز الاسم بالخيط الذهبي",
+      "customerName": "نورة الشمري",
+      "customerEmail": "noura.alshammari@gmail.com",
+      "customerPhone": "0561234890",
+      "rating": 5,
+      "comment": "الخامة جداً ناعمة ومناسبة للمستشفى، وتطريز الاسم بالخيط الذهبي أعطى فخامة لا توصف. شكراً لكم!",
+      "createdAt": "2026-11-26T18:45:00Z",
+      "isVisible": true,
+      "status": "approved"
+    },
+    {
+      "id": "REV-103",
+      "productId": 1,
+      "productName": "بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)",
+      "customerName": "فيصل الحربي",
+      "customerEmail": "faisal.harbi99@gmail.com",
+      "customerPhone": "0505544332",
+      "rating": 5,
+      "comment": "وصلني في وقت قياسي والهدية نالت إعجاب الأهل كثيراً، التغليف يبيض الوجه وتفاصيل الاسم متقنة للغاية.",
+      "createdAt": "2026-11-27T10:15:00Z",
+      "isVisible": false,
+      "status": "pending"
+    },
+    {
+      "id": "REV-104",
+      "productId": 3,
+      "productName": "مهاد بيبي شتوي ثقيل بطانة صوف تيدي دافئ",
+      "customerName": "هند القحطاني",
+      "customerEmail": "hend.qahtani@gmail.com",
+      "customerPhone": "0558877112",
+      "rating": 4,
+      "comment": "المهاد دافئ جداً ومريح للطفل في الشتاء.",
+      "createdAt": "2026-11-27T11:30:00Z",
+      "isVisible": false,
+      "status": "hidden"
+    }
+  ]
 }

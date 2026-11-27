@@ -16,7 +16,13 @@ import {
   Sparkles,
   MessageCircle,
   CreditCard,
-  X
+  X,
+  Star,
+  Send,
+  User,
+  ThumbsUp,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import ProductCard from './ProductCard';
 import CustomEmbroideryForm from './CustomEmbroideryForm';
@@ -48,7 +54,10 @@ function ProductDetailView({
   onNavigateCategory,
   onReturnHome,
   onGoBack,
-  storeSettings
+  storeSettings,
+  reviews = [],
+  onAddReview = () => {},
+  currentUser = null
 }) {
   if (!product) return null;
 
@@ -181,6 +190,69 @@ function ProductDetailView({
       navigator.clipboard.writeText(window.location.href);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  // Customer Reviews logic & form state
+  const productReviews = useMemo(() => {
+    if (!product || !Array.isArray(reviews)) return [];
+    return reviews.filter(
+      r => String(r.productId) === String(product.id) && (r.isVisible || r.status === 'approved')
+    );
+  }, [product, reviews]);
+
+  const [newRating, setNewRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewerName, setReviewerName] = useState(currentUser?.name || '');
+  const [reviewerEmail, setReviewerEmail] = useState(currentUser?.email || '');
+  const [reviewerComment, setReviewerComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewFormError, setReviewFormError] = useState('');
+
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.name && !reviewerName) setReviewerName(currentUser.name);
+      if (currentUser.email && !reviewerEmail) setReviewerEmail(currentUser.email);
+    }
+  }, [currentUser]);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    setReviewFormError('');
+    if (!reviewerName.trim()) {
+      setReviewFormError('يرجى كتابة الاسم الكريم.');
+      return;
+    }
+    if (!reviewerComment.trim()) {
+      setReviewFormError('يرجى كتابة رأيك وتقييمك للمنتج.');
+      return;
+    }
+
+    try {
+      setIsSubmittingReview(true);
+      const reviewPayload = {
+        productId: product.id,
+        productName: product.name,
+        productImage: product.image || '',
+        customerName: reviewerName.trim(),
+        customerEmail: reviewerEmail.trim(),
+        rating: Number(newRating) || 5,
+        comment: reviewerComment.trim(),
+        // New reviews are always pending & hidden until approved by Admin!
+        status: 'pending',
+        isVisible: false
+      };
+
+      if (typeof onAddReview === 'function') {
+        await onAddReview(reviewPayload);
+      }
+      setReviewSubmitted(true);
+      setReviewerComment('');
+    } catch (err) {
+      setReviewFormError('حدث خطأ أثناء إرسال التقييم، يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -690,6 +762,236 @@ function ProductDetailView({
         </div>
 
       </div>
+
+      {/* 4.5. Customer Reviews & Ratings Section (تقييمات وآراء العملاء) */}
+      <section className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-5 sm:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-pink-100 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+              <h2 className="text-lg sm:text-xl font-black text-slate-900">
+                تقييمات وآراء العملاء ({productReviews.length})
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              آراء وملاحظات موثقة من أمهات وعائلات اشتروا هذا المنتج الفاخر.
+            </p>
+          </div>
+
+          {/* Average Rating Score Badge */}
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl w-fit">
+            <div className="flex items-center gap-0.5 text-amber-500">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star
+                  key={i}
+                  className="w-4 h-4 fill-amber-400 text-amber-500"
+                />
+              ))}
+            </div>
+            <span className="text-sm font-black text-slate-900">
+              {productReviews.length > 0
+                ? (productReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / productReviews.length).toFixed(1)
+                : '5.0'}
+            </span>
+            <span className="text-[11px] text-slate-500 font-bold">/ 5</span>
+          </div>
+        </div>
+
+        {/* Existing Approved Reviews List */}
+        {productReviews.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {productReviews.map((rev) => (
+              <div
+                key={rev.id}
+                className="bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-100 space-y-2.5 flex flex-col justify-between"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-pink-100 text-[#DF7E93] flex items-center justify-center font-black text-xs">
+                        {rev.customerName ? rev.customerName.charAt(0) : 'ع'}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">{rev.customerName}</h4>
+                        <span className="text-[10px] text-slate-400 font-semibold">
+                          {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('ar-SA') : 'مشتري موثق'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-0.5 text-amber-400">
+                      {[1, 2, 3, 4, 5].map((starIdx) => (
+                        <Star
+                          key={starIdx}
+                          className={`w-3.5 h-3.5 ${
+                            starIdx <= (Number(rev.rating) || 5)
+                              ? 'fill-amber-400 text-amber-500'
+                              : 'text-slate-200 fill-slate-100'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                    "{rev.comment}"
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>تقييم معتمد من إدارة المتجر ✓</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-pink-50/30 rounded-2xl p-6 text-center border border-pink-100/60 space-y-2">
+            <p className="text-xs sm:text-sm font-bold text-slate-700">
+              لا توجد تقييمات منشورة لهذا المنتج حتى الآن.
+            </p>
+            <p className="text-[11px] text-slate-500">
+              شاركينا تجربتك ورأيك وكوني أول من يقيّم هذا المنتج الجميل!
+            </p>
+          </div>
+        )}
+
+        {/* Add Review Form */}
+        <div className="bg-slate-50/90 rounded-2xl p-5 sm:p-6 border border-slate-200/90 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#DF7E93]" />
+              <span>شاركينا رأيك وتقييمك للمنتج</span>
+            </h3>
+            <span className="text-[11px] text-slate-500 font-bold">تقييم العملاء</span>
+          </div>
+
+          {reviewSubmitted ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center space-y-2 animate-fadeIn">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+              <h4 className="text-sm font-black text-emerald-900">
+                شكراً لتقييمك ومشاركتنا رأيك! 🎉
+              </h4>
+              <p className="text-xs text-emerald-700 leading-relaxed">
+                تم استلام تعليقك بنجاح وحفظه في لوحة التحكم، وسيظهر في المتجر فور اعتماده من إدارة المتجر.
+              </p>
+              <button
+                type="button"
+                onClick={() => setReviewSubmitted(false)}
+                className="mt-2 text-xs font-bold text-emerald-800 underline cursor-pointer"
+              >
+                إرسال تقييم آخر
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              {reviewFormError && (
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center gap-2 text-rose-700 text-xs font-bold">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{reviewFormError}</span>
+                </div>
+              )}
+
+              {/* Star Rating Selector */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  اختر تقييمك (من 1 إلى 5 نجوم):
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-xl border border-slate-200 w-fit">
+                    {[1, 2, 3, 4, 5].map((starValue) => {
+                      const isFilled = (hoverRating || newRating) >= starValue;
+                      return (
+                        <button
+                          key={starValue}
+                          type="button"
+                          onMouseEnter={() => setHoverRating(starValue)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setNewRating(starValue)}
+                          className="p-1 transition-transform hover:scale-125 focus:outline-none cursor-pointer"
+                          title={`${starValue} نجوم`}
+                        >
+                          <Star
+                            className={`w-6 h-6 transition-colors ${
+                              isFilled
+                                ? 'fill-amber-400 text-amber-500'
+                                : 'text-slate-300 fill-slate-100'
+                            }`}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span className="text-xs font-extrabold text-amber-600">
+                    {hoverRating || newRating} من 5 نجوم ⭐
+                  </span>
+                </div>
+              </div>
+
+              {/* Name & Email Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    اسمك الكريم *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="مثال: أم راكان / سارة العتيبي"
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-[#DF7E93]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    البريد الإلكتروني أو Gmail (اختياري)
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="example@gmail.com"
+                    value={reviewerEmail}
+                    onChange={(e) => setReviewerEmail(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-[#DF7E93] dir-ltr text-right"
+                  />
+                </div>
+              </div>
+
+              {/* Comment Textarea */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  اكتب رأيك وتجربتك بالتفصيل *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  maxLength={500}
+                  placeholder="كيف كانت جودة القماش، التطريز، المقاس، وسرعة التوصيل؟ شاركنا رأيك بكل أمانة..."
+                  value={reviewerComment}
+                  onChange={(e) => setReviewerComment(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium outline-none focus:border-[#DF7E93] resize-none leading-relaxed"
+                />
+              </div>
+
+              {/* Policy note */}
+              <p className="text-[11px] text-slate-500 leading-relaxed bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+                🔒 <strong>ملاحظة للمصداقية:</strong> لضمان جودة المحتوى ومصداقية التقييمات، تخضع كافة التعليقات للمراجعة والاعتماد من قبل إدارة المتجر قبل ظهورها لعموم الزوار.
+              </p>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmittingReview}
+                className="w-full sm:w-auto px-6 py-3 bg-[#DF7E93] hover:bg-[#d06b82] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                <span>{isSubmittingReview ? 'جارٍ الإرسال...' : 'إرسال التقييم للمراجعة'}</span>
+              </button>
+            </form>
+          )}
+        </div>
+      </section>
 
       {/* 5. Related Products Section */}
       {relatedProducts.length > 0 && (
