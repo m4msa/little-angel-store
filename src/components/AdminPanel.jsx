@@ -173,7 +173,7 @@ export default function AdminPanel({
   const safeUsers = Array.isArray(users) ? users : [];
   const safeReviews = Array.isArray(reviews) ? reviews : [];
 
-  const pendingReviewsCount = safeReviews.filter(r => r.status === 'pending' || !r.isVisible).length;
+  const pendingReviewsCount = safeReviews.filter(r => r.status === 'pending').length;
   const approvedReviewsCount = safeReviews.filter(r => r.isVisible && r.status === 'approved').length;
   const hiddenReviewsCount = safeReviews.filter(r => !r.isVisible && r.status === 'hidden').length;
 
@@ -184,7 +184,7 @@ export default function AdminPanel({
 
       // Status Filter
       if (reviewFilter === 'pending') {
-        if (rev.status !== 'pending' && rev.isVisible) return false;
+        if (rev.status !== 'pending') return false;
       } else if (reviewFilter === 'approved') {
         if (!rev.isVisible || rev.status !== 'approved') return false;
       } else if (reviewFilter === 'hidden') {
@@ -2264,7 +2264,8 @@ export default function AdminPanel({
             ) : (
               filteredReviews.map((rev) => {
                 const isCurrentlyVisible = Boolean(rev.isVisible && rev.status === 'approved');
-                const isPendingReview = rev.status === 'pending' || (!rev.isVisible && rev.status !== 'hidden');
+                const isPendingReview = rev.status === 'pending';
+                const isHiddenReview = rev.status === 'hidden' || (!rev.isVisible && rev.status !== 'pending');
 
                 return (
                   <div
@@ -2362,48 +2363,66 @@ export default function AdminPanel({
 
                       </div>
 
-                      {/* Right: ON/OFF Switch & Delete */}
-                      <div className="flex lg:flex-col items-center justify-between lg:justify-center gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 lg:border-r border-slate-100 lg:pr-6">
+                      {/* Right: TWO DIRECT ACTION CIRCLES (إظهار / إخفاء بنقرة واحدة) & Delete */}
+                      <div className="flex flex-col items-center lg:items-end justify-center gap-3 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 lg:border-r border-slate-100 lg:pr-6">
                         
-                        {/* TOGGLE SWITCH BUTTON (تشغيل / إيقاف) */}
-                        <div className="flex flex-col items-center gap-1.5 text-center">
+                        <div className="flex flex-col items-center lg:items-end gap-2">
                           <span className="text-[10px] font-black text-slate-500">
-                            {isCurrentlyVisible ? 'حالة الظهور: مفعّل' : 'حالة الظهور: معطّل'}
+                            التحكم بالظهور (نقرة واحدة):
                           </span>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newVisibility = !isCurrentlyVisible;
-                              onToggleReviewVisibility(rev.id, newVisibility);
-                              showToast(newVisibility 
-                                ? `تم تفعيل ونشر تعليق (${rev.customerName}) في المتجر بنجاح!` 
-                                : `تم إيقاف وإخفاء تعليق (${rev.customerName}) عن المتجر مع حفظه هنا.`);
-                            }}
-                            className={`relative inline-flex items-center h-10 w-24 rounded-full transition-colors duration-300 focus:outline-none shadow-inner cursor-pointer p-1 ${
-                              isCurrentlyVisible ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-300 hover:bg-slate-400'
-                            }`}
-                            title={isCurrentlyVisible ? 'اضغط لإخفاء التعليق عن المتجر' : 'اضغط لإظهار واعتماد التعليق في المتجر'}
-                          >
-                            <span className="sr-only">تبديل ظهور التعليق</span>
-                            
-                            {/* Sliding Knob */}
-                            <span
-                              className={`inline-block w-8 h-8 transform rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${
-                                isCurrentlyVisible ? '-translate-x-14' : 'translate-x-0'
+                          <div className="flex items-center gap-2">
+                            {/* Circle 1: 🟢 إظهار واعتماد بالمتجر */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onToggleReviewVisibility(rev.id, true);
+                                showToast(`تم تفعيل ونشر تعليق (${rev.customerName}) في المتجر بنجاح!`);
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer ${
+                                isCurrentlyVisible
+                                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200 ring-2 ring-emerald-300'
+                                  : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 hover:shadow-xs'
                               }`}
+                              title="اعتماد وإظهار التعليق في المتجر فوراً"
                             >
-                              <Power className={`w-4 h-4 ${isCurrentlyVisible ? 'text-emerald-600' : 'text-slate-400'}`} />
-                            </span>
+                              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                                isCurrentlyVisible ? 'bg-white text-emerald-700' : 'bg-emerald-600 text-white'
+                              }`}>
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              </div>
+                              <span>إظهار بالمتجر</span>
+                            </button>
 
-                            {/* Text label inside switch */}
-                            <span className={`text-[10px] font-black absolute ${isCurrentlyVisible ? 'right-2.5 text-white' : 'left-2.5 text-slate-700'}`}>
-                              {isCurrentlyVisible ? 'شغال' : 'مطفأ'}
-                            </span>
-                          </button>
+                            {/* Circle 2: ⚪ إخفاء ونقل للمخفية مباشرة دون نشره */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onToggleReviewVisibility(rev.id, false);
+                                showToast(`تم نقل تعليق (${rev.customerName}) إلى المخفية مباشرة!`);
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer ${
+                                !isCurrentlyVisible && rev.status === 'hidden'
+                                  ? 'bg-slate-700 text-white shadow-md shadow-slate-200 ring-2 ring-slate-400'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 hover:shadow-xs'
+                              }`}
+                              title="نقل التعليق فوراً إلى قائمة المخفية دون عرضه بالمتجر"
+                            >
+                              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                                !isCurrentlyVisible && rev.status === 'hidden' ? 'bg-white text-slate-800' : 'bg-slate-600 text-white'
+                              }`}>
+                                <EyeOff className="w-3.5 h-3.5 stroke-[2.5]" />
+                              </div>
+                              <span>إخفاء (للمخفية)</span>
+                            </button>
+                          </div>
 
-                          <span className="text-[9px] text-slate-400 font-semibold">
-                            {isCurrentlyVisible ? 'اضغط للإيقاف' : 'اضغط للتشغيل'}
+                          <span className="text-[10px] font-semibold text-slate-400">
+                            {isCurrentlyVisible 
+                              ? '🟢 معروض للزبائن في المتجر' 
+                              : rev.status === 'hidden'
+                              ? '⚪ منقول للمخفية وغير معروض'
+                              : '⏳ بانتظار الاعتماد'}
                           </span>
                         </div>
 
