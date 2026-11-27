@@ -2140,7 +2140,7 @@
   },
   "meta": {
     "createdAt": "2026-11-25T20:50:51.008Z",
-    "updatedAt": "2026-11-27T22:10:04.661Z",
+    "updatedAt": "2026-11-27T22:11:45.127Z",
     "version": "1.0.0"
   },
   "reviews": [
@@ -2155,8 +2155,9 @@
       "rating": 1,
       "comment": "متجر متكامل بحق وحقيقه",
       "createdAt": "2026-11-27T22:09:08.935Z",
-      "isVisible": false,
-      "status": "pending"
+      "isVisible": true,
+      "status": "approved",
+      "updatedAt": "2026-11-27T22:11:44.821Z"
     },
     {
       "id": "REV-104",

@@ -1733,7 +1733,10 @@ export default function App() {
 
   // Regular Storefront View
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDF1F4] text-slate-800 relative w-full overflow-x-hidden selection:bg-brand-500 selection:text-white">
+    <div 
+      className="min-h-screen flex flex-col bg-[#FDF1F4] text-slate-800 relative w-full overflow-x-hidden selection:bg-brand-500 selection:text-white"
+      style={{ background: 'linear-gradient(0deg, #FDF1F4, #FDF1F4)' }}
+    >
       
       {/* Tefly Frhaty Style Splash Screen / Transition Screen with Store Logo */}
       <SplashTransition
