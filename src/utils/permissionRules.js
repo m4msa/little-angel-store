@@ -5,25 +5,46 @@
  */
 
 /**
- * Base default permissions template
+ * Base default permissions template - Granular Feature Flags
  */
 export const EMPTY_PERMISSIONS = {
   categoriesMode: 'all', // 'all' | 'custom'
   allowedCategories: [], // array of category IDs (e.g. ['hospital-sets', 'custom-embroidery'])
-  canAddProduct: false,
-  canEditProduct: false,
-  canDeleteProduct: false,
-  canEditPrice: false,
-  canToggleStock: false,         // هل يوجد هذا الصنف أم لا يوجد (المخزون والتوفر)
-  canToggleCustomName: false,    // هل يوجد مع هذا الصنف خيار تعديل أو اسم المولود أم لا يوجد
-  canAddCategory: false,
-  canEditCategory: false,
-  canDeleteCategory: false,
-  canManageCategories: false,
-  canManageOrders: false,
-  canManageReviews: false,       // إدارة واعتماد التعليقات والتقييمات
-  canManageSettings: false,
-  canManageUsers: false
+  
+  // 1. إضافة المنتجات
+  canAddProduct: false,             // صلاحية إضافة منتج جديد
+  canUploadProductImages: false,    // رفع صور للمنتج الجديد
+  canUploadProductVideos: false,    // رفع فيديوهات للمنتج الجديد
+  
+  // 2. تعديل المنتجات بالتفصيل
+  canEditProduct: false,            // تفعيل إمكانية فتح شاشة التعديل
+  canEditProductBasic: false,       // تعديل الاسم والوصف والقسم الأساسي
+  canEditPrice: false,              // تعديل السعر وسعر الخصم والعملة
+  canEditProductImages: false,      // تعديل وإضافة أو حذف صور المنتج
+  canEditProductVideos: false,      // تعديل وإضافة أو حذف فيديو المنتج
+  canToggleStock: false,            // هل يوجد هذا الصنف أم لا يوجد (المخزون والتوفر)
+  canToggleCustomName: false,       // التطريز حسب الاسم (هل يقبل تطريز اسم المولود أم لا)
+  
+  // 3. حذف المنتجات
+  canDeleteProduct: false,          // حذف المنتجات نهائياً
+  
+  // 4. الأقسام والبنرات
+  canAddCategory: false,            // إضافة صنف أو قسم جديد
+  canEditCategory: false,           // تعديل مسميات وبنرات الأقسام
+  canDeleteCategory: false,         // حذف الأقسام
+  canManageCategories: false,       // إدارة كاملة للأقسام
+  
+  // 5. الطلبات والمبيعات
+  canManageOrders: false,           // متابعة الطلبات وتحديث حالات الشحن وتواصل واتساب
+  
+  // 6. التقييمات والتعليقات
+  canManageReviews: false,          // اعتماد وتفعيل أو إخفاء تعليقات العملاء
+  
+  // 7. الهوية وإعدادات المتجر
+  canManageSettings: false,         // إعدادات المتجر والشعار والألوان والكوبونات والشحن
+  
+  // 8. المستخدمين وفريق العمل
+  canManageUsers: false             // التحكم بالمستخدمين والصلاحيات
 };
 
 /**
@@ -37,9 +58,14 @@ export const ROLE_PRESETS = {
       categoriesMode: 'all',
       allowedCategories: [],
       canAddProduct: true,
+      canUploadProductImages: true,
+      canUploadProductVideos: true,
       canEditProduct: true,
-      canDeleteProduct: true,
+      canEditProductBasic: true,
       canEditPrice: true,
+      canEditProductImages: true,
+      canEditProductVideos: true,
+      canDeleteProduct: true,
       canToggleStock: true,
       canToggleCustomName: true,
       canAddCategory: true,
@@ -59,15 +85,22 @@ export const ROLE_PRESETS = {
       categoriesMode: 'all',
       allowedCategories: [],
       canAddProduct: true,
+      canUploadProductImages: true,
+      canUploadProductVideos: true,
       canEditProduct: true,
-      canDeleteProduct: false,
+      canEditProductBasic: true,
       canEditPrice: true,
+      canEditProductImages: true,
+      canEditProductVideos: true,
+      canDeleteProduct: false,
       canToggleStock: true,
       canToggleCustomName: true,
       canAddCategory: false,
       canEditCategory: true,
       canDeleteCategory: false,
+      canManageCategories: false,
       canManageOrders: true,
+      canManageReviews: false,
       canManageSettings: false,
       canManageUsers: false
     }
@@ -79,15 +112,22 @@ export const ROLE_PRESETS = {
       categoriesMode: 'all',
       allowedCategories: [],
       canAddProduct: true,
+      canUploadProductImages: true,
+      canUploadProductVideos: false,
       canEditProduct: true,
-      canDeleteProduct: false,
+      canEditProductBasic: true,
       canEditPrice: true,
+      canEditProductImages: true,
+      canEditProductVideos: false,
+      canDeleteProduct: false,
       canToggleStock: true,
       canToggleCustomName: true,
       canAddCategory: false,
       canEditCategory: false,
       canDeleteCategory: false,
+      canManageCategories: false,
       canManageOrders: false,
+      canManageReviews: false,
       canManageSettings: false,
       canManageUsers: false
     }
@@ -99,17 +139,31 @@ export const ROLE_PRESETS = {
       categoriesMode: 'all',
       allowedCategories: [],
       canAddProduct: false,
+      canUploadProductImages: false,
+      canUploadProductVideos: false,
       canEditProduct: false,
-      canDeleteProduct: false,
+      canEditProductBasic: false,
       canEditPrice: false,
+      canEditProductImages: false,
+      canEditProductVideos: false,
+      canDeleteProduct: false,
       canToggleStock: false,
       canToggleCustomName: false,
       canAddCategory: false,
       canEditCategory: false,
       canDeleteCategory: false,
+      canManageCategories: false,
       canManageOrders: true,
+      canManageReviews: false,
       canManageSettings: false,
       canManageUsers: false
+    }
+  },
+  custom: {
+    label: 'تخصيص يدوي للموظف (Custom)',
+    description: 'صلاحيات مخصصة يدوياً حسب الأزرار والمهام المحددة من المدير العام.',
+    permissions: {
+      ...EMPTY_PERMISSIONS
     }
   },
   customer: {
@@ -119,15 +173,22 @@ export const ROLE_PRESETS = {
       categoriesMode: 'none',
       allowedCategories: [],
       canAddProduct: false,
+      canUploadProductImages: false,
+      canUploadProductVideos: false,
       canEditProduct: false,
-      canDeleteProduct: false,
+      canEditProductBasic: false,
       canEditPrice: false,
+      canEditProductImages: false,
+      canEditProductVideos: false,
+      canDeleteProduct: false,
       canToggleStock: false,
       canToggleCustomName: false,
       canAddCategory: false,
       canEditCategory: false,
       canDeleteCategory: false,
+      canManageCategories: false,
       canManageOrders: false,
+      canManageReviews: false,
       canManageSettings: false,
       canManageUsers: false
     }
@@ -149,6 +210,7 @@ export function getEffectivePermissions(user) {
   const customPerms = user.permissions || {};
 
   return {
+    ...EMPTY_PERMISSIONS,
     ...rolePreset,
     ...customPerms,
     allowedCategories: Array.isArray(customPerms.allowedCategories)
@@ -215,7 +277,12 @@ export function canAccessProductsTab(user) {
   const p = getEffectivePermissions(user);
   return Boolean(
     p.canAddProduct ||
+    p.canUploadProductImages ||
+    p.canUploadProductVideos ||
     p.canEditProduct ||
+    p.canEditProductBasic ||
+    p.canEditProductImages ||
+    p.canEditProductVideos ||
     p.canDeleteProduct ||
     p.canEditPrice ||
     p.canToggleStock ||

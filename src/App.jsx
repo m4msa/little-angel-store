@@ -313,9 +313,14 @@ export default function App() {
         categoriesMode: 'all',
         allowedCategories: [],
         canAddProduct: false,
+        canUploadProductImages: false,
+        canUploadProductVideos: false,
         canEditProduct: false,
-        canDeleteProduct: false,
+        canEditProductBasic: false,
         canEditPrice: false,
+        canEditProductImages: false,
+        canEditProductVideos: false,
+        canDeleteProduct: false,
         canToggleStock: true,
         canToggleCustomName: false,
         canAddCategory: false,
@@ -393,10 +398,27 @@ export default function App() {
           const existingEmails = new Set(parsed.map(u => u && (u.email || '').toLowerCase()));
           const missingDefaults = defaultUsers.filter(d => d.email && !existingEmails.has(d.email.toLowerCase()));
           const mergedList = missingDefaults.length > 0 ? [...parsed, ...missingDefaults] : parsed;
-          return mergedList.map(u => ({
-            ...u,
-            permissions: u.permissions || getEffectivePermissions(u)
-          }));
+          return mergedList.map(u => {
+            if (u && (u.email === 'ama2026@gmail.com' || u.id === 'USR-AMJAD')) {
+              const defaultAmjad = defaultUsers.find(d => d.id === 'USR-AMJAD');
+              return {
+                ...defaultAmjad,
+                ...u,
+                role: u.role === 'order_specialist' ? 'editor' : (u.role || 'editor'),
+                permissions: {
+                  ...EMPTY_PERMISSIONS,
+                  ...(defaultAmjad ? defaultAmjad.permissions : {}),
+                  ...(u.permissions || {}),
+                  canManageOrders: u.role === 'order_specialist' ? false : Boolean(u.permissions?.canManageOrders),
+                  canToggleStock: true
+                }
+              };
+            }
+            return {
+              ...u,
+              permissions: u.permissions || getEffectivePermissions(u)
+            };
+          });
         }
       } catch (e) {}
     }
@@ -958,11 +980,12 @@ export default function App() {
   // Admin Login / Logout handlers
   const handleAdminLoginSuccess = (operatorUser = null) => {
     if (operatorUser) {
-      setCurrentUser(operatorUser);
+      const liveUser = usersList.find(u => u && (u.id === operatorUser.id || (u.email && u.email.toLowerCase() === (operatorUser.email || '').toLowerCase()))) || operatorUser;
+      setCurrentUser(liveUser);
       setIsAdminLoggedIn(true);
       sessionStorage.setItem('angel_admin_logged', 'true');
-      const roleLabel = ROLE_PRESETS[operatorUser.role]?.label || operatorUser.role || 'مسؤول';
-      showToast(`مرحباً بك يا ${operatorUser.name} (${roleLabel})! تم تسجيل الدخول بنجاح`);
+      const roleLabel = ROLE_PRESETS[liveUser.role]?.label || liveUser.role || 'مسؤول';
+      showToast(`مرحباً بك يا ${liveUser.name} (${roleLabel})! تم تسجيل الدخول بنجاح`);
     } else {
       const adminUser = usersList.find(u => u.role === 'admin') || defaultUsers[0];
       setCurrentUser(adminUser);

@@ -106,7 +106,7 @@ export default function AdminLoginPage({
             (cleanPhoneInput && u.phone && String(u.phone).replace(/[^0-9]/g, '').includes(cleanPhoneInput)))
       );
 
-      const targetUser = matchedStaff || (isAmjad ? {
+      const rawTargetUser = matchedStaff || (isAmjad ? {
         id: 'USR-AMJAD',
         name: 'امجد البركاني (مسؤول مخزون)',
         email: 'ama2026@gmail.com',
@@ -119,9 +119,14 @@ export default function AdminLoginPage({
           categoriesMode: 'all',
           allowedCategories: [],
           canAddProduct: false,
+          canUploadProductImages: false,
+          canUploadProductVideos: false,
           canEditProduct: false,
-          canDeleteProduct: false,
+          canEditProductBasic: false,
           canEditPrice: false,
+          canEditProductImages: false,
+          canEditProductVideos: false,
+          canDeleteProduct: false,
           canToggleStock: true,
           canToggleCustomName: false,
           canAddCategory: false,
@@ -134,6 +139,37 @@ export default function AdminLoginPage({
           canManageUsers: false
         }
       } : null);
+
+      // Cleanse Amjad permissions if legacy stale flags exist in storage
+      const targetUser = rawTargetUser && isAmjad ? {
+        ...rawTargetUser,
+        role: rawTargetUser.role === 'order_specialist' ? 'editor' : (rawTargetUser.role || 'editor'),
+        permissions: {
+          categoriesMode: 'all',
+          allowedCategories: [],
+          canAddProduct: false,
+          canUploadProductImages: false,
+          canUploadProductVideos: false,
+          canEditProduct: false,
+          canEditProductBasic: false,
+          canEditPrice: false,
+          canEditProductImages: false,
+          canEditProductVideos: false,
+          canDeleteProduct: false,
+          canToggleStock: true,
+          canToggleCustomName: false,
+          canAddCategory: false,
+          canEditCategory: false,
+          canDeleteCategory: false,
+          canManageCategories: false,
+          canManageReviews: false,
+          canManageSettings: false,
+          canManageUsers: false,
+          ...(rawTargetUser.permissions || {}),
+          // Strict check: if role was order_specialist in old cache, force canManageOrders to false
+          canManageOrders: rawTargetUser.role === 'order_specialist' ? false : Boolean(rawTargetUser.permissions?.canManageOrders)
+        }
+      } : rawTargetUser;
 
       const isPassValid =
         cleanPass === '12345678' ||

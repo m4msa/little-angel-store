@@ -302,6 +302,17 @@ export default function AdminPanel({
   // Product Modal State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+
+  // Fine-grained permission checks for product modal
+  const canUploadImages = editingProduct
+    ? (currentOperatorPerms.canEditProductImages !== false)
+    : (currentOperatorPerms.canUploadProductImages !== false);
+
+  const canUploadVideos = editingProduct
+    ? (currentOperatorPerms.canEditProductVideos !== false)
+    : (currentOperatorPerms.canUploadProductVideos !== false);
+
+  const canEditBasicInfo = !editingProduct || (currentOperatorPerms.canEditProductBasic !== false);
   const [productFormError, setProductFormError] = useState('');
   const [productForm, setProductForm] = useState({
     name: '',
@@ -1083,11 +1094,15 @@ export default function AdminPanel({
                       </td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          {currentOperatorPerms.canEditProduct && (
+                          {(currentOperatorPerms.canEditProduct ||
+                            currentOperatorPerms.canEditProductBasic ||
+                            currentOperatorPerms.canEditPrice ||
+                            currentOperatorPerms.canEditProductImages ||
+                            currentOperatorPerms.canEditProductVideos) && (
                             <button
                               type="button"
                               onClick={() => handleOpenEditProduct(prod)}
-                              className="p-2 text-slate-600 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors"
+                              className="p-2 text-slate-600 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors cursor-pointer"
                               title="تعديل المنتج"
                             >
                               <Edit3 className="w-4 h-4" />
@@ -1107,13 +1122,18 @@ export default function AdminPanel({
                                   }
                                 });
                               }}
-                              className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
+                              className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
                               title="حذف المنتج"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
-                          {!currentOperatorPerms.canEditProduct && !currentOperatorPerms.canDeleteProduct && (
+                          {!currentOperatorPerms.canEditProduct &&
+                           !currentOperatorPerms.canEditProductBasic &&
+                           !currentOperatorPerms.canEditPrice &&
+                           !currentOperatorPerms.canEditProductImages &&
+                           !currentOperatorPerms.canEditProductVideos &&
+                           !currentOperatorPerms.canDeleteProduct && (
                             <span className="text-xs text-slate-400">-</span>
                           )}
                         </div>
@@ -2455,19 +2475,25 @@ export default function AdminPanel({
                   type="text"
                   required
                   maxLength={120}
+                  disabled={!canEditBasicInfo}
                   placeholder="مثال: طقم بيجاما مواليد قطن عضوي ناعم"
                   value={productForm.name}
                   onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-500 focus:bg-white text-xs font-bold"
+                  className={`w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-500 focus:bg-white text-xs font-bold ${
+                    !canEditBasicInfo ? 'bg-slate-100 cursor-not-allowed opacity-75' : ''
+                  }`}
                 />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">القسم / التصنيف *</label>
                 <select
+                  disabled={!canEditBasicInfo}
                   value={productForm.category}
                   onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 focus:bg-white text-xs font-bold"
+                  className={`w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 focus:bg-white text-xs font-bold ${
+                    !canEditBasicInfo ? 'bg-slate-100 cursor-not-allowed opacity-75' : ''
+                  }`}
                 >
                   {safeCategories
                     .filter(c => c && c.id !== 'all')
@@ -2568,61 +2594,60 @@ export default function AdminPanel({
                     <ImageIcon className="w-4 h-4 text-brand-600" />
                     <span>معرض صور المنتج ({productForm.images.length})</span>
                   </label>
-                  <span className="text-[10px] text-slate-400">يمكنك رفع عدة صور أو إضافتها بروابط</span>
+                  <span className="text-[10px] text-slate-400">
+                    {canUploadImages ? 'يمكنك رفع عدة صور أو إضافتها بروابط' : 'عرض الصور الحالي (للقراءة فقط)'}
+                  </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    type="url"
-                    placeholder="ضع رابط صورة (URL) واضغط إضافة..."
-                    value={urlImageInput}
-                    onChange={(e) => setUrlImageInput(e.target.value)}
-                    className="flex-1 min-w-[150px] bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddImageUrl}
-                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer"
-                  >
-                    إضافة رابط
-                  </button>
-                  <label className="cursor-pointer bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>📷 صور من المعرض</span>
+                {canUploadImages ? (
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleMultipleFilesUpload}
+                      type="url"
+                      placeholder="ضع رابط صورة (URL) واضغط إضافة..."
+                      value={urlImageInput}
+                      onChange={(e) => setUrlImageInput(e.target.value)}
+                      className="flex-1 min-w-[150px] bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500 font-mono"
                     />
-                  </label>
-                  <label className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95">
-                    <Video className="w-3.5 h-3.5" />
-                    <span>🎬 فيديو من المعرض</span>
-                    <input
-                      ref={videoFileInputRef}
-                      type="file"
-                      accept="video/*,video/mp4,video/quicktime,video/webm"
-                      className="hidden"
-                      onChange={handleVideoFileUpload}
-                    />
-                  </label>
-                </div>
+                    <button
+                      type="button"
+                      onClick={handleAddImageUrl}
+                      className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer"
+                    >
+                      إضافة رابط
+                    </button>
+                    <label className="cursor-pointer bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>📷 صور من المعرض</span>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleMultipleFilesUpload}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-400 font-bold bg-white p-2.5 rounded-xl border border-slate-200">
+                    غير مصرح لهذا الحساب برفع أو تعديل صور المنتج.
+                  </p>
+                )}
 
                 {productForm.images.length > 0 && (
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
                     {productForm.images.map((img, idx) => (
                       <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white">
                         <img src={sanitizeUrl(img, DEFAULT_IMAGE)} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                        {canUploadImages && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx)}
+                            className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
                         {idx === 0 && (
                           <span className="absolute bottom-0 inset-x-0 bg-emerald-600 text-white text-[9px] text-center font-bold py-0.5">
                             الرئيسية
@@ -2635,108 +2660,112 @@ export default function AdminPanel({
               </div>
 
               {/* Dedicated Product Video Section: Phone Gallery & URL */}
-              <div className="space-y-3 bg-purple-50/60 p-4 rounded-2xl border border-purple-200/90">
-                <div className="flex items-center justify-between">
-                  <label className="block font-black text-slate-800 flex items-center gap-1.5 text-xs">
-                    <Video className="w-4 h-4 text-purple-600" />
-                    <span>فيديو المنتج التفاعلي (من معرض الهاتف أو رابط خارجي)</span>
-                  </label>
-                  {productForm.video && (
-                    <span className="bg-purple-100 text-purple-800 border border-purple-300 text-[10px] font-black px-2 py-0.5 rounded-md">
-                      فيديو جاهز للعرض ✓
-                    </span>
-                  )}
-                </div>
+              {(canUploadVideos || Boolean(productForm.video)) && (
+                <div className="space-y-3 bg-purple-50/60 p-4 rounded-2xl border border-purple-200/90">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-black text-slate-800 flex items-center gap-1.5 text-xs">
+                      <Video className="w-4 h-4 text-purple-600" />
+                      <span>فيديو المنتج التفاعلي (من معرض الهاتف أو رابط خارجي)</span>
+                    </label>
+                    {productForm.video && (
+                      <span className="bg-purple-100 text-purple-800 border border-purple-300 text-[10px] font-black px-2 py-0.5 rounded-md">
+                        فيديو جاهز للعرض ✓
+                      </span>
+                    )}
+                  </div>
 
-                {/* If video exists: Show preview player and controls */}
-                {productForm.video ? (
-                  <div className="space-y-3 bg-white p-3.5 rounded-xl border border-purple-200 shadow-2xs">
-                    <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video max-h-56 flex items-center justify-center">
-                      <video
-                        src={productForm.video}
-                        controls
-                        playsInline
-                        className="w-full h-full object-contain"
+                  {/* If video exists: Show preview player and controls */}
+                  {productForm.video ? (
+                    <div className="space-y-3 bg-white p-3.5 rounded-xl border border-purple-200 shadow-2xs">
+                      <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video max-h-56 flex items-center justify-center">
+                        <video
+                          src={productForm.video}
+                          controls
+                          playsInline
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+                        {/* Toggle Primary View: Video vs Image */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-bold text-slate-600">الواجهة الرئيسية:</span>
+                          <button
+                            type="button"
+                            onClick={() => setProductForm(prev => ({ ...prev, primaryMediaType: 'video' }))}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              productForm.primaryMediaType === 'video'
+                                ? 'bg-purple-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            🎬 الفيديو أولاً
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setProductForm(prev => ({ ...prev, primaryMediaType: 'image' }))}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              productForm.primaryMediaType === 'image'
+                                ? 'bg-purple-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            🖼️ الصورة أولاً
+                          </button>
+                        </div>
+
+                        {/* Remove video button */}
+                        {canUploadVideos && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveVideo}
+                            className="flex items-center gap-1 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            title="حذف الفيديو"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>حذف الفيديو</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : canUploadVideos ? (
+                    /* No video selected yet: big action button to pick from device gallery */
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <label className="cursor-pointer flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99]">
+                          <Video className="w-4 h-4" />
+                          <span>{isVideoUploading ? 'جارٍ قراءة ورفع الفيديو...' : '📁 اختيار ورفع فيديو من المعرض / الهاتف'}</span>
+                          <input
+                            ref={videoSectionFileInputRef}
+                            type="file"
+                            accept="video/*,video/mp4,video/quicktime,video/webm"
+                            className="hidden"
+                            disabled={isVideoUploading}
+                            onChange={handleVideoFileUpload}
+                          />
+                        </label>
+                      </div>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-purple-200/60" />
+                        </div>
+                        <div className="relative flex justify-center text-[10px] uppercase">
+                          <span className="bg-purple-50/60 px-2 text-slate-400 font-bold">أو إدخال رابط فيديو خارجي</span>
+                        </div>
+                      </div>
+
+                      <input
+                        type="url"
+                        placeholder="https://.../video.mp4"
+                        value={productForm.video}
+                        onChange={(e) => setProductForm({ ...productForm, video: e.target.value })}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-500 text-xs font-mono"
                       />
                     </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
-                      {/* Toggle Primary View: Video vs Image */}
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-bold text-slate-600">الواجهة الرئيسية:</span>
-                        <button
-                          type="button"
-                          onClick={() => setProductForm(prev => ({ ...prev, primaryMediaType: 'video' }))}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                            productForm.primaryMediaType === 'video'
-                              ? 'bg-purple-600 text-white shadow-xs'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          🎬 الفيديو أولاً
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setProductForm(prev => ({ ...prev, primaryMediaType: 'image' }))}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                            productForm.primaryMediaType === 'image'
-                              ? 'bg-purple-600 text-white shadow-xs'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          🖼️ الصورة أولاً
-                        </button>
-                      </div>
-
-                      {/* Remove video button */}
-                      <button
-                        type="button"
-                        onClick={handleRemoveVideo}
-                        className="flex items-center gap-1 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
-                        title="حذف الفيديو"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف الفيديو</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* No video selected yet: big action button to pick from device gallery */
-                  <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      <label className="cursor-pointer flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99]">
-                        <Video className="w-4 h-4" />
-                        <span>{isVideoUploading ? 'جارٍ قراءة ورفع الفيديو...' : '📁 اختيار ورفع فيديو من المعرض / الهاتف'}</span>
-                        <input
-                          ref={videoSectionFileInputRef}
-                          type="file"
-                          accept="video/*,video/mp4,video/quicktime,video/webm"
-                          className="hidden"
-                          disabled={isVideoUploading}
-                          onChange={handleVideoFileUpload}
-                        />
-                      </label>
-                    </div>
-
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-purple-200/60" />
-                      </div>
-                      <div className="relative flex justify-center text-[10px] uppercase">
-                        <span className="bg-purple-50/60 px-2 text-slate-400 font-bold">أو إدخال رابط فيديو خارجي</span>
-                      </div>
-                    </div>
-
-                    <input
-                      type="url"
-                      placeholder="https://.../video.mp4"
-                      value={productForm.video}
-                      onChange={(e) => setProductForm({ ...productForm, video: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-500 text-xs font-mono"
-                    />
-                  </div>
-                )}
-              </div>
+                  ) : null}
+                </div>
+              )}
 
               {/* Tags Section */}
               <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -2744,30 +2773,34 @@ export default function AdminPanel({
                   <Tag className="w-4 h-4 text-brand-600" />
                   <span>الوسوم والهاشتاغات للمنتج</span>
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    maxLength={30}
-                    placeholder="أضف هاشتاغ جديد (مثال: #جديد)..."
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddTag}
-                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0"
-                  >
-                    إضافة وسم
-                  </button>
-                </div>
+                {canEditBasicInfo && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={30}
+                      placeholder="أضف هاشتاغ جديد (مثال: #جديد)..."
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddTag}
+                      className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer"
+                    >
+                      إضافة وسم
+                    </button>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {productForm.tags.map((tg, idx) => (
                     <span key={idx} className="bg-pink-100 text-[#DF7E93] text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1">
                       <span>{tg}</span>
-                      <button type="button" onClick={() => handleRemoveTag(tg)} className="hover:text-rose-700">
-                        <X className="w-3 h-3" />
-                      </button>
+                      {canEditBasicInfo && (
+                        <button type="button" onClick={() => handleRemoveTag(tg)} className="hover:text-rose-700 cursor-pointer">
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </span>
                   ))}
                 </div>
