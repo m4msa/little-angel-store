@@ -290,6 +290,9 @@ export default function AdminPanel({
   const [tagInput, setTagInput] = useState('');
   const [urlImageInput, setUrlImageInput] = useState('');
   const fileInputRef = useRef(null);
+  const videoFileInputRef = useRef(null);
+  const videoSectionFileInputRef = useRef(null);
+  const [isVideoUploading, setIsVideoUploading] = useState(false);
 
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -430,6 +433,55 @@ export default function AdminPanel({
       ...prev,
       images: prev.images.filter((_, idx) => idx !== indexToRemove)
     }));
+  };
+
+  const MAX_VIDEO_UPLOAD_SIZE_BYTES = 40 * 1024 * 1024; // 40MB
+
+  const handleVideoFileUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      showToast('تنبيه: يرجى اختيار ملف فيديو صالح من المعرض (MP4, MOV, WebM)!');
+      return;
+    }
+
+    if (file.size > MAX_VIDEO_UPLOAD_SIZE_BYTES) {
+      showToast('حجم الفيديو كبير جداً! الحد الأقصى المسموح به 40 ميجابايت.');
+      return;
+    }
+
+    setIsVideoUploading(true);
+    showToast('جارٍ معالجة ورفع الفيديو من المعرض...');
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string') {
+        setProductForm(prev => ({
+          ...prev,
+          video: result,
+          primaryMediaType: 'video'
+        }));
+        showToast('تم رفع فيديو المنتج من المعرض بنجاح! 🎬');
+      }
+      setIsVideoUploading(false);
+    };
+    reader.onerror = () => {
+      showToast('تعذر قراءة ملف الفيديو من الجهاز، يرجى المحاولة مجدداً.');
+      setIsVideoUploading(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveVideo = () => {
+    setProductForm(prev => ({
+      ...prev,
+      video: '',
+      primaryMediaType: 'image'
+    }));
+    showToast('تم حذف فيديو المنتج.');
   };
 
   const handleAddTag = (e) => {
@@ -2438,24 +2490,24 @@ export default function AdminPanel({
                   <span className="text-[10px] text-slate-400">يمكنك رفع عدة صور أو إضافتها بروابط</span>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="url"
                     placeholder="ضع رابط صورة (URL) واضغط إضافة..."
                     value={urlImageInput}
                     onChange={(e) => setUrlImageInput(e.target.value)}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500 font-mono"
+                    className="flex-1 min-w-[150px] bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-brand-500 font-mono"
                   />
                   <button
                     type="button"
                     onClick={handleAddImageUrl}
-                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0"
+                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer"
                   >
                     إضافة رابط
                   </button>
-                  <label className="cursor-pointer bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 flex items-center gap-1 shadow-xs">
+                  <label className="cursor-pointer bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95">
                     <Upload className="w-3.5 h-3.5" />
-                    <span>رفع من الجهاز</span>
+                    <span>📷 صور من المعرض</span>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -2463,6 +2515,17 @@ export default function AdminPanel({
                       multiple
                       className="hidden"
                       onChange={handleMultipleFilesUpload}
+                    />
+                  </label>
+                  <label className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 flex items-center gap-1 shadow-xs transition-all active:scale-95">
+                    <Video className="w-3.5 h-3.5" />
+                    <span>🎬 فيديو من المعرض</span>
+                    <input
+                      ref={videoFileInputRef}
+                      type="file"
+                      accept="video/*,video/mp4,video/quicktime,video/webm"
+                      className="hidden"
+                      onChange={handleVideoFileUpload}
                     />
                   </label>
                 </div>
@@ -2475,7 +2538,7 @@ export default function AdminPanel({
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -2490,19 +2553,108 @@ export default function AdminPanel({
                 )}
               </div>
 
-              {/* Video URL */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-                  <Video className="w-4 h-4 text-purple-600" />
-                  <span>رابط فيديو المنتج (اختياري - MP4 أو رابط مباشر)</span>
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://.../video.mp4"
-                  value={productForm.video}
-                  onChange={(e) => setProductForm({ ...productForm, video: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-brand-500 text-xs font-mono"
-                />
+              {/* Dedicated Product Video Section: Phone Gallery & URL */}
+              <div className="space-y-3 bg-purple-50/60 p-4 rounded-2xl border border-purple-200/90">
+                <div className="flex items-center justify-between">
+                  <label className="block font-black text-slate-800 flex items-center gap-1.5 text-xs">
+                    <Video className="w-4 h-4 text-purple-600" />
+                    <span>فيديو المنتج التفاعلي (من معرض الهاتف أو رابط خارجي)</span>
+                  </label>
+                  {productForm.video && (
+                    <span className="bg-purple-100 text-purple-800 border border-purple-300 text-[10px] font-black px-2 py-0.5 rounded-md">
+                      فيديو جاهز للعرض ✓
+                    </span>
+                  )}
+                </div>
+
+                {/* If video exists: Show preview player and controls */}
+                {productForm.video ? (
+                  <div className="space-y-3 bg-white p-3.5 rounded-xl border border-purple-200 shadow-2xs">
+                    <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video max-h-56 flex items-center justify-center">
+                      <video
+                        src={productForm.video}
+                        controls
+                        playsInline
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+                      {/* Toggle Primary View: Video vs Image */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-slate-600">الواجهة الرئيسية:</span>
+                        <button
+                          type="button"
+                          onClick={() => setProductForm(prev => ({ ...prev, primaryMediaType: 'video' }))}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                            productForm.primaryMediaType === 'video'
+                              ? 'bg-purple-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          🎬 الفيديو أولاً
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProductForm(prev => ({ ...prev, primaryMediaType: 'image' }))}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                            productForm.primaryMediaType === 'image'
+                              ? 'bg-purple-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          🖼️ الصورة أولاً
+                        </button>
+                      </div>
+
+                      {/* Remove video button */}
+                      <button
+                        type="button"
+                        onClick={handleRemoveVideo}
+                        className="flex items-center gap-1 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                        title="حذف الفيديو"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف الفيديو</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* No video selected yet: big action button to pick from device gallery */
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <label className="cursor-pointer flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99]">
+                        <Video className="w-4 h-4" />
+                        <span>{isVideoUploading ? 'جارٍ قراءة ورفع الفيديو...' : '📁 اختيار ورفع فيديو من المعرض / الهاتف'}</span>
+                        <input
+                          ref={videoSectionFileInputRef}
+                          type="file"
+                          accept="video/*,video/mp4,video/quicktime,video/webm"
+                          className="hidden"
+                          disabled={isVideoUploading}
+                          onChange={handleVideoFileUpload}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-purple-200/60" />
+                      </div>
+                      <div className="relative flex justify-center text-[10px] uppercase">
+                        <span className="bg-purple-50/60 px-2 text-slate-400 font-bold">أو إدخال رابط فيديو خارجي</span>
+                      </div>
+                    </div>
+
+                    <input
+                      type="url"
+                      placeholder="https://.../video.mp4"
+                      value={productForm.video}
+                      onChange={(e) => setProductForm({ ...productForm, video: e.target.value })}
+                      className="w-full bg-white border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-500 text-xs font-mono"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Tags Section */}

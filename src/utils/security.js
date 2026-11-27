@@ -59,8 +59,12 @@ export function sanitizeUrl(url, fallback = '') {
     return trimmed;
   }
 
-  // Allow safe base64 image data URLs
-  if (trimmed.startsWith('data:image/')) {
+  // Allow safe base64 image and video data URLs or blob URLs
+  if (
+    trimmed.startsWith('data:image/') || 
+    trimmed.startsWith('data:video/') || 
+    trimmed.startsWith('blob:')
+  ) {
     return trimmed;
   }
 

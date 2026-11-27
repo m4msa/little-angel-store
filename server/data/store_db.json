@@ -768,7 +768,7 @@
         "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80"
       ],
       "description": "تصميم بوهيمي فاخر بحواف مكرمية يدوية وقاعدة خشبية صلبة ومرتبة إسفنجية مضادة للحساسية.",
-      "inStock": true,
+      "inStock": false,
       "tags": [
         "#سلة_موسى",
         "#بوهيمي",
@@ -781,7 +781,8 @@
       "availableColors": [
         "خوص طبيعي",
         "أبيض كريمي"
-      ]
+      ],
+      "updatedAt": "2026-11-27T20:51:05.513Z"
     },
     {
       "id": 24,
@@ -2081,12 +2082,12 @@
         "canEditProduct": false,
         "canDeleteProduct": false,
         "canEditPrice": false,
-        "canToggleStock": false,
+        "canToggleStock": true,
         "canToggleCustomName": false,
         "canAddCategory": false,
         "canEditCategory": false,
         "canDeleteCategory": false,
-        "canManageOrders": true,
+        "canManageOrders": false,
         "canManageSettings": false,
         "canManageUsers": false
       }
@@ -2179,9 +2180,10 @@
       "shippingFee": 0,
       "total": 224.1,
       "paymentMethod": "apple_pay",
-      "status": "processing",
+      "status": "قيد التجهيز",
       "createdAt": "2026-11-24T18:30:00Z",
-      "notes": "تغليف هدية فاخر مع كرت مباركة"
+      "notes": "تغليف هدية فاخر مع كرت مباركة",
+      "updatedAt": "2026-11-27T20:53:45.574Z"
     }
   ],
   "settings": {
@@ -2224,35 +2226,23 @@
   },
   "meta": {
     "createdAt": "2026-11-25T20:50:51.008Z",
-    "updatedAt": "2026-11-27T20:33:38.072Z",
+    "updatedAt": "2026-11-27T20:54:22.850Z",
     "version": "1.0.0"
   },
   "reviews": [
     {
-      "id": "REV-101",
-      "productId": 1,
-      "productName": "بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)",
-      "customerName": "أم ريان السبيعي",
-      "customerEmail": "am.rayan@gmail.com",
-      "customerPhone": "0559988776",
-      "rating": 5,
-      "comment": "ما شاء الله تبارك الله، جودة القماش والتطريز تفوق الخيال! التغليف ملكي فاخر والتوصيل سريع جداً.",
-      "createdAt": "2026-11-26T14:20:00Z",
+      "id": "REV-104",
+      "productId": 3,
+      "productName": "مهاد بيبي شتوي ثقيل بطانة صوف تيدي دافئ",
+      "customerName": "هند القحطاني",
+      "customerEmail": "hend.qahtani@gmail.com",
+      "customerPhone": "0558877112",
+      "rating": 4,
+      "comment": "المهاد دافئ جداً ومريح للطفل في الشتاء.",
+      "createdAt": "2026-11-27T11:30:00Z",
       "isVisible": true,
-      "status": "approved"
-    },
-    {
-      "id": "REV-102",
-      "productId": 2,
-      "productName": "طقم استقبال لؤلؤي دانتيل ناعم مع تطريز الاسم بالخيط الذهبي",
-      "customerName": "نورة الشمري",
-      "customerEmail": "noura.alshammari@gmail.com",
-      "customerPhone": "0561234890",
-      "rating": 5,
-      "comment": "الخامة جداً ناعمة ومناسبة للمستشفى، وتطريز الاسم بالخيط الذهبي أعطى فخامة لا توصف. شكراً لكم!",
-      "createdAt": "2026-11-26T18:45:00Z",
-      "isVisible": true,
-      "status": "approved"
+      "status": "approved",
+      "updatedAt": "2026-11-27T20:53:54.618Z"
     },
     {
       "id": "REV-103",
@@ -2265,20 +2255,35 @@
       "comment": "وصلني في وقت قياسي والهدية نالت إعجاب الأهل كثيراً، التغليف يبيض الوجه وتفاصيل الاسم متقنة للغاية.",
       "createdAt": "2026-11-27T10:15:00Z",
       "isVisible": false,
-      "status": "pending"
+      "status": "hidden",
+      "updatedAt": "2026-11-27T20:54:22.548Z"
     },
     {
-      "id": "REV-104",
-      "productId": 3,
-      "productName": "مهاد بيبي شتوي ثقيل بطانة صوف تيدي دافئ",
-      "customerName": "هند القحطاني",
-      "customerEmail": "hend.qahtani@gmail.com",
-      "customerPhone": "0558877112",
-      "rating": 4,
-      "comment": "المهاد دافئ جداً ومريح للطفل في الشتاء.",
-      "createdAt": "2026-11-27T11:30:00Z",
+      "id": "REV-102",
+      "productId": 2,
+      "productName": "طقم استقبال لؤلؤي دانتيل ناعم مع تطريز الاسم بالخيط الذهبي",
+      "customerName": "نورة الشمري",
+      "customerEmail": "noura.alshammari@gmail.com",
+      "customerPhone": "0561234890",
+      "rating": 5,
+      "comment": "الخامة جداً ناعمة ومناسبة للمستشفى، وتطريز الاسم بالخيط الذهبي أعطى فخامة لا توصف. شكراً لكم!",
+      "createdAt": "2026-11-26T18:45:00Z",
       "isVisible": false,
-      "status": "hidden"
+      "status": "hidden",
+      "updatedAt": "2026-11-27T20:54:20.135Z"
+    },
+    {
+      "id": "REV-101",
+      "productId": 1,
+      "productName": "بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)",
+      "customerName": "أم ريان السبيعي",
+      "customerEmail": "am.rayan@gmail.com",
+      "customerPhone": "0559988776",
+      "rating": 5,
+      "comment": "ما شاء الله تبارك الله، جودة القماش والتطريز تفوق الخيال! التغليف ملكي فاخر والتوصيل سريع جداً.",
+      "createdAt": "2026-11-26T14:20:00Z",
+      "isVisible": true,
+      "status": "approved"
     }
   ]
 }
