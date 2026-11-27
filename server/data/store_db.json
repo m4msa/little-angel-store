@@ -344,41 +344,6 @@
       ]
     },
     {
-      "id": 11,
-      "name": "بوكس هدية الملاك الصغير الملكي للإهداء مع تغليف فاخر",
-      "category": "baby-clothes",
-      "price": 299,
-      "originalPrice": 380,
-      "rating": 5,
-      "reviewsCount": 62,
-      "video": "https://vjs.zencdn.net/v/oceans.mp4",
-      "primaryMediaType": "video",
-      "primaryImageIndex": 0,
-      "image": "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
-      "images": [
-        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
-      ],
-      "description": "هدية راقية متكاملة للمواليد الجدد. يشمل: بربتوز مطرز بالاسم، مهاد ناعم، دمية أرنوب قطنية، حذاء مواليد مخمل، وكرت إهداء بعبارتك الخاصة داخل بوكس مذهب.",
-      "inStock": true,
-      "tags": [
-        "#هدايا_مواليد",
-        "#بوكس_فاخر",
-        "#جاهز_للإهداء"
-      ],
-      "hasCustomName": true,
-      "availableSizes": [
-        "0-3 أشهر",
-        "3-6 أشهر"
-      ],
-      "availableColors": [
-        "وردي هادئ",
-        "أزرق سماوي",
-        "بيج كريمي"
-      ]
-    },
-    {
       "id": 12,
       "name": "روب استقبال نفاس أنيق للأم قطني مريح مع كوفية مطابقة للمولود",
       "category": "mom-care",
@@ -1012,40 +977,6 @@
       ]
     },
     {
-      "id": 31,
-      "name": "طقم أفرول مواليد فاخر 5 قطع قطن عضوي مع روب استحمام وحذاء",
-      "category": "baby-clothes",
-      "price": 195,
-      "originalPrice": 250,
-      "rating": 5,
-      "reviewsCount": 68,
-      "video": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-      "primaryMediaType": "video",
-      "primaryImageIndex": 0,
-      "image": "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
-      "images": [
-        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
-      ],
-      "description": "تشكيلة أساسية متكاملة لحديثي الولادة من القطن الخالص فائق النعومة، مثالي للإهداء ولوازم أول شهر.",
-      "inStock": true,
-      "tags": [
-        "#ملابس_مواليد",
-        "#أفرول_فاخر",
-        "#قطن_عضوي"
-      ],
-      "hasCustomName": true,
-      "availableSizes": [
-        "0-3 أشهر",
-        "3-6 أشهر"
-      ],
-      "availableColors": [
-        "وردي سحابي",
-        "سماوي ناعم",
-        "بيج قطني"
-      ]
-    },
-    {
       "id": 32,
       "name": "فستان استقبال مواليد أميري مع طوق شعر لؤلؤي وحذاء متناسق",
       "category": "baby-clothes",
@@ -1540,37 +1471,6 @@
       "availableColors": [
         "بيج كريمي",
         "عاجي فاخر"
-      ]
-    },
-    {
-      "id": 48,
-      "name": "طقم استقبال ملكي دانتيل فرنسي وردي بودري فاخر (6 قطع)",
-      "category": "hospital-sets",
-      "price": 289,
-      "originalPrice": 360,
-      "rating": 5,
-      "reviewsCount": 76,
-      "primaryMediaType": "image",
-      "primaryImageIndex": 0,
-      "image": "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80",
-      "images": [
-        "https://images.unsplash.com/photo-1584839446452-94420a44e5ce?auto=format&fit=crop&w=800&q=80"
-      ],
-      "description": "طقم استقبال بنات ساحر باللون الوردي البودري الهادئ مزين بحواف دانتيل فرنسي ناعم وتطريز الاسم بالحرير.",
-      "inStock": true,
-      "tags": [
-        "#استقبال_بنات",
-        "#وردي_بودري",
-        "#دانتيل_فرنسي"
-      ],
-      "hasCustomName": true,
-      "availableSizes": [
-        "0-3 أشهر",
-        "3-6 أشهر"
-      ],
-      "availableColors": [
-        "وردي بودري",
-        "سكري مع وردي"
       ]
     },
     {
@@ -2084,19 +1984,19 @@
         "canUploadProductImages": false,
         "canUploadProductVideos": false,
         "canEditProduct": false,
-        "canEditProductBasic": false,
+        "canEditProductBasic": true,
         "canEditPrice": false,
-        "canEditProductImages": false,
-        "canEditProductVideos": false,
-        "canToggleStock": false,
+        "canEditProductImages": true,
+        "canEditProductVideos": true,
+        "canToggleStock": true,
         "canToggleCustomName": false,
-        "canDeleteProduct": false,
+        "canDeleteProduct": true,
         "canAddCategory": false,
         "canEditCategory": false,
         "canDeleteCategory": false,
         "canManageCategories": false,
         "canManageOrders": false,
-        "canManageReviews": true,
+        "canManageReviews": false,
         "canManageSettings": false,
         "canManageUsers": false
       }
@@ -2240,10 +2140,24 @@
   },
   "meta": {
     "createdAt": "2026-11-25T20:50:51.008Z",
-    "updatedAt": "2026-11-27T21:43:08.980Z",
+    "updatedAt": "2026-11-27T22:10:04.661Z",
     "version": "1.0.0"
   },
   "reviews": [
+    {
+      "id": "REV-1795817348935",
+      "productId": null,
+      "productName": "متجر الملاك الصغير",
+      "productImage": "",
+      "customerName": "امجد البركاني (مسؤول توفر ومخزون)",
+      "customerEmail": "ama2026@gmail.com",
+      "customerPhone": "",
+      "rating": 1,
+      "comment": "متجر متكامل بحق وحقيقه",
+      "createdAt": "2026-11-27T22:09:08.935Z",
+      "isVisible": false,
+      "status": "pending"
+    },
     {
       "id": "REV-104",
       "productId": 3,

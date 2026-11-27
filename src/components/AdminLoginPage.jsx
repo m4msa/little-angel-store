@@ -173,7 +173,7 @@ export default function AdminLoginPage({
   const isLockedOut = lockoutRemaining > 0;
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4 selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#FDF1F4] via-[#FCE8EB] to-[#F8D5DB] flex flex-col justify-center items-center p-4 selection:bg-brand-500 selection:text-white">
       {/* Return to Store Button */}
       <div className="w-full max-w-md mb-4 flex justify-between items-center text-xs">
         <button
@@ -183,23 +183,23 @@ export default function AdminLoginPage({
               onReturnToStore();
             }
           }}
-          className="text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors focus:outline-none focus:underline"
+          className="text-slate-700 hover:text-slate-900 font-bold bg-white/90 px-3 py-1.5 rounded-full border border-pink-200/60 shadow-xs flex items-center gap-1.5 transition-all hover:shadow-sm focus:outline-none"
         >
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4 text-[#DF7E93]" />
           <span>العودة إلى واجهة المتجر</span>
         </button>
-        <span className="text-[11px] text-slate-500 font-mono">Secret Route /admin</span>
+        <span className="text-[11px] text-[#8F2338] font-bold bg-white/90 px-2.5 py-1 rounded-full border border-pink-200/60">بوابة الإدارة السرية</span>
       </div>
 
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden p-6 sm:p-8 space-y-6">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-xl border border-pink-100 overflow-hidden p-6 sm:p-8 space-y-6">
         {/* Header Branding */}
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-900 text-brand-400 flex items-center justify-center shadow-lg shadow-slate-200">
-            <Lock className="w-8 h-8 text-brand-400" />
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-[#DF7E93] to-[#e48ea0] text-white flex items-center justify-center shadow-lg shadow-pink-200">
+            <Lock className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900">بوابة الإدارة السرية</h2>
+          <h2 className="text-2xl font-black text-slate-900">بوابة الإدارة والتسجيل</h2>
           <p className="text-xs text-slate-500">
-            هذا المسار مخصص حصرياً لإدارة متجر <strong>الملاك الصغير</strong>
+            تسجيل دخول آمن لإدارة متجر <strong>الملاك الصغير</strong>
           </p>
         </div>
 
@@ -281,13 +281,13 @@ export default function AdminLoginPage({
           <button
             type="submit"
             disabled={isLoading || isLockedOut}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3.5 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 text-xs active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#DF7E93] hover:bg-[#d06b82] text-white font-black py-3.5 rounded-2xl shadow-lg shadow-pink-200/60 transition-all flex items-center justify-center gap-2 text-xs active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               <span>جاري التحقق من الهوية...</span>
             ) : (
               <>
-                <ShieldCheck className="w-4 h-4 text-brand-400" />
+                <ShieldCheck className="w-4 h-4 text-white" />
                 <span>دخول لوحة التحكم</span>
               </>
             )}
