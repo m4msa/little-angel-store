@@ -837,11 +837,6 @@ function ProductDetailView({
                     "{rev.comment}"
                   </p>
                 </div>
-
-                <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>تقييم معتمد من إدارة المتجر ✓</span>
-                </div>
               </div>
             ))}
           </div>

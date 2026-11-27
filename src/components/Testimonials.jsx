@@ -58,8 +58,8 @@ export default function Testimonials({
         .map(r => ({
           id: r.id,
           productId: r.productId,
-          name: r.customerName || 'عميل موثق',
-          city: 'مشتري معتمد',
+          name: r.customerName || 'عميل المتجر',
+          city: r.city || '',
           rating: Number(r.rating) || 5,
           date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA') : 'مؤخراً',
           comment: r.comment,
