@@ -618,7 +618,7 @@ export default function App() {
     try {
       if (typeof EventSource !== 'undefined') {
         evtSource = new EventSource('/api/realtime-stream');
-        evtSource.onmessage = (event) => {
+        evtSource.onmessage = async (event) => {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'PERMISSIONS_UPDATED' && data.payload) {
@@ -647,6 +647,14 @@ export default function App() {
                 return prev;
               });
             }
+            if (data.type === 'REVIEWS_UPDATED') {
+              try {
+                const freshReviews = await api.getReviews();
+                if (Array.isArray(freshReviews) && freshReviews.length > 0) {
+                  setReviewsList(prev => JSON.stringify(freshReviews) !== JSON.stringify(prev) ? freshReviews : prev);
+                }
+              } catch (e) {}
+            }
           } catch (e) {}
         };
         evtSource.onerror = () => {
@@ -660,11 +668,20 @@ export default function App() {
     // Fast polling fallback every 2.5 seconds to guarantee instant updates on mobile phones across tunnels
     pollInterval = setInterval(async () => {
       try {
-        const freshUsers = await api.getUsers();
+        const [freshUsers, freshReviews] = await Promise.all([
+          api.getUsers().catch(() => null),
+          api.getReviews().catch(() => null)
+        ]);
         if (Array.isArray(freshUsers) && freshUsers.length > 0) {
           setUsersList(prev => {
             const hasChanged = JSON.stringify(freshUsers) !== JSON.stringify(prev);
             return hasChanged ? freshUsers : prev;
+          });
+        }
+        if (Array.isArray(freshReviews) && freshReviews.length > 0) {
+          setReviewsList(prev => {
+            const hasChanged = JSON.stringify(freshReviews) !== JSON.stringify(prev);
+            return hasChanged ? freshReviews : prev;
           });
         }
       } catch (err) {}

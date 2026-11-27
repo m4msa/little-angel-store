@@ -474,6 +474,10 @@ app.post('/api/reviews', (req, res) => {
       return res.status(400).json({ error: 'اسم العميل والتعليق مطلوبان' });
     }
     const newReview = addReview(req.body);
+    broadcastRealtimeEvent('REVIEWS_UPDATED', {
+      action: 'ADD_REVIEW',
+      review: newReview
+    });
     res.status(201).json(newReview);
   } catch (err) {
     res.status(500).json({ error: 'Failed to save review', details: err.message });
@@ -485,6 +489,10 @@ app.patch('/api/reviews/:id/visibility', (req, res) => {
     const { isVisible } = req.body;
     const updated = updateReviewVisibility(req.params.id, isVisible);
     if (!updated) return res.status(404).json({ error: 'التعليق غير موجود' });
+    broadcastRealtimeEvent('REVIEWS_UPDATED', {
+      action: 'UPDATE_VISIBILITY',
+      review: updated
+    });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update review visibility', details: err.message });
@@ -496,6 +504,10 @@ app.patch('/api/reviews/:id/status', (req, res) => {
     const { status } = req.body;
     const updated = updateReviewStatus(req.params.id, status);
     if (!updated) return res.status(404).json({ error: 'التعليق غير موجود' });
+    broadcastRealtimeEvent('REVIEWS_UPDATED', {
+      action: 'UPDATE_STATUS',
+      review: updated
+    });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update review status', details: err.message });
@@ -506,6 +518,10 @@ app.delete('/api/reviews/:id', (req, res) => {
   try {
     const deleted = deleteReview(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'التعليق غير موجود' });
+    broadcastRealtimeEvent('REVIEWS_UPDATED', {
+      action: 'DELETE_REVIEW',
+      reviewId: req.params.id
+    });
     res.json({ success: true, message: 'تم حذف التعليق بنجاح' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete review', details: err.message });
