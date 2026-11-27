@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Star, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
 
 const DEFAULT_TESTIMONIALS = [
