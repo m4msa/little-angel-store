@@ -814,7 +814,7 @@ function ProductDetailView({
                       <div>
                         <h4 className="text-xs font-bold text-slate-900">{rev.customerName}</h4>
                         <span className="text-[10px] text-slate-400 font-semibold">
-                          {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('ar-SA') : 'مشتري موثق'}
+                          {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('ar-SA') : 'مؤخراً'}
                         </span>
                       </div>
                     </div>

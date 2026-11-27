@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Star, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Star, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -14,13 +14,13 @@ const DEFAULT_TESTIMONIALS = [
   },
   {
     id: 2,
-    productId: 4,
+    productId: null,
     name: 'أم فيصل',
     city: 'جدة',
     rating: 5,
     date: 'منذ أسبوع',
-    comment: 'السرير الهزاز جودته ممتازة ومتين جداً والناموسية تحمي الطفل وسهل الطي والتنقل به بالسفر، تجربة تسوق راقية وخدمة عملاء متعاونة جداً.',
-    product: 'سرير أطفال متعدد الارتفاعات مع ناموسية ملكية'
+    comment: 'متجر رائع جداً، التعامل راقي وسرعة في تجهيز الطلب والتوصيل في وقت قياسي والتغليف أنيق يواجه، بارك الله لكم في متجركم.',
+    product: 'متجر الملاك الصغير'
   },
   {
     id: 3,
@@ -52,22 +52,215 @@ export default function Testimonials({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const approvedCustom = Array.isArray(customReviews)
-    ? customReviews
-        .filter(r => r && (r.isVisible || r.status === 'approved'))
-        .map(r => ({
-          id: r.id,
-          productId: r.productId,
-          name: r.customerName || 'عميل المتجر',
-          city: r.city || '',
-          rating: Number(r.rating) || 5,
-          date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA') : 'مؤخراً',
-          comment: r.comment,
-          product: r.productName || ''
-        }))
-    : [];
+  // Carousel & Auto-Gliding References
+  const containerRef = useRef(null);
+  const isInteractingRef = useRef(false);
+  const isTouchActiveRef = useRef(false);
+  const resumeTimeoutRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const accumulatorRef = useRef(0);
+  const stepDirectionRef = useRef(1); // 1: forward to end, -1: reverse to start
+  const isInViewRef = useRef(false);
+  const isDelayPassedRef = useRef(false);
+  const delayTimerRef = useRef(null);
+  const rtlSignRef = useRef(-1); // RTL scroll direction adjustment
 
-  const reviews = approvedCustom.length >= 2 ? approvedCustom.slice(0, 3) : DEFAULT_TESTIMONIALS;
+  // Mouse drag state for desktop interactions
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollStartLeft, setScrollStartLeft] = useState(0);
+
+  const approvedCustom = useMemo(() => {
+    if (!Array.isArray(customReviews)) return [];
+    return customReviews
+      .filter(r => r && (r.isVisible || r.status === 'approved'))
+      .map(r => ({
+        id: r.id,
+        productId: r.productId,
+        name: r.customerName || 'عميل المتجر',
+        city: r.city || '',
+        rating: Number(r.rating) || 5,
+        date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA') : 'مؤخراً',
+        comment: r.comment,
+        product: r.productName || ''
+      }));
+  }, [customReviews]);
+
+  // Display ALL approved reviews in the slider (or default if empty)
+  const reviews = approvedCustom.length > 0 ? approvedCustom : DEFAULT_TESTIMONIALS;
+
+  // 1. Viewport Intersection Observer: initiates auto-glide when section is visible
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            isInViewRef.current = true;
+            if (!isDelayPassedRef.current) {
+              if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
+              delayTimerRef.current = setTimeout(() => {
+                isDelayPassedRef.current = true;
+              }, 1500);
+            }
+          } else {
+            isInViewRef.current = false;
+            isDelayPassedRef.current = false;
+            if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
+    };
+  }, []);
+
+  // 2. Smooth Linear Auto-Scrolling with ping-pong reversal (same as ProductSectionCarousel)
+  useEffect(() => {
+    if (!reviews || reviews.length <= 1) return;
+
+    let lastTime = performance.now();
+    const SPEED = 22; // Pixels per second
+
+    const scrollLoop = (time) => {
+      const delta = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
+
+      const el = containerRef.current;
+      if (
+        el &&
+        isInViewRef.current &&
+        isDelayPassedRef.current &&
+        !isInteractingRef.current
+      ) {
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 15) {
+          const currentScroll = Math.abs(el.scrollLeft);
+
+          if (stepDirectionRef.current === 1) {
+            // Forward glide towards the end
+            if (currentScroll >= maxScroll - 4) {
+              stepDirectionRef.current = -1;
+              accumulatorRef.current = 0;
+            } else {
+              accumulatorRef.current += SPEED * delta;
+              if (accumulatorRef.current >= 1) {
+                const pixels = Math.floor(accumulatorRef.current);
+                accumulatorRef.current -= pixels;
+
+                const prev = el.scrollLeft;
+                el.scrollLeft = prev + (rtlSignRef.current * pixels);
+
+                // Auto-detect browser RTL scroll behavior
+                if (el.scrollLeft === prev && pixels > 0) {
+                  rtlSignRef.current = -rtlSignRef.current;
+                  el.scrollLeft = prev + (rtlSignRef.current * pixels);
+                }
+              }
+            }
+          } else {
+            // Backward glide towards the start
+            if (currentScroll <= 4) {
+              stepDirectionRef.current = 1;
+              accumulatorRef.current = 0;
+            } else {
+              accumulatorRef.current += SPEED * delta;
+              if (accumulatorRef.current >= 1) {
+                const pixels = Math.floor(accumulatorRef.current);
+                accumulatorRef.current -= pixels;
+
+                const prev = el.scrollLeft;
+                el.scrollLeft = prev + (rtlSignRef.current * pixels * -1);
+
+                if (el.scrollLeft === prev && pixels > 0) {
+                  rtlSignRef.current = -rtlSignRef.current;
+                  el.scrollLeft = prev + (rtlSignRef.current * pixels * -1);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      animationFrameRef.current = requestAnimationFrame(scrollLoop);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(scrollLoop);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [reviews]);
+
+  // Pause helper
+  const pauseAutoScroll = (duration = 3500) => {
+    isInteractingRef.current = true;
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = setTimeout(() => {
+      isInteractingRef.current = false;
+    }, duration);
+  };
+
+  // Interaction handlers
+  const handleTouchStart = () => {
+    isTouchActiveRef.current = true;
+    pauseAutoScroll(4000);
+  };
+
+  const handleTouchEnd = () => {
+    isTouchActiveRef.current = false;
+    pauseAutoScroll(2500);
+  };
+
+  const handleMouseEnter = () => {
+    isInteractingRef.current = true;
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+  };
+
+  const handleMouseLeave = () => {
+    setIsMouseDown(false);
+    pauseAutoScroll(1500);
+  };
+
+  const handleMouseDown = (e) => {
+    if (!containerRef.current) return;
+    setIsMouseDown(true);
+    pauseAutoScroll(4000);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollStartLeft(containerRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isMouseDown || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    containerRef.current.scrollLeft = scrollStartLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsMouseDown(false);
+    pauseAutoScroll(2500);
+  };
+
+  // Manual arrow navigation (Step by 1 card or full view)
+  const handleScrollByStep = (direction) => {
+    if (!containerRef.current) return;
+    pauseAutoScroll(4500);
+    const el = containerRef.current;
+    const scrollAmount = el.clientWidth >= 768 ? Math.round(el.clientWidth / 3) + 16 : Math.round(el.clientWidth * 0.85);
+    const sign = direction === 'next' ? rtlSignRef.current : -rtlSignRef.current;
+    el.scrollBy({ left: sign * scrollAmount, behavior: 'smooth' });
+  };
 
   // Determine if a review is for the store generally or a specific product
   const isStoreGeneralReview = (rev) => {
@@ -85,7 +278,6 @@ export default function Testimonials({
     ) {
       return true;
     }
-    // If no productId and name is generic store
     if (!rev.productId && (lower.includes('متجر') || lower.includes('الملاك'))) {
       return true;
     }
@@ -184,59 +376,96 @@ export default function Testimonials({
           </div>
         </div>
 
-        {/* 3 Review Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {reviews.map((rev) => {
-            const isGeneral = isStoreGeneralReview(rev);
+        {/* Carousel Container (Auto-gliding + Manual Swipe/Scroll + 3 Cards in View on Desktop) */}
+        <div className="relative group">
+          {/* Navigation Arrows (Visible for easy manual browsing) */}
+          <button
+            type="button"
+            onClick={() => handleScrollByStep('prev')}
+            aria-label="التعليق السابق"
+            className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-[#8F2338] shadow-md hover:shadow-lg border border-pink-100 flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            title="التعليق السابق"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
 
-            return (
-              <div
-                key={rev.id}
-                className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-3">
-                  
-                  {/* Header: User Avatar + Name + Rating */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-pink-50 text-brand-600 flex items-center justify-center border border-pink-100 shrink-0">
-                        <User className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={() => handleScrollByStep('next')}
+            aria-label="التعليق التالي"
+            className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-[#8F2338] shadow-md hover:shadow-lg border border-pink-100 flex items-center justify-center transition-all cursor-pointer active:scale-90"
+            title="التعليق التالي"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {/* Scrollable Track: 3 cards per view on md+, swipeable on mobile */}
+          <div
+            ref={containerRef}
+            className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-none py-3 px-1 select-none cursor-grab active:cursor-grabbing scroll-smooth"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          >
+            {reviews.map((rev) => {
+              const isGeneral = isStoreGeneralReview(rev);
+
+              return (
+                <div
+                  key={rev.id}
+                  className="w-[85vw] sm:w-[340px] md:w-[calc((100%-2.5rem)/3)] shrink-0 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    
+                    {/* Header: User Avatar + Name + Rating */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-pink-50 text-brand-600 flex items-center justify-center border border-pink-100 shrink-0">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">{rev.name}</h4>
+                          <span className="text-[11px] text-slate-600 font-medium">
+                            {rev.city ? `${rev.city} • ` : ''}{rev.date}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-900">{rev.name}</h4>
-                        <span className="text-[11px] text-slate-600 font-medium">{rev.city} • {rev.date}</span>
+
+                      <div className="flex gap-0.5 text-amber-500">
+                        {[...Array(rev.rating)].map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                        ))}
                       </div>
                     </div>
 
-                    <div className="flex gap-0.5 text-amber-500">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
-                      ))}
-                    </div>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                      "{rev.comment}"
+                    </p>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                    "{rev.comment}"
-                  </p>
+                  {/* Bottom Bar: ONLY displayed when review is for a specific product */}
+                  {!isGeneral && (
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => handleProductClick(rev)}
+                        className="group inline-flex items-center gap-1.5 text-[#8F2338] hover:text-[#b4324d] font-bold transition-all cursor-pointer text-right max-w-full"
+                        title={`عرض تفاصيل ${rev.product}`}
+                      >
+                        <span className="truncate group-hover:underline">{rev.product}</span>
+                        <ArrowLeft className="w-3.5 h-3.5 shrink-0 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-transform" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-
-                {/* Bottom Bar: ONLY displayed when review is for a specific product */}
-                {!isGeneral && (
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => handleProductClick(rev)}
-                      className="group inline-flex items-center gap-1.5 text-[#8F2338] hover:text-[#b4324d] font-bold transition-all cursor-pointer text-right max-w-full"
-                      title={`عرض تفاصيل ${rev.product}`}
-                    >
-                      <span className="truncate group-hover:underline">{rev.product}</span>
-                      <ArrowLeft className="w-3.5 h-3.5 shrink-0 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-transform" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
       </div>
@@ -298,117 +527,92 @@ export default function Testimonials({
                     اختر تقييمك (من 1 إلى 5 نجوم):
                   </label>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 w-fit">
-                      {[1, 2, 3, 4, 5].map((starValue) => {
-                        const isFilled = (hoverRating || newRating) >= starValue;
-                        return (
-                          <button
-                            key={starValue}
-                            type="button"
-                            onMouseEnter={() => setHoverRating(starValue)}
-                            onMouseLeave={() => setHoverRating(0)}
-                            onClick={() => setNewRating(starValue)}
-                            className="p-1 transition-transform hover:scale-125 focus:outline-none cursor-pointer"
-                            title={`${starValue} نجوم`}
-                          >
-                            <Star
-                              className={`w-6 h-6 transition-colors ${
-                                isFilled
-                                  ? 'fill-amber-400 text-amber-500'
-                                  : 'text-slate-300 fill-slate-200'
-                              }`}
-                            />
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <span className="text-xs font-extrabold text-amber-600">
-                      {hoverRating || newRating} من 5 نجوم ⭐
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setNewRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        className="p-1 text-slate-300 hover:scale-125 transition-transform cursor-pointer"
+                      >
+                        <Star
+                          className={`w-7 h-7 ${
+                            star <= (hoverRating || newRating)
+                              ? 'text-amber-400 fill-amber-400'
+                              : 'text-slate-200 fill-slate-100'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-xs font-extrabold text-amber-600 mr-2">
+                      {hoverRating || newRating} من 5 نجوم
                     </span>
                   </div>
                 </div>
 
-                {/* Name & Email */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      اسمك الكريم *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="مثال: أم راكان / سارة العتيبي"
-                      value={reviewerName}
-                      onChange={(e) => setReviewerName(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-[#DF7E93] focus:bg-white transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      البريد الإلكتروني أو Gmail
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="example@gmail.com"
-                      value={reviewerEmail}
-                      onChange={(e) => setReviewerEmail(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-[#DF7E93] focus:bg-white transition-all dir-ltr text-right"
-                    />
-                  </div>
-                </div>
-
-                {/* Product/Package Name */}
+                {/* Name */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    اسم المنتج أو الطلب (اختياري)
+                    الاسم الكريم:
                   </label>
                   <input
                     type="text"
-                    placeholder="مثال: بكج استقبال ملكي روز / سرير أطفال"
-                    value={productName}
-                    onChange={(e) => setProductName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold outline-none focus:border-[#DF7E93] focus:bg-white transition-all"
+                    required
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    placeholder="مثال: أم نورة"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-brand-500 font-medium"
                   />
                 </div>
 
-                {/* Comment Textarea */}
+                {/* Optional Product Name / Experience */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    رأيك وتجربتك بالتفصيل *
+                    المنتج أو الخدمة التي جربتها (اختياري):
                   </label>
-                  <textarea
-                    required
-                    rows={3}
-                    maxLength={500}
-                    placeholder="كيف كانت جودة القماش، التطريز، سرعة التوصيل، والتعامل؟ شاركنا رأيك بكل أمانة..."
-                    value={reviewerComment}
-                    onChange={(e) => setReviewerComment(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium outline-none focus:border-[#DF7E93] focus:bg-white transition-all resize-none leading-relaxed"
+                  <input
+                    type="text"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    placeholder="مثال: طقم استقبال روز بيبي أو تجربة التسوق عامة"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-brand-500 font-medium"
                   />
                 </div>
 
-                {/* Buttons */}
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer"
-                  >
-                    إلغاء
-                  </button>
+                {/* Comment */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    تفاصيل تجربتك ورأيك:
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={reviewerComment}
+                    onChange={(e) => setReviewerComment(e.target.value)}
+                    placeholder="اكتبي رأيك بكل صراحة في جودة القماش، سرعة التوصيل، التعامل..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-brand-500 font-medium leading-relaxed"
+                  />
+                </div>
+
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-6 py-2.5 bg-[#DF7E93] hover:bg-[#d06b82] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3 rounded-xl bg-[#DF7E93] hover:bg-[#d06b82] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200 transition-all hover:scale-[1.01] active:scale-98 disabled:opacity-50 cursor-pointer"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>{isSubmitting ? 'جارٍ الإرسال...' : 'إرسال التقييم'}</span>
+                    {isSubmitting ? (
+                      <span>جاري الإرسال...</span>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>إرسال التقييم</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
             )}
-
           </div>
         </div>
       )}
