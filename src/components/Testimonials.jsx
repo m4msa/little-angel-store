@@ -1,40 +1,45 @@
 import React, { useState } from 'react';
-import { Star, ShieldCheck, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react';
+import { Star, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft } from 'lucide-react';
 
 const DEFAULT_TESTIMONIALS = [
   {
     id: 1,
+    productId: 1,
     name: 'نورة الشمري',
     city: 'الرياض',
     rating: 5,
     date: 'منذ يومين',
     comment: 'وصلني طقم الاستقبال الملكي والخامة قطن تركي بارد وفائق النعومة، والتطريز بالاسم فخم جداً ومرتب. التوصيل كان سريعاً وتغليف يواجه كهدية فاخرة.',
-    product: 'بكج استقبال روز بيبي - تفصيل ملكي'
+    product: 'بكج استقبال روز بيبي - تفصيل ملكي فاخر (7 قطع)'
   },
   {
     id: 2,
+    productId: 4,
     name: 'أم فيصل',
     city: 'جدة',
     rating: 5,
     date: 'منذ أسبوع',
     comment: 'السرير الهزاز جودته ممتازة ومتين جداً والناموسية تحمي الطفل وسهل الطي والتنقل به بالسفر، تجربة تسوق راقية وخدمة عملاء متعاونة جداً.',
-    product: 'سرير أطفال متعدد الارتفاعات'
+    product: 'سرير أطفال متعدد الارتفاعات مع ناموسية ملكية'
   },
   {
     id: 3,
+    productId: 3,
     name: 'سارة القحطاني',
     city: 'الخبر',
     rating: 5,
     date: 'منذ 4 أيام',
     comment: 'المهادات القطنية الموسلين خفيفة ومسامية، وخيوط التطريز الذهبية ثابتة حتى مع الغسيل المتكرر. متجر معتمد لكل مستلزمات طفلي.',
-    product: 'مجموعة مهادات قطن نقي'
+    product: 'مهاد بيبي شتوي ثقيل بطانة صوف تيدي دافئ'
   }
 ];
 
 export default function Testimonials({
   customReviews = [],
   onAddReview = () => {},
-  currentUser = null
+  currentUser = null,
+  onOpenProduct = () => {},
+  allProducts = []
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRating, setNewRating] = useState(5);
@@ -52,16 +57,62 @@ export default function Testimonials({
         .filter(r => r && (r.isVisible || r.status === 'approved'))
         .map(r => ({
           id: r.id,
+          productId: r.productId,
           name: r.customerName || 'عميل موثق',
           city: 'مشتري معتمد',
           rating: Number(r.rating) || 5,
           date: r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA') : 'مؤخراً',
           comment: r.comment,
-          product: r.productName || 'منتج مميز'
+          product: r.productName || ''
         }))
     : [];
 
   const reviews = approvedCustom.length >= 2 ? approvedCustom.slice(0, 3) : DEFAULT_TESTIMONIALS;
+
+  // Determine if a review is for the store generally or a specific product
+  const isStoreGeneralReview = (rev) => {
+    if (!rev) return true;
+    const prodName = (rev.product || '').trim();
+    if (!prodName) return true;
+    const lower = prodName.toLowerCase();
+    if (
+      lower === 'متجر الملاك الصغير' ||
+      lower === 'متجر الملاك' ||
+      lower === 'الملاك الصغير' ||
+      lower === 'خدمة العملاء' ||
+      lower === 'خدمة العملاء والشحن' ||
+      lower === 'المتجر'
+    ) {
+      return true;
+    }
+    // If no productId and name is generic store
+    if (!rev.productId && (lower.includes('متجر') || lower.includes('الملاك'))) {
+      return true;
+    }
+    return false;
+  };
+
+  const handleProductClick = (rev) => {
+    if (!rev || isStoreGeneralReview(rev)) return;
+
+    let matched = null;
+    if (rev.productId) {
+      matched = allProducts.find(p => String(p.id) === String(rev.productId));
+    }
+    if (!matched && rev.product) {
+      const q = rev.product.trim().toLowerCase();
+      matched = allProducts.find(p => p.name && (p.name.toLowerCase().includes(q) || q.includes(p.name.toLowerCase())));
+    }
+    if (!matched && rev.productId) {
+      matched = allProducts.find(p => Number(p.id) === Number(rev.productId));
+    }
+
+    if (matched && typeof onOpenProduct === 'function') {
+      onOpenProduct(matched);
+    } else if (allProducts.length > 0 && typeof onOpenProduct === 'function') {
+      onOpenProduct(allProducts[0]);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,45 +186,57 @@ export default function Testimonials({
 
         {/* 3 Review Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {reviews.map((rev) => (
-            <div
-              key={rev.id}
-              className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-3">
-                
-                {/* Header: User Avatar + Name + Rating */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full bg-pink-50 text-brand-600 flex items-center justify-center border border-pink-100 shrink-0">
-                      <User className="w-4 h-4" />
+          {reviews.map((rev) => {
+            const isGeneral = isStoreGeneralReview(rev);
+
+            return (
+              <div
+                key={rev.id}
+                className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/70 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-3">
+                  
+                  {/* Header: User Avatar + Name + Rating */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-pink-50 text-brand-600 flex items-center justify-center border border-pink-100 shrink-0">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">{rev.name}</h4>
+                        <span className="text-[11px] text-slate-600 font-medium">{rev.city} • {rev.date}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900">{rev.name}</h4>
-                      <span className="text-[11px] text-slate-600 font-medium">{rev.city} • {rev.date}</span>
+
+                    <div className="flex gap-0.5 text-amber-500">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                      ))}
                     </div>
                   </div>
 
-                  <div className="flex gap-0.5 text-amber-500">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
-                    ))}
-                  </div>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                    "{rev.comment}"
+                  </p>
                 </div>
 
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                  "{rev.comment}"
-                </p>
+                {/* Bottom Bar: ONLY displayed when review is for a specific product */}
+                {!isGeneral && (
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => handleProductClick(rev)}
+                      className="group inline-flex items-center gap-1.5 text-[#8F2338] hover:text-[#b4324d] font-bold transition-all cursor-pointer text-right max-w-full"
+                      title={`عرض تفاصيل ${rev.product}`}
+                    >
+                      <span className="truncate group-hover:underline">{rev.product}</span>
+                      <ArrowLeft className="w-3.5 h-3.5 shrink-0 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
+                )}
               </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="text-[#8F2338] font-bold truncate max-w-[180px]">{rev.product}</span>
-                <span className="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-md border border-emerald-200 text-[10px] shrink-0">
-                  مشتري موثق ✓
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

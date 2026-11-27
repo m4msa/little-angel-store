@@ -2108,6 +2108,8 @@ export default function App() {
           customReviews={reviewsList} 
           onAddReview={handleAddReview}
           currentUser={currentUser}
+          onOpenProduct={handleOpenProduct}
+          allProducts={products}
         />
       </>
     )}
