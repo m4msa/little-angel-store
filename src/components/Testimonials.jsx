@@ -210,7 +210,7 @@ export default function Testimonials({
                   شكراً لمشاركتك رأيك وتقييمك! 🎉
                 </h4>
                 <p className="text-xs text-emerald-700 leading-relaxed">
-                  تم استلام تعليقك بنجاح وحفظه في لوحة التحكم، وسيظهر للزوار فور اعتماده من إدارة المتجر.
+                  تم استلام تعليقك بنجاح، شكراً جزيلاً لمشاركتنا تجربتك ورأيك!
                 </p>
                 <button
                   type="button"
@@ -325,11 +325,6 @@ export default function Testimonials({
                   />
                 </div>
 
-                {/* Notice */}
-                <p className="text-[11px] text-slate-500 leading-relaxed bg-amber-50/70 p-2.5 rounded-xl border border-amber-100">
-                  🔒 <strong>ملاحظة للمصداقية:</strong> لضمان جودة المحتوى ومصداقية التقييمات، تخضع كافة التعليقات للمراجعة والاعتماد من قبل إدارة المتجر قبل ظهورها لعموم الزوار.
-                </p>
-
                 {/* Buttons */}
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
@@ -345,7 +340,7 @@ export default function Testimonials({
                     className="px-6 py-2.5 bg-[#DF7E93] hover:bg-[#d06b82] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{isSubmitting ? 'جارٍ الإرسال...' : 'إرسال التقييم للمراجعة'}</span>
+                    <span>{isSubmitting ? 'جارٍ الإرسال...' : 'إرسال التقييم'}</span>
                   </button>
                 </div>
               </form>

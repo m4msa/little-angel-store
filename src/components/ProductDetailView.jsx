@@ -873,7 +873,7 @@ function ProductDetailView({
                 شكراً لتقييمك ومشاركتنا رأيك! 🎉
               </h4>
               <p className="text-xs text-emerald-700 leading-relaxed">
-                تم استلام تعليقك بنجاح وحفظه في لوحة التحكم، وسيظهر في المتجر فور اعتماده من إدارة المتجر.
+                تم استلام تعليقك بنجاح، شكراً جزيلاً لمشاركتنا تجربتك ورأيك!
               </p>
               <button
                 type="button"
@@ -974,11 +974,6 @@ function ProductDetailView({
                 />
               </div>
 
-              {/* Policy note */}
-              <p className="text-[11px] text-slate-500 leading-relaxed bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
-                🔒 <strong>ملاحظة للمصداقية:</strong> لضمان جودة المحتوى ومصداقية التقييمات، تخضع كافة التعليقات للمراجعة والاعتماد من قبل إدارة المتجر قبل ظهورها لعموم الزوار.
-              </p>
-
               {/* Submit Button */}
               <button
                 type="submit"
@@ -986,7 +981,7 @@ function ProductDetailView({
                 className="w-full sm:w-auto px-6 py-3 bg-[#DF7E93] hover:bg-[#d06b82] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                <span>{isSubmittingReview ? 'جارٍ الإرسال...' : 'إرسال التقييم للمراجعة'}</span>
+                <span>{isSubmittingReview ? 'جارٍ الإرسال...' : 'إرسال التقييم'}</span>
               </button>
             </form>
           )}
