@@ -89,7 +89,24 @@ export default function Testimonials({
   // Display ALL approved reviews in the slider (or default if empty)
   const reviews = approvedCustom.length > 0 ? approvedCustom : DEFAULT_TESTIMONIALS;
 
-  // 1. Viewport Intersection Observer: initiates auto-glide when section is visible
+  // 1. Detect RTL scroll direction once on mount
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const initial = el.scrollLeft;
+    el.scrollLeft = -2;
+    if (el.scrollLeft < 0) {
+      rtlSignRef.current = -1;
+    } else {
+      el.scrollLeft = 2;
+      if (el.scrollLeft > 0) {
+        rtlSignRef.current = 1;
+      }
+    }
+    el.scrollLeft = initial;
+  }, []);
+
+  // 2. Viewport Intersection Observer: initiates auto-glide when section is visible
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -103,7 +120,7 @@ export default function Testimonials({
               if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
               delayTimerRef.current = setTimeout(() => {
                 isDelayPassedRef.current = true;
-              }, 1500);
+              }, 1200);
             }
           } else {
             isInViewRef.current = false;
@@ -122,12 +139,12 @@ export default function Testimonials({
     };
   }, []);
 
-  // 2. Smooth Linear Auto-Scrolling with ping-pong reversal (same as ProductSectionCarousel)
+  // 3. Smooth, Vibration-free Auto-Scrolling with gentle turnaround
   useEffect(() => {
     if (!reviews || reviews.length <= 1) return;
 
     let lastTime = performance.now();
-    const SPEED = 22; // Pixels per second
+    const SPEED = 26; // Pixels per second - steady, smooth glide
 
     const scrollLoop = (time) => {
       const delta = Math.min((time - lastTime) / 1000, 0.1);
@@ -146,43 +163,40 @@ export default function Testimonials({
 
           if (stepDirectionRef.current === 1) {
             // Forward glide towards the end
-            if (currentScroll >= maxScroll - 4) {
+            if (currentScroll >= maxScroll - 6) {
               stepDirectionRef.current = -1;
               accumulatorRef.current = 0;
+              // Brief pause at the end for readability before smoothly reversing
+              isInteractingRef.current = true;
+              if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+              resumeTimeoutRef.current = setTimeout(() => {
+                isInteractingRef.current = false;
+              }, 1800);
             } else {
               accumulatorRef.current += SPEED * delta;
               if (accumulatorRef.current >= 1) {
                 const pixels = Math.floor(accumulatorRef.current);
                 accumulatorRef.current -= pixels;
-
-                const prev = el.scrollLeft;
-                el.scrollLeft = prev + (rtlSignRef.current * pixels);
-
-                // Auto-detect browser RTL scroll behavior
-                if (el.scrollLeft === prev && pixels > 0) {
-                  rtlSignRef.current = -rtlSignRef.current;
-                  el.scrollLeft = prev + (rtlSignRef.current * pixels);
-                }
+                el.scrollLeft += rtlSignRef.current * pixels;
               }
             }
           } else {
             // Backward glide towards the start
-            if (currentScroll <= 4) {
+            if (currentScroll <= 6) {
               stepDirectionRef.current = 1;
               accumulatorRef.current = 0;
+              // Brief pause at the start before reversing
+              isInteractingRef.current = true;
+              if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+              resumeTimeoutRef.current = setTimeout(() => {
+                isInteractingRef.current = false;
+              }, 1800);
             } else {
               accumulatorRef.current += SPEED * delta;
               if (accumulatorRef.current >= 1) {
                 const pixels = Math.floor(accumulatorRef.current);
                 accumulatorRef.current -= pixels;
-
-                const prev = el.scrollLeft;
-                el.scrollLeft = prev + (rtlSignRef.current * pixels * -1);
-
-                if (el.scrollLeft === prev && pixels > 0) {
-                  rtlSignRef.current = -rtlSignRef.current;
-                  el.scrollLeft = prev + (rtlSignRef.current * pixels * -1);
-                }
+                el.scrollLeft -= rtlSignRef.current * pixels;
               }
             }
           }
@@ -402,7 +416,7 @@ export default function Testimonials({
           {/* Scrollable Track: 3 cards per view on md+, swipeable on mobile */}
           <div
             ref={containerRef}
-            className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-none py-3 px-1 select-none cursor-grab active:cursor-grabbing scroll-smooth"
+            className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-none py-3 px-1 select-none cursor-grab active:cursor-grabbing"
             style={{ WebkitOverflowScrolling: 'touch' }}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
