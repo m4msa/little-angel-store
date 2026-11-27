@@ -14,6 +14,7 @@ const DEFAULT_ADMIN_EMAILS = [
 ];
 
 export default function AdminLoginPage({
+  users = [],
   onLoginSuccess = () => {},
   onReturnToStore = () => {},
   onGoToCustomerLogin = null
@@ -83,14 +84,15 @@ export default function AdminLoginPage({
         cleanEmail === 'msaawadi2016@gmail.com' ||
         cleanEmail === 'admin@littleangel.com';
 
-      // 2. Safely verify against registered admin/staff users in localStorage
+      // 2. Safely verify against registered admin/staff users in users prop or localStorage
       const storedUsersV2 = safeJsonParse(localStorage.getItem('angel_users_v2'), []);
       const storedUsersV1 = safeJsonParse(localStorage.getItem('angel_users'), []);
-      const allStoredUsers = Array.isArray(storedUsersV2) && storedUsersV2.length > 0 
+      const localUsers = Array.isArray(storedUsersV2) && storedUsersV2.length > 0 
         ? storedUsersV2 
         : (Array.isArray(storedUsersV1) ? storedUsersV1 : []);
+      const allStoredUsers = Array.isArray(users) && users.length > 0 ? users : localUsers;
 
-      const STAFF_ROLES = ['admin', 'supervisor', 'editor', 'order_specialist'];
+      const STAFF_ROLES = ['admin', 'supervisor', 'editor', 'order_specialist', 'custom'];
       const cleanPhoneInput = cleanEmail.replace(/[^0-9]/g, '');
 
       // Check predefined staff (including amjad)
@@ -99,20 +101,38 @@ export default function AdminLoginPage({
       const matchedStaff = allStoredUsers.find(
         (u) =>
           u &&
-          STAFF_ROLES.includes(u.role) &&
+          ((u.role && STAFF_ROLES.includes(u.role)) || u.permissions) &&
           ((u.email && u.email.toLowerCase() === cleanEmail) ||
             (cleanPhoneInput && u.phone && String(u.phone).replace(/[^0-9]/g, '').includes(cleanPhoneInput)))
       );
 
       const targetUser = matchedStaff || (isAmjad ? {
         id: 'USR-AMJAD',
-        name: 'امجد البركاني',
+        name: 'امجد البركاني (مسؤول مخزون)',
         email: 'ama2026@gmail.com',
         phone: '555545555',
         city: 'الرياض',
         address: 'العزيزه',
-        role: 'order_specialist',
-        password: '12345678'
+        role: 'editor',
+        password: '12345678',
+        permissions: {
+          categoriesMode: 'all',
+          allowedCategories: [],
+          canAddProduct: false,
+          canEditProduct: false,
+          canDeleteProduct: false,
+          canEditPrice: false,
+          canToggleStock: true,
+          canToggleCustomName: false,
+          canAddCategory: false,
+          canEditCategory: false,
+          canDeleteCategory: false,
+          canManageCategories: false,
+          canManageOrders: false,
+          canManageReviews: false,
+          canManageSettings: false,
+          canManageUsers: false
+        }
       } : null);
 
       const isPassValid =

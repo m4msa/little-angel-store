@@ -37,13 +37,13 @@ const DEFAULT_USERS = [
   },
   {
     id: 'USR-AMJAD',
-    name: 'امجد البركاني (مسؤول مبيعات وشحن)',
+    name: 'امجد البركاني (مسؤول توفر ومخزون)',
     email: 'ama2026@gmail.com',
     phone: '555545555',
     city: 'الرياض',
     address: 'العزيزه',
     password: '12345678',
-    role: 'order_specialist',
+    role: 'editor',
     createdAt: '2026-02-25',
     permissions: {
       categoriesMode: 'all',
@@ -52,12 +52,14 @@ const DEFAULT_USERS = [
       canEditProduct: false,
       canDeleteProduct: false,
       canEditPrice: false,
-      canToggleStock: false,
+      canToggleStock: true,
       canToggleCustomName: false,
       canAddCategory: false,
       canEditCategory: false,
       canDeleteCategory: false,
-      canManageOrders: true,
+      canManageCategories: false,
+      canManageOrders: false,
+      canManageReviews: false,
       canManageSettings: false,
       canManageUsers: false
     }

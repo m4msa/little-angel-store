@@ -19,7 +19,9 @@ export const EMPTY_PERMISSIONS = {
   canAddCategory: false,
   canEditCategory: false,
   canDeleteCategory: false,
+  canManageCategories: false,
   canManageOrders: false,
+  canManageReviews: false,       // إدارة واعتماد التعليقات والتقييمات
   canManageSettings: false,
   canManageUsers: false
 };
@@ -30,7 +32,7 @@ export const EMPTY_PERMISSIONS = {
 export const ROLE_PRESETS = {
   admin: {
     label: 'مدير عام كامل (Admin)',
-    description: 'تحكم كامل وشامل بكافة أقسام المتجر، المنتجات، الأسعار، المخزون، الطلبات، والمستخدمين.',
+    description: 'تحكم كامل وشامل بكافة أقسام المتجر، المنتجات، الأسعار، المخزون، الطلبات، والمستخدمين والتعليقات.',
     permissions: {
       categoriesMode: 'all',
       allowedCategories: [],
@@ -43,7 +45,9 @@ export const ROLE_PRESETS = {
       canAddCategory: true,
       canEditCategory: true,
       canDeleteCategory: true,
+      canManageCategories: true,
       canManageOrders: true,
+      canManageReviews: true,
       canManageSettings: true,
       canManageUsers: true
     }
@@ -200,5 +204,62 @@ export function canPerformProductAction(user, action, categoryId) {
     default:
       return false;
   }
+}
+
+/**
+ * Tab-level visibility helpers (Strict zero-visibility policy for unauthorized users)
+ */
+export function canAccessProductsTab(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const p = getEffectivePermissions(user);
+  return Boolean(
+    p.canAddProduct ||
+    p.canEditProduct ||
+    p.canDeleteProduct ||
+    p.canEditPrice ||
+    p.canToggleStock ||
+    p.canToggleCustomName
+  );
+}
+
+export function canAccessCategoriesTab(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const p = getEffectivePermissions(user);
+  return Boolean(
+    p.canManageCategories ||
+    p.canAddCategory ||
+    p.canEditCategory ||
+    p.canDeleteCategory
+  );
+}
+
+export function canAccessOrdersTab(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const p = getEffectivePermissions(user);
+  return Boolean(p.canManageOrders);
+}
+
+export function canAccessReviewsTab(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const p = getEffectivePermissions(user);
+  return Boolean(p.canManageReviews);
+}
+
+export function canAccessUsersTab(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const p = getEffectivePermissions(user);
+  return Boolean(p.canManageUsers);
+}
+
+export function canAccessSettingsTab(user) {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const p = getEffectivePermissions(user);
+  return Boolean(p.canManageSettings);
 }
 

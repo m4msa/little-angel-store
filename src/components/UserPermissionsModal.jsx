@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, X, Check, CheckSquare, Square, Layers, 
   Package, DollarSign, Archive, Sparkles, Tag, ShoppingBag, 
-  Settings, Users, Info, AlertCircle 
+  Settings, Users, Info, AlertCircle, Star
 } from 'lucide-react';
 import { ROLE_PRESETS, EMPTY_PERMISSIONS } from '../utils/permissionRules';
 
@@ -42,10 +42,16 @@ export default function UserPermissionsModal({
   };
 
   const togglePermission = (key) => {
-    setPermissions(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setPermissions(prev => {
+      const nextVal = !prev[key];
+      const updated = { ...prev, [key]: nextVal };
+      if (key === 'canManageCategories') {
+        updated.canAddCategory = nextVal;
+        updated.canEditCategory = nextVal;
+        updated.canDeleteCategory = nextVal;
+      }
+      return updated;
+    });
   };
 
   const handleToggleCategory = (catId) => {
@@ -487,6 +493,29 @@ export default function UserPermissionsModal({
                 <div>
                   <h5 className="text-xs font-bold text-slate-900">التحكم بالمستخدمين والصلاحيات</h5>
                   <p className="text-[10px] text-slate-500">منح الصلاحيات للمستخدمين الآخرين وإدارة موظفي المتجر.</p>
+                </div>
+              </div>
+
+              {/* canManageReviews */}
+              <div 
+                onClick={() => togglePermission('canManageReviews')}
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 select-none ${
+                  permissions.canManageReviews
+                    ? 'border-amber-300 bg-amber-50/40'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                  permissions.canManageReviews ? 'bg-amber-500 text-white' : 'border border-slate-300'
+                }`}>
+                  {permissions.canManageReviews && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <h5 className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                    <span>إدارة واعتماد تقييمات وتعليقات العملاء</span>
+                    <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                  </h5>
+                  <p className="text-[10px] text-slate-500">معاينة آراء العملاء، وتفعيل أو إخفاء التعليقات في المتجر.</p>
                 </div>
               </div>
 

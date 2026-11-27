@@ -19,7 +19,13 @@ import {
   getEffectivePermissions, 
   canPerformProductAction, 
   hasCategoryPermission, 
-  ROLE_PRESETS 
+  ROLE_PRESETS,
+  canAccessProductsTab,
+  canAccessCategoriesTab,
+  canAccessOrdersTab,
+  canAccessReviewsTab,
+  canAccessUsersTab,
+  canAccessSettingsTab
 } from '../utils/permissionRules';
 
 const PRESET_SIZES = [
@@ -204,6 +210,34 @@ export default function AdminPanel({
 
   // Active Operator Permissions (for enforcement)
   const currentOperatorPerms = getEffectivePermissions(currentUser || { role: 'admin' });
+
+  // Strict Tab-Level Access Control (Zero Visibility Policy for Unauthorized Features)
+  const isAllowedProducts = canAccessProductsTab(currentUser);
+  const isAllowedCategories = canAccessCategoriesTab(currentUser);
+  const isAllowedOrders = canAccessOrdersTab(currentUser);
+  const isAllowedReviews = canAccessReviewsTab(currentUser);
+  const isAllowedUsers = canAccessUsersTab(currentUser);
+  const isAllowedSettings = canAccessSettingsTab(currentUser);
+
+  // Automatically fall back to first allowed tab if current activeTab is not permitted
+  useEffect(() => {
+    const isCurrentTabAllowed = 
+      (activeTab === 'products' && isAllowedProducts) ||
+      (activeTab === 'categories' && isAllowedCategories) ||
+      (activeTab === 'orders' && isAllowedOrders) ||
+      (activeTab === 'reviews' && isAllowedReviews) ||
+      (activeTab === 'users' && isAllowedUsers) ||
+      ((activeTab === 'branding' || activeTab === 'discounts' || activeTab === 'contact') && isAllowedSettings);
+
+    if (!isCurrentTabAllowed) {
+      if (isAllowedProducts) setActiveTab('products');
+      else if (isAllowedOrders) setActiveTab('orders');
+      else if (isAllowedCategories) setActiveTab('categories');
+      else if (isAllowedReviews) setActiveTab('reviews');
+      else if (isAllowedUsers) setActiveTab('users');
+      else if (isAllowedSettings) setActiveTab('branding');
+    }
+  }, [currentUser, activeTab, isAllowedProducts, isAllowedCategories, isAllowedOrders, isAllowedReviews, isAllowedUsers, isAllowedSettings]);
 
   // Users Filter & Modals State
   const [userSearch, setUserSearch] = useState('');
@@ -697,101 +731,127 @@ export default function AdminPanel({
         </div>
       </div>
 
-      {/* 2. Quick Overview Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs text-slate-400 font-bold">إجمالي المبيعات</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{totalSales} ر.س</h3>
+      {/* 2. Quick Overview Stats Cards (Strictly Permitted Cards Only) */}
+      <div className="flex flex-wrap gap-3 sm:gap-4">
+        {isAllowedOrders && (
+          <div className="flex-1 min-w-[140px] sm:min-w-[180px] bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400 font-bold">إجمالي المبيعات</p>
+              <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{totalSales} ر.س</h3>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
+        )}
 
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs text-slate-400 font-bold">الطلبات المسجلة</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeOrders.length} طلب</h3>
+        {isAllowedOrders && (
+          <div className="flex-1 min-w-[140px] sm:min-w-[180px] bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400 font-bold">الطلبات المسجلة</p>
+              <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeOrders.length} طلب</h3>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
+        )}
 
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs text-slate-400 font-bold">المنتجات المعروضة</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeProducts.length} منتج</h3>
+        {isAllowedProducts && (
+          <div className="flex-1 min-w-[140px] sm:min-w-[180px] bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400 font-bold">المنتجات المعروضة</p>
+              <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeProducts.length} منتج</h3>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+              <Package className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <Package className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
+        )}
 
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs text-slate-400 font-bold">الأقسام النشطة</p>
-            <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeCategories.filter(c => c && c.id !== 'all').length} قسم</h3>
+        {isAllowedCategories && (
+          <div className="flex-1 min-w-[140px] sm:min-w-[180px] bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400 font-bold">الأقسام النشطة</p>
+              <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeCategories.filter(c => c && c.id !== 'all').length} قسم</h3>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-            <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
+        )}
+
+        {isAllowedReviews && (
+          <div className="flex-1 min-w-[140px] sm:min-w-[180px] bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-400 font-bold">التقييمات والتعليقات</p>
+              <h3 className="text-lg sm:text-2xl font-black text-slate-900 mt-1">{safeReviews.length} تقييم</h3>
+            </div>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-amber-400" />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* 3. Main Navigation Tab Bar */}
+      {/* 3. Main Navigation Tab Bar (Strict Zero-Visibility: Only Authorized Tabs) */}
       <div className="bg-white p-2 rounded-3xl border border-slate-200/80 shadow-xs overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-1.5 min-w-max">
-          <button
-            type="button"
-            onClick={() => setActiveTab('products')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'products'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <span>المنتجات والمخزون ({safeProducts.length})</span>
-          </button>
+          {isAllowedProducts && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('products')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'products'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              <span>المنتجات والمخزون ({safeProducts.length})</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('categories')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'categories'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <FolderPlus className="w-4 h-4" />
-            <span>الأقسام والبنرات ({safeCategories.filter(c => c && c.id !== 'all').length})</span>
-          </button>
+          {isAllowedCategories && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('categories')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'categories'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <FolderPlus className="w-4 h-4" />
+              <span>الأقسام والبنرات ({safeCategories.filter(c => c && c.id !== 'all').length})</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('orders')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'orders'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>الطلبات والمبيعات ({safeOrders.length})</span>
-            {pendingOrdersCount > 0 && (
-              <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
-                {pendingOrdersCount} جديد
-              </span>
-            )}
-          </button>
+          {isAllowedOrders && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('orders')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'orders'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>الطلبات والمبيعات ({safeOrders.length})</span>
+              {pendingOrdersCount > 0 && (
+                <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                  {pendingOrdersCount} جديد
+                </span>
+              )}
+            </button>
+          )}
 
-          {currentOperatorPerms.canManageUsers && (
+          {isAllowedUsers && (
             <button
               type="button"
               onClick={() => setActiveTab('users')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'users'
                   ? 'bg-[#DF7E93] text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -805,69 +865,77 @@ export default function AdminPanel({
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('reviews')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'reviews'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Star className={`w-4 h-4 ${activeTab === 'reviews' ? 'text-amber-200 fill-amber-300' : 'text-amber-500 fill-amber-400'}`} />
-            <span>التقييمات والتعليقات ({safeReviews.length})</span>
-            {pendingReviewsCount > 0 && (
-              <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse">
-                {pendingReviewsCount} بانتظار الاعتماد
-              </span>
-            )}
-          </button>
+          {isAllowedReviews && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('reviews')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'reviews'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Star className={`w-4 h-4 ${activeTab === 'reviews' ? 'text-amber-200 fill-amber-300' : 'text-amber-500 fill-amber-400'}`} />
+              <span>التقييمات والتعليقات ({safeReviews.length})</span>
+              {pendingReviewsCount > 0 && (
+                <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black animate-pulse">
+                  {pendingReviewsCount} بانتظار الاعتماد
+                </span>
+              )}
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('branding')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'branding'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-            <span>الهوية والألوان والشعار</span>
-          </button>
+          {isAllowedSettings && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('branding')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'branding'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              <span>الهوية والألوان والشعار</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('discounts')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'discounts'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Tag className="w-4 h-4" />
-            <span>الشحن والكوبونات والعروض</span>
-          </button>
+          {isAllowedSettings && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('discounts')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'discounts'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Tag className="w-4 h-4" />
+              <span>الشحن والكوبونات والعروض</span>
+            </button>
+          )}
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('contact')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
-              activeTab === 'contact'
-                ? 'bg-[#DF7E93] text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Phone className="w-4 h-4" />
-            <span>التواصل وخدمة العملاء</span>
-          </button>
+          {isAllowedSettings && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('contact')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'contact'
+                  ? 'bg-[#DF7E93] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Phone className="w-4 h-4" />
+              <span>التواصل وخدمة العملاء</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* ======================================================== */}
       {/* TAB 1: 📦 PRODUCTS MANAGEMENT (إدارة المنتجات الكاملة) */}
       {/* ======================================================== */}
-      {activeTab === 'products' && (
+      {isAllowedProducts && activeTab === 'products' && (
         <div className="space-y-5 animate-fadeIn">
           {/* Header & Add Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
@@ -875,14 +943,16 @@ export default function AdminPanel({
               <h3 className="text-lg font-black text-slate-900">كتالوج المنتجات والأسعار والوسوم</h3>
               <p className="text-xs text-slate-500">إضافة منتج جديد، تعديل الصور والأسعار والألوان، وضبط حالة التوفر.</p>
             </div>
-            <button
-              type="button"
-              onClick={handleOpenAddProduct}
-              className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>إضافة منتج جديد</span>
-            </button>
+            {currentOperatorPerms.canAddProduct && (
+              <button
+                type="button"
+                onClick={handleOpenAddProduct}
+                className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>إضافة منتج جديد</span>
+              </button>
+            )}
           </div>
 
           {/* Search & Filtering Row */}
@@ -985,64 +1055,67 @@ export default function AdminPanel({
                         </span>
                       </td>
                       <td className="p-4">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!currentOperatorPerms.canToggleStock) {
-                              showToast('عذراً: ليس لديك صلاحية لتعديل حالة توفر المخزون!');
-                              return;
-                            }
-                            const updated = { ...prod, inStock: !prod.inStock };
-                            if (typeof onUpdateProduct === 'function') onUpdateProduct(updated);
-                            showToast(`تم تغيير حالة مخزون "${prod.name}"`);
-                          }}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                        {currentOperatorPerms.canToggleStock ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = { ...prod, inStock: !prod.inStock };
+                              if (typeof onUpdateProduct === 'function') onUpdateProduct(updated);
+                              showToast(`تم تغيير حالة مخزون "${prod.name}"`);
+                            }}
+                            className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              prod.inStock !== false 
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' 
+                                : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                            }`}
+                          >
+                            {prod.inStock !== false ? 'متوفر ✓' : 'غير متوفر ✕'}
+                          </button>
+                        ) : (
+                          <span className={`inline-block px-3 py-1 rounded-xl text-xs font-bold ${
                             prod.inStock !== false 
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' 
-                              : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                          }`}
-                        >
-                          {prod.inStock !== false ? 'متوفر ✓' : 'غير متوفر ✕'}
-                        </button>
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}>
+                            {prod.inStock !== false ? 'متوفر ✓' : 'غير متوفر ✕'}
+                          </span>
+                        )}
                       </td>
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!currentOperatorPerms.canEditProduct) {
-                                showToast('عذراً: ليس لديك صلاحية لتعديل بيانات المنتجات!');
-                                return;
-                              }
-                              handleOpenEditProduct(prod);
-                            }}
-                            className="p-2 text-slate-600 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors"
-                            title="تعديل المنتج"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!currentOperatorPerms.canDeleteProduct) {
-                                showToast('عذراً: ليس لديك صلاحية لحذف المنتجات من المتجر!');
-                                return;
-                              }
-                              setConfirmDialog({
-                                isOpen: true,
-                                title: 'تأكيد حذف المنتج',
-                                message: `هل أنت متأكد من رغبتك في حذف منتج "${prod.name}" نهائياً من المتجر؟`,
-                                onConfirm: () => {
-                                  if (typeof onDeleteProduct === 'function') onDeleteProduct(prod.id);
-                                  showToast(`تم حذف منتج "${prod.name}" بنجاح`);
-                                }
-                              });
-                            }}
-                            className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
-                            title="حذف المنتج"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {currentOperatorPerms.canEditProduct && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditProduct(prod)}
+                              className="p-2 text-slate-600 hover:text-brand-600 rounded-xl hover:bg-pink-50 transition-colors"
+                              title="تعديل المنتج"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          )}
+                          {currentOperatorPerms.canDeleteProduct && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setConfirmDialog({
+                                  isOpen: true,
+                                  title: 'تأكيد حذف المنتج',
+                                  message: `هل أنت متأكد من رغبتك في حذف منتج "${prod.name}" نهائياً من المتجر؟`,
+                                  onConfirm: () => {
+                                    if (typeof onDeleteProduct === 'function') onDeleteProduct(prod.id);
+                                    showToast(`تم حذف منتج "${prod.name}" بنجاح`);
+                                  }
+                                });
+                              }}
+                              className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
+                              title="حذف المنتج"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          {!currentOperatorPerms.canEditProduct && !currentOperatorPerms.canDeleteProduct && (
+                            <span className="text-xs text-slate-400">-</span>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1057,29 +1130,31 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 2: 🗂️ CATEGORIES & BANNERS (الأقسام والبنرات) */}
       {/* ======================================================== */}
-      {activeTab === 'categories' && (
+      {isAllowedCategories && activeTab === 'categories' && (
         <div className="space-y-5 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
             <div>
               <h3 className="text-lg font-black text-slate-900">أقسام وتصنيفات المتجر وبنراتها</h3>
               <p className="text-xs text-slate-500">إضافة وحذف الأقسام، تحديد صور البنرات العريضة، وضبط نصوص الستوري والوصف.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEditingCategory(null);
-                setCategoryName('');
-                setCategoryStoryName('');
-                setCategoryImage('');
-                setCategorySubtitle('');
-                setCategoryFormError('');
-                setIsCategoryModalOpen(true);
-              }}
-              className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>إضافة صنف جديد</span>
-            </button>
+            {(currentOperatorPerms.canAddCategory || currentOperatorPerms.canManageCategories) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingCategory(null);
+                  setCategoryName('');
+                  setCategoryStoryName('');
+                  setCategoryImage('');
+                  setCategorySubtitle('');
+                  setCategoryFormError('');
+                  setIsCategoryModalOpen(true);
+                }}
+                className="bg-[#DF7E93] hover:bg-[#D46B82] text-white font-bold px-5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-md shadow-pink-200/50 transition-all hover:scale-105 active:scale-95 shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>إضافة صنف جديد</span>
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1115,43 +1190,49 @@ export default function AdminPanel({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingCategory(cat);
-                          setCategoryName(cat.name || '');
-                          setCategoryStoryName(cat.storyName || cat.name || '');
-                          setCategoryImage(cat.image || '');
-                          setCategorySubtitle(cat.subtitle || '');
-                          setCategoryFormError('');
-                          setIsCategoryModalOpen(true);
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-pink-50 text-slate-700 hover:text-brand-600 text-xs font-bold transition-all border border-slate-200/70"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>تعديل</span>
-                      </button>
+                    {((currentOperatorPerms.canEditCategory || currentOperatorPerms.canManageCategories) || (currentOperatorPerms.canDeleteCategory || currentOperatorPerms.canManageCategories)) && (
+                      <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 mt-2">
+                        {(currentOperatorPerms.canEditCategory || currentOperatorPerms.canManageCategories) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingCategory(cat);
+                              setCategoryName(cat.name || '');
+                              setCategoryStoryName(cat.storyName || cat.name || '');
+                              setCategoryImage(cat.image || '');
+                              setCategorySubtitle(cat.subtitle || '');
+                              setCategoryFormError('');
+                              setIsCategoryModalOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-pink-50 text-slate-700 hover:text-brand-600 text-xs font-bold transition-all border border-slate-200/70 cursor-pointer"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>تعديل</span>
+                          </button>
+                        )}
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setConfirmDialog({
-                            isOpen: true,
-                            title: 'تأكيد حذف القسم',
-                            message: `هل أنت متأكد من حذف قسم "${cat.name}"؟ سيتم حذف التصنيف من القائمة.`,
-                            onConfirm: () => {
-                              if (typeof onDeleteCategory === 'function') onDeleteCategory(cat.id);
-                              showToast(`تم حذف قسم "${cat.name}"`);
-                            }
-                          });
-                        }}
-                        className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors"
-                        title="حذف القسم"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                        {(currentOperatorPerms.canDeleteCategory || currentOperatorPerms.canManageCategories) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setConfirmDialog({
+                                isOpen: true,
+                                title: 'تأكيد حذف القسم',
+                                message: `هل أنت متأكد من حذف قسم "${cat.name}"؟ سيتم حذف التصنيف من القائمة.`,
+                                onConfirm: () => {
+                                  if (typeof onDeleteCategory === 'function') onDeleteCategory(cat.id);
+                                  showToast(`تم حذف قسم "${cat.name}"`);
+                                }
+                              });
+                            }}
+                            className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="حذف القسم"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -1163,7 +1244,7 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 3: 🛍️ ORDERS & SALES (الطلبات والمبيعات وتواصل واتساب) */}
       {/* ======================================================== */}
-      {activeTab === 'orders' && (
+      {isAllowedOrders && activeTab === 'orders' && (
         <div className="space-y-5 animate-fadeIn">
           {/* Header & Filter */}
           <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
@@ -1299,7 +1380,7 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 4: 🎨 BRANDING & THEME COLORS (الهوية والألوان والشعار) */}
       {/* ======================================================== */}
-      {activeTab === 'branding' && (
+      {isAllowedSettings && activeTab === 'branding' && (
         <form onSubmit={handleSaveSettings} className="space-y-6 animate-fadeIn">
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
             <div>
@@ -1472,7 +1553,7 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 5: 🏷️ DISCOUNTS & SHIPPING (الشحن والكوبونات والعروض) */}
       {/* ======================================================== */}
-      {activeTab === 'discounts' && (
+      {isAllowedSettings && activeTab === 'discounts' && (
         <form onSubmit={handleSaveSettings} className="space-y-6 animate-fadeIn">
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
             <div>
@@ -1571,7 +1652,7 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 6: 📞 CONTACT & SOCIAL LINKS (التواصل وخدمة العملاء) */}
       {/* ======================================================== */}
-      {activeTab === 'contact' && (
+      {isAllowedSettings && activeTab === 'contact' && (
         <form onSubmit={handleSaveSettings} className="space-y-6 animate-fadeIn">
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
             <div>
@@ -1669,7 +1750,7 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 7: 👥 USERS & FINE-GRAINED RBAC (إدارة المستخدمين والصلاحيات) */}
       {/* ======================================================== */}
-      {activeTab === 'users' && (
+      {isAllowedUsers && activeTab === 'users' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Header & Add User Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-xs">
@@ -2014,7 +2095,7 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {/* TAB 8: ⭐ REVIEWS & RATINGS MODERATION (واجهة التعليقات والتحكم بظهورها) */}
       {/* ======================================================== */}
-      {activeTab === 'reviews' && (
+      {isAllowedReviews && activeTab === 'reviews' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Header & Quick Intro */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-xs">
