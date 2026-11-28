@@ -522,8 +522,8 @@ export default function App() {
         const avg = Number((ratingsMap[pid] / countMap[pid]).toFixed(2));
         return { ...p, rating: avg, reviewsCount: countMap[pid] };
       }
-      const fallback = typeof p.rating === 'number' && p.rating > 0 ? p.rating : 5;
-      return { ...p, rating: fallback };
+      // If product has no approved customer reviews yet: Default to 5.0 (5 full stars)
+      return { ...p, rating: 5, reviewsCount: 0 };
     });
   }, [products, reviewsList]);
 

@@ -779,22 +779,46 @@ function ProductDetailView({
           </div>
 
           {/* Average Rating Score Badge */}
-          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl w-fit">
-            <div className="flex items-center gap-0.5 text-amber-500">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  className="w-4 h-4 fill-amber-400 text-amber-500"
-                />
-              ))}
-            </div>
-            <span className="text-sm font-black text-slate-900">
-              {productReviews.length > 0
-                ? (productReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / productReviews.length).toFixed(1)
-                : '5.0'}
-            </span>
-            <span className="text-[11px] text-slate-500 font-bold">/ 5</span>
-          </div>
+          {(() => {
+            const avgScore = productReviews.length > 0
+              ? Number((productReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / productReviews.length).toFixed(1))
+              : 5.0;
+
+            return (
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-2 rounded-2xl w-fit">
+                <div className="flex items-center gap-0.5" dir="rtl">
+                  {[1, 2, 3, 4, 5].map((starIndex) => {
+                    const fillPercent = avgScore >= starIndex
+                      ? 100
+                      : avgScore > starIndex - 1
+                        ? Math.round((avgScore - (starIndex - 1)) * 100)
+                        : 0;
+
+                    if (fillPercent >= 100) {
+                      return <Star key={starIndex} className="w-4 h-4 fill-amber-400 text-amber-500 shrink-0" />;
+                    }
+                    if (fillPercent <= 0) {
+                      return <Star key={starIndex} className="w-4 h-4 fill-slate-200 text-slate-200 shrink-0" />;
+                    }
+                    return (
+                      <div key={starIndex} className="relative w-4 h-4 shrink-0 inline-block overflow-hidden">
+                        <Star className="w-4 h-4 fill-slate-200 text-slate-200 absolute inset-0" />
+                        <div className="absolute inset-y-0 right-0 overflow-hidden" style={{ width: `${fillPercent}%` }}>
+                          <div className="w-4 h-4 relative">
+                            <Star className="w-4 h-4 fill-amber-400 text-amber-500 absolute top-0 right-0" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <span className="text-sm font-black text-slate-900">
+                  {avgScore.toFixed(1)}
+                </span>
+                <span className="text-[11px] text-slate-500 font-bold">/ 5</span>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Existing Approved Reviews List */}

@@ -181,26 +181,21 @@ function ProductCard({
                 );
               }
 
-              // Fractional Star ("نجمة مكسرة") with exact fill percentage in RTL
-              const gradId = `star-grad-${product.id}-${starIndex}`;
+              // Fractional Star ("نجمة مكسرة"): 100% identical Lucide Star size with RTL width clipping
               return (
-                <svg 
-                  key={starIndex} 
-                  viewBox="0 0 24 24" 
-                  className="w-3.5 h-3.5 shrink-0" 
-                  fill="none"
-                >
-                  <defs>
-                    <linearGradient id={gradId} x1="100%" y1="0%" x2="0%" y2="0%">
-                      <stop offset={`${fillPercent}%`} stopColor="#fbbf24" />
-                      <stop offset={`${fillPercent}%`} stopColor="#e2e8f0" />
-                    </linearGradient>
-                  </defs>
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                    fill={`url(#${gradId})`}
-                  />
-                </svg>
+                <div key={starIndex} className="relative w-3.5 h-3.5 shrink-0 inline-block overflow-hidden">
+                  {/* Empty background Lucide star */}
+                  <Star className="w-3.5 h-3.5 fill-slate-200 text-slate-200 absolute inset-0" />
+                  {/* Filled golden Lucide star clipped from right in RTL */}
+                  <div 
+                    className="absolute inset-y-0 right-0 overflow-hidden pointer-events-none"
+                    style={{ width: `${fillPercent}%` }}
+                  >
+                    <div className="w-3.5 h-3.5 relative">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 absolute top-0 right-0" />
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
