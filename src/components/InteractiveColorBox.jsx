@@ -143,7 +143,7 @@ const STANDARD_PALETTE = [
  * 2. 2D continuous color spectrum canvas with live crosshair '+' cursor
  * 3. Vertical luminescence / brightness gradient bar with slider arrow
  * 4. RGB numeric spinners (Red, Green, Blue) and Hex input
- * 5. Split comparison box: Top = "الجديد" (New), Bottom = "الحالي" (Current)
+ * 5. Unified single square color box: Displays the selected color, hex code, and live confirmation
  */
 export default function InteractiveColorBox({
   colorHex = '#DF7E93',
@@ -485,40 +485,24 @@ export default function InteractiveColorBox({
               </div>
             </div>
 
-            {/* Split Comparison Box: New (Nauja) vs Current (Dabartinė) - highlighted with magenta border in reference */}
+            {/* Unified Single Color Box (مربع واحد لاختيار وعرض اللون) */}
             <div className="sm:col-span-4 flex flex-col items-center justify-center">
               <span className="text-[10px] font-bold text-slate-500 mb-1">
-                مقارنة اللون:
+                اللون المختار:
               </span>
               
-              <div className="w-full h-16 rounded-xl overflow-hidden border-2 border-purple-500 shadow-sm flex flex-col">
-                {/* Top Half: New Color (Nauja) */}
-                <div
-                  className="flex-1 flex items-center justify-between px-2 text-[10px] font-bold text-white drop-shadow-xs"
-                  style={{ backgroundColor: currentHex }}
-                >
-                  <span className="bg-black/30 backdrop-blur-xs px-1.5 py-0.5 rounded text-[9px]">الجديد</span>
-                  <span className="font-mono text-[9px] bg-black/30 backdrop-blur-xs px-1.5 py-0.5 rounded">{currentHex}</span>
+              <div 
+                className="w-full h-14 rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm flex items-center justify-between px-3 text-white transition-all"
+                style={{ backgroundColor: currentHex }}
+              >
+                <div className="bg-black/35 backdrop-blur-xs px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-white/90" />
+                  <span className="text-[10px] font-black font-mono">{currentHex}</span>
                 </div>
 
-                {/* Bottom Half: Current Color (Dabartinė) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const prevRgb = hexToRgb(initialColorRef.current);
-                    const prevHsl = rgbToHsl(prevRgb[0], prevRgb[1], prevRgb[2]);
-                    commitColor(prevRgb, prevHsl);
-                  }}
-                  className="flex-1 flex items-center justify-between px-2 text-[10px] font-bold text-white drop-shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: initialColorRef.current }}
-                  title="انقر لاستعادة اللون الأصلي السابق"
-                >
-                  <span className="bg-black/30 backdrop-blur-xs px-1.5 py-0.5 rounded text-[9px] flex items-center gap-1">
-                    <RotateCcw className="w-2.5 h-2.5" />
-                    <span>الحالي</span>
-                  </span>
-                  <span className="font-mono text-[9px] bg-black/30 backdrop-blur-xs px-1.5 py-0.5 rounded">{initialColorRef.current}</span>
-                </button>
+                <div className="w-6 h-6 rounded-full bg-black/35 backdrop-blur-xs flex items-center justify-center shadow-2xs">
+                  <Check className={`w-3.5 h-3.5 ${currentHex === '#FFFFFF' || currentHex === '#FFFBEB' || currentHex === '#FEF3C7' ? 'text-slate-900' : 'text-white'}`} />
+                </div>
               </div>
             </div>
 

@@ -111,11 +111,11 @@ export default function UserPermissionsModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex justify-center items-start p-0 sm:p-4 md:p-6 animate-fadeIn"
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-100 max-h-[94vh] flex flex-col overflow-hidden animate-scaleUp">
+      <div className="bg-white w-full max-w-4xl min-h-screen sm:min-h-0 sm:rounded-3xl shadow-2xl border border-slate-100 my-0 sm:my-3 flex flex-col overflow-hidden animate-scaleUp">
         
         {/* Header */}
         <div className="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between shrink-0">

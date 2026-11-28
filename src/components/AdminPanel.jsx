@@ -4,7 +4,8 @@ import {
   DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
   X, LogOut, Store, Eye, EyeOff, Percent, Palette, Video, MessageCircle, Phone, Mail, MapPin, Sparkles,
   Tag, Search, CheckCircle2, AlertTriangle, AlertCircle, Star, Power, ThumbsUp,
-  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus, Ruler, Link2
+  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus, Ruler, Link2,
+  ArrowRight
 } from 'lucide-react';
 import { 
   sanitizeString, 
@@ -356,6 +357,28 @@ export default function AdminPanel({
   const videoFileInputRef = useRef(null);
   const videoSectionFileInputRef = useRef(null);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
+
+  // Modal Container Refs for Top-Start & Scroll Reset
+  const productModalContainerRef = useRef(null);
+  const categoryModalContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (isProductModalOpen) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      if (productModalContainerRef.current) {
+        productModalContainerRef.current.scrollTop = 0;
+      }
+    }
+  }, [isProductModalOpen]);
+
+  useEffect(() => {
+    if (isCategoryModalOpen) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      if (categoryModalContainerRef.current) {
+        categoryModalContainerRef.current.scrollTop = 0;
+      }
+    }
+  }, [isCategoryModalOpen]);
 
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -2632,23 +2655,36 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {isProductModalOpen && (
         <div 
+          ref={productModalContainerRef}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex justify-center items-start p-0 sm:p-4 md:p-6"
         >
-          <div className="bg-white w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-3xl min-h-screen sm:min-h-0 sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 my-0 sm:my-3 transition-all">
             
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-xl font-black text-slate-900">
-                  {editingProduct ? `تعديل المنتج: ${editingProduct.name}` : 'إضافة منتج جديد'}
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">أدخل تفاصيل المنتج وارفع عدة صور وحدد الهاشتاغات.</p>
+            <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm pb-4 pt-1 border-b border-slate-100 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsProductModalOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  title="العودة"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>رجوع</span>
+                </button>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                    {editingProduct ? `تعديل المنتج: ${editingProduct.name}` : 'صفحة إضافة منتج جديد'}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">أدخل تفاصيل المنتج وارفع عدة صور وحدد الخصائص والخيارات.</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsProductModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 cursor-pointer"
+                aria-label="إغلاق"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -3727,19 +3763,32 @@ export default function AdminPanel({
       {/* ======================================================== */}
       {isCategoryModalOpen && (
         <div 
+          ref={categoryModalContainerRef}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex justify-center items-start p-0 sm:p-4 md:p-6"
         >
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4 my-6">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-black text-slate-900">
-                {editingCategory ? `تعديل قسم: ${editingCategory.name}` : 'إضافة قسم جديد'}
-              </h3>
+          <div className="bg-white w-full max-w-xl min-h-screen sm:min-h-0 sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5 my-0 sm:my-3 transition-all">
+            <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm pb-4 pt-1 border-b border-slate-100 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  title="العودة"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>رجوع</span>
+                </button>
+                <h3 className="text-lg font-black text-slate-900">
+                  {editingCategory ? `تعديل قسم: ${editingCategory.name}` : 'صفحة إضافة قسم جديد'}
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                aria-label="إغلاق"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -3856,18 +3905,30 @@ export default function AdminPanel({
         <div 
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex justify-center items-start p-0 sm:p-4 md:p-6"
         >
-          <div className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-6">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-lg font-black text-slate-900">تفاصيل الطلب: {selectedOrder.id}</h3>
-                <p className="text-xs text-slate-400 mt-0.5">تاريخ الطلب: {selectedOrder.date || 'اليوم'}</p>
+          <div className="bg-white w-full max-w-2xl min-h-screen sm:min-h-0 sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-5 my-0 sm:my-3 transition-all">
+            <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm pb-4 pt-1 border-b border-slate-100 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder(null)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  title="العودة"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  <span>رجوع</span>
+                </button>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">تفاصيل الطلب: {selectedOrder.id}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">تاريخ الطلب: {selectedOrder.date || 'اليوم'}</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedOrder(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full"
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                aria-label="إغلاق"
               >
                 <X className="w-5 h-5" />
               </button>
