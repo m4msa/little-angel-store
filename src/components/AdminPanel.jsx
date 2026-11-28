@@ -358,28 +358,6 @@ export default function AdminPanel({
   const videoSectionFileInputRef = useRef(null);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
 
-  // Modal Container Refs for Top-Start & Scroll Reset
-  const productModalContainerRef = useRef(null);
-  const categoryModalContainerRef = useRef(null);
-
-  useEffect(() => {
-    if (isProductModalOpen) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      if (productModalContainerRef.current) {
-        productModalContainerRef.current.scrollTop = 0;
-      }
-    }
-  }, [isProductModalOpen]);
-
-  useEffect(() => {
-    if (isCategoryModalOpen) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      if (categoryModalContainerRef.current) {
-        categoryModalContainerRef.current.scrollTop = 0;
-      }
-    }
-  }, [isCategoryModalOpen]);
-
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -391,6 +369,39 @@ export default function AdminPanel({
 
   // Selected Order details Modal
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Modal Container Refs for Top-Start & Smart Scroll Restoration
+  const productModalContainerRef = useRef(null);
+  const categoryModalContainerRef = useRef(null);
+  const savedScrollPosRef = useRef(0);
+
+  useEffect(() => {
+    if (isProductModalOpen && productModalContainerRef.current) {
+      productModalContainerRef.current.scrollTop = 0;
+    }
+  }, [isProductModalOpen]);
+
+  useEffect(() => {
+    if (isCategoryModalOpen && categoryModalContainerRef.current) {
+      categoryModalContainerRef.current.scrollTop = 0;
+    }
+  }, [isCategoryModalOpen]);
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false);
+    const returnPos = savedScrollPosRef.current;
+    setTimeout(() => {
+      window.scrollTo({ top: returnPos, behavior: 'smooth' });
+    }, 60);
+  };
+
+  const handleCloseCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    const returnPos = savedScrollPosRef.current;
+    setTimeout(() => {
+      window.scrollTo({ top: returnPos, behavior: 'smooth' });
+    }, 60);
+  };
 
   // Safe Confirmation Modal (Replaces browser confirm)
   const [confirmDialog, setConfirmDialog] = useState({
@@ -409,6 +420,7 @@ export default function AdminPanel({
       showToast('عذراً: ليس لديك صلاحية لإضافة منتجات جديدة. تواصل مع المدير العام.');
       return;
     }
+    savedScrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
     setEditingProduct(null);
     setProductFormError('');
     setProductForm({
@@ -445,6 +457,7 @@ export default function AdminPanel({
 
   const handleOpenEditProduct = (prod) => {
     if (!prod) return;
+    savedScrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
     setEditingProduct(prod);
     setProductFormError('');
     const existingImages = Array.isArray(prod.images) && prod.images.length > 0 
@@ -802,7 +815,7 @@ export default function AdminPanel({
       showToast(`تم إضافة منتج "${productPayload.name}" بنجاح!`);
     }
 
-    setIsProductModalOpen(false);
+    handleCloseProductModal();
   };
 
   // Category Submit
@@ -848,7 +861,7 @@ export default function AdminPanel({
     setCategoryStoryName('');
     setCategoryImage('');
     setCategorySubtitle('');
-    setIsCategoryModalOpen(false);
+    handleCloseCategoryModal();
   };
 
   // WhatsApp launcher for orders with secure URI encoding
@@ -1358,6 +1371,7 @@ export default function AdminPanel({
               <button
                 type="button"
                 onClick={() => {
+                  savedScrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
                   setEditingCategory(null);
                   setCategoryName('');
                   setCategoryStoryName('');
@@ -1413,6 +1427,7 @@ export default function AdminPanel({
                           <button
                             type="button"
                             onClick={() => {
+                              savedScrollPosRef.current = window.scrollY || document.documentElement.scrollTop || 0;
                               setEditingCategory(cat);
                               setCategoryName(cat.name || '');
                               setCategoryStoryName(cat.storyName || cat.name || '');
@@ -2666,7 +2681,7 @@ export default function AdminPanel({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsProductModalOpen(false)}
+                  onClick={handleCloseProductModal}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
                   title="العودة"
                 >
@@ -2682,7 +2697,7 @@ export default function AdminPanel({
               </div>
               <button
                 type="button"
-                onClick={() => setIsProductModalOpen(false)}
+                onClick={handleCloseProductModal}
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 cursor-pointer"
                 aria-label="إغلاق"
               >
@@ -3740,8 +3755,8 @@ export default function AdminPanel({
               <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsProductModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                  onClick={handleCloseProductModal}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
                 >
                   إلغاء
                 </button>
@@ -3773,7 +3788,7 @@ export default function AdminPanel({
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsCategoryModalOpen(false)}
+                  onClick={handleCloseCategoryModal}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
                   title="العودة"
                 >
@@ -3786,7 +3801,7 @@ export default function AdminPanel({
               </div>
               <button
                 type="button"
-                onClick={() => setIsCategoryModalOpen(false)}
+                onClick={handleCloseCategoryModal}
                 className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
                 aria-label="إغلاق"
               >
@@ -3881,8 +3896,8 @@ export default function AdminPanel({
               <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsCategoryModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold"
+                  onClick={handleCloseCategoryModal}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold cursor-pointer"
                 >
                   إلغاء
                 </button>
