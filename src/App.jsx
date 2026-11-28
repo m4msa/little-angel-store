@@ -501,6 +501,32 @@ export default function App() {
     localStorage.setItem('angel_store_reviews', JSON.stringify(reviewsList));
   }, [reviewsList]);
 
+  // Live product ratings calculation based on approved customer reviews (defaulting to 5 if unrated)
+  const productsWithLiveRatings = useMemo(() => {
+    if (!Array.isArray(products) || products.length === 0) return products;
+    const ratingsMap = {};
+    const countMap = {};
+    if (Array.isArray(reviewsList)) {
+      reviewsList.forEach((r) => {
+        if (r && (r.isVisible || r.status === 'approved') && r.productId) {
+          const pid = String(r.productId);
+          ratingsMap[pid] = (ratingsMap[pid] || 0) + (Number(r.rating) || 5);
+          countMap[pid] = (countMap[pid] || 0) + 1;
+        }
+      });
+    }
+
+    return products.map((p) => {
+      const pid = String(p.id);
+      if (countMap[pid] > 0) {
+        const avg = Number((ratingsMap[pid] / countMap[pid]).toFixed(2));
+        return { ...p, rating: avg, reviewsCount: countMap[pid] };
+      }
+      const fallback = typeof p.rating === 'number' && p.rating > 0 ? p.rating : 5;
+      return { ...p, rating: fallback };
+    });
+  }, [products, reviewsList]);
+
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('angel_current_user');
     if (saved) {
@@ -1835,7 +1861,7 @@ export default function App() {
             isFavorite={wishlist.includes(selectedProduct.id)}
             onToggleFavorite={handleToggleFavorite}
             onSelectProduct={handleOpenProduct}
-            allProducts={products}
+            allProducts={productsWithLiveRatings}
             categories={categories}
             onNavigateCategory={(catId) => {
               handleSelectCategory(catId);
@@ -1851,7 +1877,7 @@ export default function App() {
         ) : currentTab === 'categories' ? (
           <CategoriesView
             categories={categories}
-            products={products}
+            products={productsWithLiveRatings}
             selectedCategoryId={selectedCategoryForView}
             onSelectCategory={(catId) => {
               handleSelectCategory(catId);
@@ -2037,7 +2063,7 @@ export default function App() {
                   image={section.bannerImage}
                   categoryId={section.categoryId}
                   onExploreCategory={handleSelectCategory}
-                  products={products.filter(section.filter)}
+                  products={productsWithLiveRatings.filter(section.filter)}
                   onAddToCart={handleAddToCart}
                   cart={cart}
                   onOpenQuickView={handleOpenProduct}

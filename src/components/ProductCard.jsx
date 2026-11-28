@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { ShoppingBag, Check, Heart, Eye } from 'lucide-react';
+import { ShoppingBag, Check, Heart, Eye, Star } from 'lucide-react';
 import { 
   calculateDiscountPercent, 
   hasProductOptions, 
@@ -27,6 +27,12 @@ function ProductCard({
 
   const discountPercent = calculateDiscountPercent(product.originalPrice, product.price);
   const requiresOptions = hasProductOptions(product);
+
+  // Fractional Rating: defaults to 5 for new products or unrated items
+  const rawRating = typeof product.rating === 'number' && !isNaN(product.rating) && product.rating > 0
+    ? product.rating
+    : 5;
+  const ratingValue = Math.min(5, Math.max(1, Number(rawRating.toFixed(2))));
 
   const imagesList = Array.isArray(product.images) && product.images.length > 0 
     ? product.images 
@@ -108,7 +114,7 @@ function ProductCard({
       </div>
 
       {/* 2. Content & Pricing Details */}
-      <div className="p-2.5 sm:p-3 text-center flex-1 flex flex-col justify-between space-y-2">
+      <div className="p-2.5 sm:p-3 sm:pb-3.5 text-center flex-1 flex flex-col justify-between space-y-2.5">
         
         {/* Title with adaptive font-size to prevent text clipping */}
         <div className="min-h-[2.85rem] sm:min-h-[3.25rem] flex items-center justify-center w-full px-0.5">
@@ -143,6 +149,61 @@ function ProductCard({
               {product.hasCustomName ? 'تطريز الاسم مجاناً حسب الطلب' : requiresOptions ? 'متوفر بعدة خيارات' : 'شحن وتوصيل فوري'}
             </p>
           )}
+        </div>
+
+        {/* 2.5. Star Rating: Fractional Stars ("نجمة مكسرة"), Visual Only, No Numbers, Default 5 */}
+        <div 
+          className="flex items-center justify-center py-0.5" 
+          title={`تقييم المنتج: ${ratingValue} من 5 نجوم`}
+        >
+          <div className="flex items-center gap-0.5" dir="rtl">
+            {[1, 2, 3, 4, 5].map((starIndex) => {
+              const fillPercent = ratingValue >= starIndex
+                ? 100
+                : ratingValue > starIndex - 1
+                  ? Math.round((ratingValue - (starIndex - 1)) * 100)
+                  : 0;
+
+              if (fillPercent >= 100) {
+                return (
+                  <Star 
+                    key={starIndex} 
+                    className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" 
+                  />
+                );
+              }
+              if (fillPercent <= 0) {
+                return (
+                  <Star 
+                    key={starIndex} 
+                    className="w-3.5 h-3.5 fill-slate-200 text-slate-200 shrink-0" 
+                  />
+                );
+              }
+
+              // Fractional Star ("نجمة مكسرة") with exact fill percentage in RTL
+              const gradId = `star-grad-${product.id}-${starIndex}`;
+              return (
+                <svg 
+                  key={starIndex} 
+                  viewBox="0 0 24 24" 
+                  className="w-3.5 h-3.5 shrink-0" 
+                  fill="none"
+                >
+                  <defs>
+                    <linearGradient id={gradId} x1="100%" y1="0%" x2="0%" y2="0%">
+                      <stop offset={`${fillPercent}%`} stopColor="#fbbf24" />
+                      <stop offset={`${fillPercent}%`} stopColor="#e2e8f0" />
+                    </linearGradient>
+                  </defs>
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                    fill={`url(#${gradId})`}
+                  />
+                </svg>
+              );
+            })}
+          </div>
         </div>
 
         {/* 3. Action Button: Luxury Rose (#DF7E93) */}
