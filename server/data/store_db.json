@@ -31,12 +31,48 @@
         "3-6 أشهر"
       ],
       "availableColors": [
-        "بيج كريمي",
-        "أبيض قطني",
-        "وردي هادئ",
-        "أزرق سماوي"
+        {
+          "id": "col-1795831845867-5ef9",
+          "name": "ابيض",
+          "type": "name",
+          "hex": null,
+          "imageUrl": "https://images.unsplash.com/photo-1544126592-807ade215a0b?auto=format&fit=crop&w=800&q=80",
+          "imageIndex": 0
+        },
+        {
+          "id": "col-1795831872873-7wgd",
+          "name": "اسود",
+          "type": "name",
+          "hex": null,
+          "imageUrl": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+          "imageIndex": 1
+        },
+        {
+          "id": "col-1795831901752-qq2a",
+          "name": "احم",
+          "type": "image",
+          "hex": null,
+          "imageUrl": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+          "imageIndex": 2
+        },
+        {
+          "id": "col-1795831910563-2m36",
+          "name": "اخضر",
+          "type": "image",
+          "hex": null,
+          "imageUrl": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+          "imageIndex": 3
+        },
+        {
+          "id": "col-1795832080343-3fob",
+          "name": "بنفسجي",
+          "type": "color",
+          "hex": "#c014ff",
+          "imageUrl": "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80",
+          "imageIndex": 2
+        }
       ],
-      "updatedAt": "2026-11-28T01:00:28.963Z",
+      "updatedAt": "2026-11-28T02:15:45.503Z",
       "tag": "أطقم_استقبال"
     },
     {
@@ -2147,7 +2183,7 @@
   },
   "meta": {
     "createdAt": "2026-11-25T20:50:51.008Z",
-    "updatedAt": "2026-11-28T01:00:29.276Z",
+    "updatedAt": "2026-11-28T02:15:45.811Z",
     "version": "1.0.0"
   },
   "reviews": [

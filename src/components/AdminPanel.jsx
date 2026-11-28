@@ -15,6 +15,7 @@ import {
 } from '../utils/security';
 import UserPermissionsModal from './UserPermissionsModal';
 import UserEditModal from './UserEditModal';
+import InteractiveColorBox from './InteractiveColorBox';
 import { 
   getEffectivePermissions, 
   canPerformProductAction, 
@@ -3116,14 +3117,17 @@ export default function AdminPanel({
                       </div>
                     )}
 
-                    {/* Mode 2: Name + Color Swatch (Spectrum & Presets) */}
+                    {/* Mode 2: Name + Color Swatch (Single 2D Interactive Spectrum Box) */}
                     {colorMode === 'color' && (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-slate-700 block">
+                            اسم اللون المختار:
+                          </label>
                           <input
                             type="text"
                             maxLength={40}
-                            placeholder="اسم اللون (مثال: وردي هادئ، كحلي)..."
+                            placeholder="اكتب اسم اللون أو اختر من المربع بالأسفل..."
                             value={colorInput}
                             onChange={(e) => setColorInput(e.target.value)}
                             onKeyDown={(e) => {
@@ -3132,50 +3136,21 @@ export default function AdminPanel({
                                 handleAddColor();
                               }
                             }}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-[#DF7E93] focus:bg-white"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-[#DF7E93] focus:bg-white font-bold text-slate-900"
                           />
-                          {/* Color Spectrum Picker */}
-                          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
-                            <input
-                              type="color"
-                              value={colorHex}
-                              onChange={(e) => setColorHex(e.target.value)}
-                              className="w-7 h-7 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
-                              title="انقر لفتح مربع تدرجات وبكسلات كافة الألوان"
-                            />
-                            <span className="text-[10px] font-mono font-bold text-slate-600 px-1">{colorHex}</span>
-                          </div>
                         </div>
 
-                        {/* Preset Color Swatches */}
-                        <div className="space-y-1">
-                          <span className="text-[10px] text-slate-400 font-bold block">ألوان شائعة جاهزة:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {PRESET_COLORS.map((pc, idx) => {
-                              const hex = pc === 'وردي هادئ' ? '#F4B5C3' :
-                                pc === 'أزرق سماوي' ? '#93C5FD' :
-                                pc === 'أبيض قطني' ? '#FFFFFF' :
-                                pc === 'بيج كريمي' ? '#FEF3C7' :
-                                pc === 'رمادي ناعم' ? '#CBD5E1' :
-                                pc === 'أخضر نعناعي' ? '#A7F3D0' :
-                                pc === 'كحلي فاخر' ? '#1E3A8A' : '#B45309';
-                              return (
-                                <button
-                                  key={idx}
-                                  type="button"
-                                  onClick={() => {
-                                    setColorInput(pc);
-                                    setColorHex(hex);
-                                  }}
-                                  className="text-[11px] px-2.5 py-1 rounded-xl font-bold bg-slate-50 hover:bg-pink-50 text-slate-700 border border-slate-200 hover:border-pink-300 transition-all flex items-center gap-1.5 cursor-pointer"
-                                >
-                                  <span className="w-2.5 h-2.5 rounded-full inline-block border border-black/10" style={{ backgroundColor: hex }} />
-                                  <span>{pc}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
+                        {/* Single 2D Interactive Color Spectrum Box with Hover & Click Selection */}
+                        <InteractiveColorBox
+                          colorHex={colorHex}
+                          onChangeHex={(newHex) => setColorHex(newHex)}
+                          onSuggestName={(suggestedName) => {
+                            if (!colorInput || PRESET_COLORS.includes(colorInput) || colorInput === 'لون مخصص') {
+                              setColorInput(suggestedName);
+                            }
+                          }}
+                          label="مربع الألوان الشامل (مرر المؤشر واضغط لاختيار اللون فوراً)"
+                        />
 
                         {/* Optional Gallery Image Link */}
                         <div className="space-y-1 pt-1 border-t border-slate-100">
@@ -3474,8 +3449,11 @@ export default function AdminPanel({
 
                     {/* Mode 2: Name + Accent Color */}
                     {sizeMode === 'color' && (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-slate-700 block">
+                            اسم المقاس:
+                          </label>
                           <input
                             type="text"
                             maxLength={40}
@@ -3488,19 +3466,16 @@ export default function AdminPanel({
                                 handleAddSize();
                               }
                             }}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-indigo-600 focus:bg-white"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-indigo-600 focus:bg-white font-bold text-slate-900"
                           />
-                          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
-                            <input
-                              type="color"
-                              value={sizeHex}
-                              onChange={(e) => setSizeHex(e.target.value)}
-                              className="w-7 h-7 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
-                              title="لون تمييز المقاس"
-                            />
-                            <span className="text-[10px] font-mono font-bold text-slate-600 px-1">{sizeHex}</span>
-                          </div>
                         </div>
+
+                        {/* Interactive Color Box for Size Accent */}
+                        <InteractiveColorBox
+                          colorHex={sizeHex}
+                          onChangeHex={(newHex) => setSizeHex(newHex)}
+                          label="مربع الألوان لاختيار لون تمييز المقاس"
+                        />
 
                         {/* Optional Gallery Image Link */}
                         <div className="space-y-1 pt-1 border-t border-slate-100">
