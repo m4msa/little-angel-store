@@ -833,7 +833,7 @@ function ProductDetailView({
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium break-words">
                     "{rev.comment}"
                   </p>
                 </div>

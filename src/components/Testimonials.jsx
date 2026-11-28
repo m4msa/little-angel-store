@@ -51,6 +51,11 @@ export default function Testimonials({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [expandedReviews, setExpandedReviews] = useState({});
+
+  const toggleExpandReview = (id) => {
+    setExpandedReviews((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Carousel & Auto-Gliding References
   const containerRef = useRef(null);
@@ -457,9 +462,23 @@ export default function Testimonials({
                       </div>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                      "{rev.comment}"
-                    </p>
+                    <div className="space-y-1.5">
+                      <p className={`text-xs sm:text-sm text-slate-700 leading-relaxed font-medium break-words transition-all duration-200 ${expandedReviews[rev.id] ? '' : 'line-clamp-4'}`}>
+                        "{rev.comment}"
+                      </p>
+                      {rev.comment && rev.comment.length > 140 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpandReview(rev.id);
+                          }}
+                          className="text-[11px] font-bold text-[#DF7E93] hover:text-[#8F2338] transition-colors inline-flex items-center gap-1 cursor-pointer hover:underline"
+                        >
+                          {expandedReviews[rev.id] ? 'عرض أقل ↑' : 'قراءة المزيد... ↓'}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Bottom Bar: ONLY displayed when review is for a specific product */}
