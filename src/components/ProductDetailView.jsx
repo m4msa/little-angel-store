@@ -29,6 +29,7 @@ import CustomEmbroideryForm from './CustomEmbroideryForm';
 import { 
   buildProductMediaItems, 
   normalizeProductColors, 
+  normalizeProductSizes,
   DEFAULT_SIZES, 
   THREAD_COLORS, 
   calculateDiscountPercent, 
@@ -89,9 +90,7 @@ function ProductDetailView({
 
   // 3. Options normalization
   const sizes = useMemo(() => {
-    return Array.isArray(product.availableSizes) && product.availableSizes.length > 0
-      ? product.availableSizes
-      : [];
+    return normalizeProductSizes(product.availableSizes);
   }, [product.availableSizes]);
 
   const colors = useMemo(() => {
@@ -99,7 +98,7 @@ function ProductDetailView({
   }, [product.availableColors]);
 
   // 4. Form states
-  const [selectedSize, setSelectedSize] = useState(sizes[0] || '');
+  const [selectedSize, setSelectedSize] = useState(sizes[0]?.name || '');
   const [selectedColor, setSelectedColor] = useState(colors[0]?.name || '');
   const [customBabyName, setCustomBabyName] = useState('');
   const [nameLanguage, setNameLanguage] = useState('ar');
@@ -111,9 +110,49 @@ function ProductDetailView({
   const [added, setAdded] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Optional image flipping handlers
+  const handleSelectColorOption = (colorObj) => {
+    if (!colorObj) return;
+    setSelectedColor(colorObj.name);
+    if (colorObj.imageUrl || typeof colorObj.imageIndex === 'number') {
+      let targetIdx = -1;
+      if (typeof colorObj.imageIndex === 'number' && colorObj.imageIndex >= 0) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.originalIndex === colorObj.imageIndex);
+        if (targetIdx === -1 && colorObj.imageIndex < mediaItems.length) {
+          targetIdx = colorObj.imageIndex;
+        }
+      } else if (colorObj.imageUrl) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.url === colorObj.imageUrl);
+      }
+      if (targetIdx !== -1) {
+        handleSelectMedia(targetIdx);
+      }
+    }
+  };
+
+  const handleSelectSizeOption = (sizeObj) => {
+    if (!sizeObj) return;
+    const sName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
+    setSelectedSize(sName);
+    if (typeof sizeObj === 'object' && (sizeObj.imageUrl || typeof sizeObj.imageIndex === 'number')) {
+      let targetIdx = -1;
+      if (typeof sizeObj.imageIndex === 'number' && sizeObj.imageIndex >= 0) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.originalIndex === sizeObj.imageIndex);
+        if (targetIdx === -1 && sizeObj.imageIndex < mediaItems.length) {
+          targetIdx = sizeObj.imageIndex;
+        }
+      } else if (sizeObj.imageUrl) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.url === sizeObj.imageUrl);
+      }
+      if (targetIdx !== -1) {
+        handleSelectMedia(targetIdx);
+      }
+    }
+  };
+
   // Reset form states on product ID change
   useEffect(() => {
-    setSelectedSize(sizes[0] || '');
+    setSelectedSize(sizes[0]?.name || '');
     setSelectedColor(colors[0]?.name || '');
     setCustomBabyName('');
     setNameLanguage('ar');
@@ -580,22 +619,81 @@ function ProductDetailView({
               {/* Sizes */}
               {sizes.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-700">المقاس المطلوب:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {sizes.map((sz) => (
-                      <button
-                        key={sz}
-                        type="button"
-                        onClick={() => setSelectedSize(sz)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                          selectedSize === sz
-                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
-                        }`}
-                      >
-                        {sz}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">
+                      المقاس المطلوب: <strong className="text-slate-900">{selectedSize}</strong>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {sizes.map((s) => {
+                      const isSelected = selectedSize === s.name;
+                      
+                      // 1. Name only (الاسم فقط)
+                      if (s.type === 'name') {
+                        return (
+                          <button
+                            key={s.id || s.name}
+                            type="button"
+                            onClick={() => handleSelectSizeOption(s)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-xs scale-105'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                            }`}
+                          >
+                            {s.name}
+                          </button>
+                        );
+                      }
+
+                      // 2. Name with Color Accent (الاسم مع اللون)
+                      if (s.type === 'color') {
+                        return (
+                          <button
+                            key={s.id || s.name}
+                            type="button"
+                            onClick={() => handleSelectSizeOption(s)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                              isSelected
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-xs scale-105'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                            }`}
+                          >
+                            <span 
+                              className="w-2.5 h-2.5 rounded-full inline-block border border-white/20 shrink-0" 
+                              style={{ backgroundColor: s.hex || '#6366F1' }}
+                            />
+                            <span>{s.name}</span>
+                          </button>
+                        );
+                      }
+
+                      // 3. Name with Image Thumbnail (الاسم مع صورة مصغرة)
+                      return (
+                        <button
+                          key={s.id || s.name}
+                          type="button"
+                          onClick={() => handleSelectSizeOption(s)}
+                          className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border-2 transition-all cursor-pointer bg-white ${
+                            isSelected
+                              ? 'border-slate-900 ring-2 ring-slate-300 scale-105 shadow-xs'
+                              : 'border-slate-200 hover:border-slate-400'
+                          }`}
+                        >
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                            <img
+                              src={s.imageUrl || FALLBACK_IMAGE}
+                              alt={s.name}
+                              onError={handleImageError}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className={`text-[10px] font-bold px-1 line-clamp-1 ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
+                            {s.name}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -603,23 +701,89 @@ function ProductDetailView({
               {/* Colors */}
               {colors.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-700">
-                    اللون: <strong className="text-slate-900">{selectedColor}</strong>
-                  </span>
-                  <div className="flex flex-wrap gap-2.5">
-                    {colors.map((c) => (
-                      <button
-                        key={c.name}
-                        type="button"
-                        onClick={() => setSelectedColor(c.name)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all cursor-pointer ${c.bg} ${
-                          selectedColor === c.name
-                            ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-110 shadow-xs'
-                            : 'border-slate-200 hover:scale-105'
-                        }`}
-                        title={c.name}
-                      />
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">
+                      اللون المختار: <strong className="text-slate-900">{selectedColor}</strong>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {colors.map((c) => {
+                      const isSelected = selectedColor === c.name;
+
+                      // 1. Name only (الاسم فقط)
+                      if (c.type === 'name') {
+                        return (
+                          <button
+                            key={c.id || c.name}
+                            type="button"
+                            onClick={() => handleSelectColorOption(c)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#DF7E93] text-white border-[#DF7E93] shadow-xs scale-105'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-pink-300'
+                            }`}
+                          >
+                            {c.name}
+                          </button>
+                        );
+                      }
+
+                      // 2. Name with Color Swatch (الاسم مع اللون / بكسل اللون)
+                      if (c.type === 'color') {
+                        return (
+                          <button
+                            key={c.id || c.name}
+                            type="button"
+                            onClick={() => handleSelectColorOption(c)}
+                            className="flex flex-col items-center gap-1 group cursor-pointer"
+                            title={c.name}
+                          >
+                            <div
+                              style={{ backgroundColor: c.hex || undefined }}
+                              className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center ${!c.hex ? c.bg : ''} ${
+                                isSelected
+                                  ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-110 shadow-xs'
+                                  : 'border-slate-200 group-hover:scale-105'
+                              }`}
+                            >
+                              {isSelected && (
+                                <Check className={`w-3.5 h-3.5 ${c.hex === '#F8FAFC' || c.hex === '#FFFFFF' || c.name.includes('أبيض') ? 'text-slate-800' : 'text-white'}`} />
+                              )}
+                            </div>
+                            <span className={`text-[10px] font-bold max-w-[60px] truncate text-center ${isSelected ? 'text-[#DF7E93]' : 'text-slate-600'}`}>
+                              {c.name}
+                            </span>
+                          </button>
+                        );
+                      }
+
+                      // 3. Name with Image Thumbnail (الاسم مع صورة من المعرض)
+                      return (
+                        <button
+                          key={c.id || c.name}
+                          type="button"
+                          onClick={() => handleSelectColorOption(c)}
+                          className={`flex flex-col items-center gap-1 p-1 rounded-xl border-2 transition-all cursor-pointer bg-white ${
+                            isSelected
+                              ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-105 shadow-xs'
+                              : 'border-slate-200 hover:border-pink-300'
+                          }`}
+                          title={c.name}
+                        >
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                            <img
+                              src={c.imageUrl || FALLBACK_IMAGE}
+                              alt={c.name}
+                              onError={handleImageError}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className={`text-[10px] font-bold px-1 max-w-[65px] truncate text-center ${isSelected ? 'text-[#DF7E93]' : 'text-slate-600'}`}>
+                            {c.name}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

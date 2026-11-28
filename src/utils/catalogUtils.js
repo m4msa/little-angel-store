@@ -140,19 +140,73 @@ export const THREAD_COLORS = ['ذهبي ملكي', 'فضي ناعم', 'بني ك
 export const DEFAULT_SIZES = ['0-3 أشهر', '3-6 أشهر', '6-12 شهر', '1-2 سنة'];
 
 /**
- * Normalizes product colors into objects with name and Tailwind background class.
+ * Normalizes product colors into comprehensive objects supporting:
+ * 1. Name only (type: 'name')
+ * 2. Name with color swatch / picker (type: 'color', hex)
+ * 3. Name with image thumbnail (type: 'image', imageUrl, imageIndex)
+ * Optional image linking flips main gallery image on selection.
  */
 export function normalizeProductColors(availableColors) {
   if (!Array.isArray(availableColors) || availableColors.length === 0) {
     return [];
   }
-  return availableColors.map(c => {
+  return availableColors.map((c, idx) => {
     if (typeof c === 'string') {
-      return { name: c, bg: COLOR_CLASS_MAP[c] || 'bg-brand-200' };
+      return {
+        id: `color-${idx}-${c}`,
+        name: c,
+        type: 'color',
+        bg: COLOR_CLASS_MAP[c] || 'bg-brand-200',
+        hex: null,
+        imageUrl: null,
+        imageIndex: null
+      };
     }
+    const colorName = c.name || `لون ${idx + 1}`;
+    const deducedType = c.type || (c.imageUrl ? 'image' : (c.hex ? 'color' : 'name'));
     return {
-      name: c.name || '',
-      bg: c.bg || COLOR_CLASS_MAP[c.name] || 'bg-brand-200'
+      id: c.id || `color-${idx}-${colorName}`,
+      name: colorName,
+      type: deducedType,
+      bg: c.bg || COLOR_CLASS_MAP[colorName] || 'bg-brand-200',
+      hex: c.hex || null,
+      imageUrl: c.imageUrl || null,
+      imageIndex: typeof c.imageIndex === 'number' ? c.imageIndex : null
+    };
+  });
+}
+
+/**
+ * Normalizes product sizes into comprehensive objects supporting:
+ * 1. Name only (type: 'name')
+ * 2. Name with color badge / accent (type: 'color', hex)
+ * 3. Name with image thumbnail (type: 'image', imageUrl, imageIndex)
+ * Optional image linking flips main gallery image on selection.
+ */
+export function normalizeProductSizes(availableSizes) {
+  if (!Array.isArray(availableSizes) || availableSizes.length === 0) {
+    return [];
+  }
+  return availableSizes.map((s, idx) => {
+    if (typeof s === 'string') {
+      return {
+        id: `size-${idx}-${s}`,
+        name: s,
+        type: 'name',
+        hex: null,
+        imageUrl: null,
+        imageIndex: null
+      };
+    }
+    const sizeName = s.name || `مقاس ${idx + 1}`;
+    const deducedType = s.type || (s.imageUrl ? 'image' : (s.hex ? 'color' : 'name'));
+    return {
+      id: s.id || `size-${idx}-${sizeName}`,
+      name: sizeName,
+      type: deducedType,
+      hex: s.hex || null,
+      imageUrl: s.imageUrl || null,
+      imageIndex: typeof s.imageIndex === 'number' ? s.imageIndex : null
     };
   });
 }

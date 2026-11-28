@@ -590,7 +590,7 @@ export default function UserPermissionsModal({
                 </div>
               </div>
 
-              {/* canEditProductColors: تعديل ألوان المنتج */}
+              {/* canEditProductColors: تعديل ألوان المنتج بالخيارات الثلاثة */}
               <div 
                 onClick={() => togglePermission('canEditProductColors')}
                 className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
@@ -606,14 +606,14 @@ export default function UserPermissionsModal({
                 </div>
                 <div>
                   <h5 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                    <span>أزرار تعديل وألوان الصنف</span>
+                    <span>ألوان المنتج (الخيارات الثلاثة والربط)</span>
                     <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 inline-block" />
                   </h5>
-                  <p className="text-[10px] text-slate-500 mt-0.5">هل يقدر يضيف ألوان جديدة للمنتج أو يحذف ألواناً منه.</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">صلاحية إضافة ألوان الصنف بالأنماط الثلاثة (اسم فقط، اسم ولون، اسم وصورة) وربطها بالصور.</p>
                 </div>
               </div>
 
-              {/* canEditProductSizes: تعديل مقاسات المنتج */}
+              {/* canEditProductSizes: تعديل مقاسات المنتج بالخيارات الثلاثة */}
               <div 
                 onClick={() => togglePermission('canEditProductSizes')}
                 className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
@@ -629,10 +629,10 @@ export default function UserPermissionsModal({
                 </div>
                 <div>
                   <h5 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                    <span>أزرار تعديل ومقاسات الصنف</span>
+                    <span>مقاسات المنتج (الخيارات الثلاثة والربط)</span>
                     <Layers className="w-3.5 h-3.5 text-indigo-600" />
                   </h5>
-                  <p className="text-[10px] text-slate-500 mt-0.5">هل يقدر يحدد ويضيف أو يحذف المقاسات والأعمار المتاحة للصنف.</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">صلاحية إضافة مقاسات الصنف بالأنماط الثلاثة (اسم فقط، اسم ولون، اسم وصورة) وربطها بالصور.</p>
                 </div>
               </div>
 

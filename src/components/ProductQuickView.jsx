@@ -16,6 +16,7 @@ import {
 import { 
   buildProductMediaItems, 
   normalizeProductColors, 
+  normalizeProductSizes,
   DEFAULT_SIZES, 
   THREAD_COLORS, 
   handleImageError, 
@@ -64,9 +65,8 @@ function ProductQuickView({
 
   // 3. Normalized options (sizes, colors)
   const sizes = useMemo(() => {
-    return Array.isArray(product.availableSizes) && product.availableSizes.length > 0
-      ? product.availableSizes
-      : DEFAULT_SIZES;
+    const norm = normalizeProductSizes(product.availableSizes);
+    return norm.length > 0 ? norm : normalizeProductSizes(DEFAULT_SIZES);
   }, [product.availableSizes]);
 
   const colors = useMemo(() => {
@@ -77,7 +77,7 @@ function ProductQuickView({
   }, [product.availableColors]);
 
   // 4. Form states
-  const [selectedSize, setSelectedSize] = useState(sizes[0] || '');
+  const [selectedSize, setSelectedSize] = useState(sizes[0]?.name || '');
   const [selectedColor, setSelectedColor] = useState(colors[0]?.name || '');
   const [customBabyName, setCustomBabyName] = useState('');
   const [nameLanguage, setNameLanguage] = useState('ar');
@@ -88,9 +88,49 @@ function ProductQuickView({
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
+  // Optional image flipping handlers
+  const handleSelectColorOption = (colorObj) => {
+    if (!colorObj) return;
+    setSelectedColor(colorObj.name);
+    if (colorObj.imageUrl || typeof colorObj.imageIndex === 'number') {
+      let targetIdx = -1;
+      if (typeof colorObj.imageIndex === 'number' && colorObj.imageIndex >= 0) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.originalIndex === colorObj.imageIndex);
+        if (targetIdx === -1 && colorObj.imageIndex < mediaItems.length) {
+          targetIdx = colorObj.imageIndex;
+        }
+      } else if (colorObj.imageUrl) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.url === colorObj.imageUrl);
+      }
+      if (targetIdx !== -1) {
+        handleSelectMedia(targetIdx);
+      }
+    }
+  };
+
+  const handleSelectSizeOption = (sizeObj) => {
+    if (!sizeObj) return;
+    const sName = typeof sizeObj === 'string' ? sizeObj : sizeObj.name;
+    setSelectedSize(sName);
+    if (typeof sizeObj === 'object' && (sizeObj.imageUrl || typeof sizeObj.imageIndex === 'number')) {
+      let targetIdx = -1;
+      if (typeof sizeObj.imageIndex === 'number' && sizeObj.imageIndex >= 0) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.originalIndex === sizeObj.imageIndex);
+        if (targetIdx === -1 && sizeObj.imageIndex < mediaItems.length) {
+          targetIdx = sizeObj.imageIndex;
+        }
+      } else if (sizeObj.imageUrl) {
+        targetIdx = mediaItems.findIndex(m => m.type === 'image' && m.url === sizeObj.imageUrl);
+      }
+      if (targetIdx !== -1) {
+        handleSelectMedia(targetIdx);
+      }
+    }
+  };
+
   // Reset form when product changes
   useEffect(() => {
-    setSelectedSize(sizes[0] || '');
+    setSelectedSize(sizes[0]?.name || '');
     setSelectedColor(colors[0]?.name || '');
     setCustomBabyName('');
     setNameLanguage('ar');
@@ -406,22 +446,73 @@ function ProductQuickView({
                   {/* Sizes */}
                   {sizes.length > 0 && (
                     <div className="space-y-1.5">
-                      <span className="text-xs font-bold text-slate-700">المقاس:</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {sizes.map((sz) => (
-                          <button
-                            key={sz}
-                            type="button"
-                            onClick={() => setSelectedSize(sz)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                              selectedSize === sz
-                                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
-                            }`}
-                          >
-                            {sz}
-                          </button>
-                        ))}
+                      <span className="text-xs font-bold text-slate-700">
+                        المقاس: <strong className="text-slate-900">{selectedSize}</strong>
+                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {sizes.map((s) => {
+                          const isSelected = selectedSize === s.name;
+                          if (s.type === 'name') {
+                            return (
+                              <button
+                                key={s.id || s.name}
+                                type="button"
+                                onClick={() => handleSelectSizeOption(s)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs scale-105'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                                }`}
+                              >
+                                {s.name}
+                              </button>
+                            );
+                          }
+                          if (s.type === 'color') {
+                            return (
+                              <button
+                                key={s.id || s.name}
+                                type="button"
+                                onClick={() => handleSelectSizeOption(s)}
+                                className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                  isSelected
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs scale-105'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                                }`}
+                              >
+                                <span 
+                                  className="w-2.5 h-2.5 rounded-full inline-block border border-white/20 shrink-0" 
+                                  style={{ backgroundColor: s.hex || '#6366F1' }}
+                                />
+                                <span>{s.name}</span>
+                              </button>
+                            );
+                          }
+                          return (
+                            <button
+                              key={s.id || s.name}
+                              type="button"
+                              onClick={() => handleSelectSizeOption(s)}
+                              className={`flex flex-col items-center gap-1 p-1 rounded-xl border-2 transition-all cursor-pointer bg-white ${
+                                isSelected
+                                  ? 'border-slate-900 ring-2 ring-slate-300 scale-105 shadow-xs'
+                                  : 'border-slate-200 hover:border-slate-400'
+                              }`}
+                            >
+                              <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                                <img
+                                  src={s.imageUrl || FALLBACK_IMAGE}
+                                  alt={s.name}
+                                  onError={handleImageError}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <span className={`text-[9px] font-bold px-0.5 line-clamp-1 ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
+                                {s.name}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -432,20 +523,78 @@ function ProductQuickView({
                       <span className="text-xs font-bold text-slate-700">
                         اللون: <strong className="text-slate-900">{selectedColor}</strong>
                       </span>
-                      <div className="flex flex-wrap gap-2">
-                        {colors.map((c) => (
-                          <button
-                            key={c.name}
-                            type="button"
-                            onClick={() => setSelectedColor(c.name)}
-                            className={`w-7 h-7 rounded-full border-2 transition-all cursor-pointer ${c.bg} ${
-                              selectedColor === c.name
-                                ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-110 shadow-xs'
-                                : 'border-slate-200 hover:scale-105'
-                            }`}
-                            title={c.name}
-                          />
-                        ))}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {colors.map((c) => {
+                          const isSelected = selectedColor === c.name;
+                          if (c.type === 'name') {
+                            return (
+                              <button
+                                key={c.id || c.name}
+                                type="button"
+                                onClick={() => handleSelectColorOption(c)}
+                                className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-[#DF7E93] text-white border-[#DF7E93] shadow-xs scale-105'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:border-pink-300'
+                                }`}
+                              >
+                                {c.name}
+                              </button>
+                            );
+                          }
+                          if (c.type === 'color') {
+                            return (
+                              <button
+                                key={c.id || c.name}
+                                type="button"
+                                onClick={() => handleSelectColorOption(c)}
+                                className="flex flex-col items-center gap-0.5 group cursor-pointer"
+                                title={c.name}
+                              >
+                                <div
+                                  style={{ backgroundColor: c.hex || undefined }}
+                                  className={`w-7 h-7 rounded-full border-2 transition-all flex items-center justify-center ${!c.hex ? c.bg : ''} ${
+                                    isSelected
+                                      ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-110 shadow-xs'
+                                      : 'border-slate-200 group-hover:scale-105'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <Check className={`w-3 h-3 ${c.hex === '#F8FAFC' || c.hex === '#FFFFFF' || c.name.includes('أبيض') ? 'text-slate-800' : 'text-white'}`} />
+                                  )}
+                                </div>
+                                <span className={`text-[9px] font-bold max-w-[50px] truncate ${isSelected ? 'text-[#DF7E93]' : 'text-slate-600'}`}>
+                                  {c.name}
+                                </span>
+                              </button>
+                            );
+                          }
+                          return (
+                            <button
+                              key={c.id || c.name}
+                              type="button"
+                              onClick={() => handleSelectColorOption(c)}
+                              className={`flex flex-col items-center gap-0.5 p-1 rounded-xl border-2 transition-all cursor-pointer bg-white ${
+                                isSelected
+                                  ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-105 shadow-xs'
+                                  : 'border-slate-200 hover:border-pink-300'
+                              }`}
+                              title={c.name}
+                            >
+                              <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                                <img
+                                  src={c.imageUrl || FALLBACK_IMAGE}
+                                  alt={c.name}
+                                  onError={handleImageError}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <span className={`text-[9px] font-bold px-0.5 max-w-[50px] truncate ${isSelected ? 'text-[#DF7E93]' : 'text-slate-600'}`}>
+                                {c.name}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

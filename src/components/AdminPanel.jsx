@@ -4,7 +4,7 @@ import {
   DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
   X, LogOut, Store, Eye, EyeOff, Percent, Palette, Video, MessageCircle, Phone, Mail, MapPin, Sparkles,
   Tag, Search, CheckCircle2, AlertTriangle, AlertCircle, Star, Power, ThumbsUp,
-  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus, Ruler
+  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus, Ruler, Link2
 } from 'lucide-react';
 import { 
   sanitizeString, 
@@ -315,8 +315,21 @@ export default function AdminPanel({
   const canEditBasicInfo = !editingProduct || (currentOperatorPerms.canEditProductBasic !== false);
   const canEditColors = !editingProduct || (currentOperatorPerms.canEditProductColors !== false);
   const canEditSizes = !editingProduct || (currentOperatorPerms.canEditProductSizes !== false);
+  
+  // Colors 3-tier selection state: 'name' | 'color' | 'image'
+  const [colorMode, setColorMode] = useState('color');
   const [colorInput, setColorInput] = useState('');
+  const [colorHex, setColorHex] = useState('#DF7E93');
+  const [colorImageIndex, setColorImageIndex] = useState(null);
+  const [colorLinkedImageIndex, setColorLinkedImageIndex] = useState(null);
+
+  // Sizes 3-tier selection state: 'name' | 'color' | 'image'
+  const [sizeMode, setSizeMode] = useState('name');
   const [sizeInput, setSizeInput] = useState('');
+  const [sizeHex, setSizeHex] = useState('#6366F1');
+  const [sizeImageIndex, setSizeImageIndex] = useState(null);
+  const [sizeLinkedImageIndex, setSizeLinkedImageIndex] = useState(null);
+
   const [productFormError, setProductFormError] = useState('');
   const [productForm, setProductForm] = useState({
     name: '',
@@ -392,8 +405,16 @@ export default function AdminPanel({
       inStock: true
     });
     setTagInput('');
+    setColorMode('color');
     setColorInput('');
+    setColorHex('#DF7E93');
+    setColorImageIndex(null);
+    setColorLinkedImageIndex(null);
+    setSizeMode('name');
     setSizeInput('');
+    setSizeHex('#6366F1');
+    setSizeImageIndex(null);
+    setSizeLinkedImageIndex(null);
     setUrlImageInput('');
     setIsProductModalOpen(true);
   };
@@ -433,8 +454,16 @@ export default function AdminPanel({
       inStock: prod.inStock !== false
     });
     setTagInput('');
+    setColorMode('color');
     setColorInput('');
+    setColorHex('#DF7E93');
+    setColorImageIndex(null);
+    setColorLinkedImageIndex(null);
+    setSizeMode('name');
     setSizeInput('');
+    setSizeHex('#6366F1');
+    setSizeImageIndex(null);
+    setSizeLinkedImageIndex(null);
     setUrlImageInput('');
     setIsProductModalOpen(true);
   };
@@ -558,22 +587,57 @@ export default function AdminPanel({
     }));
   };
 
-  const handleAddColor = (e, colorToAdd) => {
+  const handleAddColor = (e, presetColor, presetHex) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!canEditColors) {
       showToast('ليس لديك صلاحية لتعديل ألوان هذا المنتج!');
       return;
     }
-    const color = sanitizeString(colorToAdd || colorInput, 40);
-    if (!color) return;
-    const currentColors = Array.isArray(productForm.availableColors) ? productForm.availableColors : [];
-    if (!currentColors.includes(color)) {
-      setProductForm(prev => ({
-        ...prev,
-        availableColors: [...currentColors, color]
-      }));
+    const cleanName = sanitizeString(presetColor || colorInput, 40);
+    if (!cleanName) {
+      showToast('يرجى كتابة اسم اللون أولاً (مثال: أبيض، وردي ملكي).');
+      return;
     }
+
+    const currentColors = Array.isArray(productForm.availableColors) ? productForm.availableColors : [];
+    if (currentColors.some(c => (typeof c === 'string' ? c : c.name) === cleanName)) {
+      showToast(`اللون "${cleanName}" مضاف بالفعل!`);
+      return;
+    }
+
+    const currentImages = Array.isArray(productForm.images) ? productForm.images : [];
+    let finalImageUrl = null;
+    let finalImageIndex = null;
+
+    if (colorMode === 'image') {
+      const idx = colorImageIndex !== null ? colorImageIndex : 0;
+      if (currentImages[idx]) {
+        finalImageIndex = idx;
+        finalImageUrl = currentImages[idx];
+      }
+    } else if (colorLinkedImageIndex !== null && currentImages[colorLinkedImageIndex]) {
+      finalImageIndex = colorLinkedImageIndex;
+      finalImageUrl = currentImages[colorLinkedImageIndex];
+    }
+
+    const newColorObj = {
+      id: `col-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      name: cleanName,
+      type: colorMode, // 'name' | 'color' | 'image'
+      hex: colorMode === 'color' ? (presetHex || colorHex || '#DF7E93') : null,
+      imageUrl: finalImageUrl,
+      imageIndex: finalImageIndex
+    };
+
+    setProductForm(prev => ({
+      ...prev,
+      availableColors: [...currentColors, newColorObj]
+    }));
+
     setColorInput('');
+    setColorImageIndex(null);
+    setColorLinkedImageIndex(null);
+    showToast(`تمت إضافة اللون "${cleanName}" بنجاح!`);
   };
 
   const handleRemoveColor = (colorToRemove) => {
@@ -581,28 +645,67 @@ export default function AdminPanel({
       showToast('ليس لديك صلاحية لحذف ألوان هذا المنتج!');
       return;
     }
+    const targetName = typeof colorToRemove === 'string' ? colorToRemove : colorToRemove.name;
     setProductForm(prev => ({
       ...prev,
-      availableColors: (Array.isArray(prev.availableColors) ? prev.availableColors : []).filter(c => c !== colorToRemove)
+      availableColors: (Array.isArray(prev.availableColors) ? prev.availableColors : []).filter(c => {
+        const name = typeof c === 'string' ? c : c.name;
+        return name !== targetName;
+      })
     }));
   };
 
-  const handleAddSize = (e, sizeToAdd) => {
+  const handleAddSize = (e, presetSize, presetHex) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!canEditSizes) {
       showToast('ليس لديك صلاحية لتعديل مقاسات هذا المنتج!');
       return;
     }
-    const size = sanitizeString(sizeToAdd || sizeInput, 40);
-    if (!size) return;
-    const currentSizes = Array.isArray(productForm.availableSizes) ? productForm.availableSizes : [];
-    if (!currentSizes.includes(size)) {
-      setProductForm(prev => ({
-        ...prev,
-        availableSizes: [...currentSizes, size]
-      }));
+    const cleanName = sanitizeString(presetSize || sizeInput, 40);
+    if (!cleanName) {
+      showToast('يرجى كتابة اسم المقاس أولاً (مثال: 0-3 أشهر).');
+      return;
     }
+
+    const currentSizes = Array.isArray(productForm.availableSizes) ? productForm.availableSizes : [];
+    if (currentSizes.some(s => (typeof s === 'string' ? s : s.name) === cleanName)) {
+      showToast(`المقاس "${cleanName}" مضاف بالفعل!`);
+      return;
+    }
+
+    const currentImages = Array.isArray(productForm.images) ? productForm.images : [];
+    let finalImageUrl = null;
+    let finalImageIndex = null;
+
+    if (sizeMode === 'image') {
+      const idx = sizeImageIndex !== null ? sizeImageIndex : 0;
+      if (currentImages[idx]) {
+        finalImageIndex = idx;
+        finalImageUrl = currentImages[idx];
+      }
+    } else if (sizeLinkedImageIndex !== null && currentImages[sizeLinkedImageIndex]) {
+      finalImageIndex = sizeLinkedImageIndex;
+      finalImageUrl = currentImages[sizeLinkedImageIndex];
+    }
+
+    const newSizeObj = {
+      id: `sz-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      name: cleanName,
+      type: sizeMode, // 'name' | 'color' | 'image'
+      hex: sizeMode === 'color' ? (presetHex || sizeHex || '#6366F1') : null,
+      imageUrl: finalImageUrl,
+      imageIndex: finalImageIndex
+    };
+
+    setProductForm(prev => ({
+      ...prev,
+      availableSizes: [...currentSizes, newSizeObj]
+    }));
+
     setSizeInput('');
+    setSizeImageIndex(null);
+    setSizeLinkedImageIndex(null);
+    showToast(`تمت إضافة المقاس "${cleanName}" بنجاح!`);
   };
 
   const handleRemoveSize = (sizeToRemove) => {
@@ -610,9 +713,13 @@ export default function AdminPanel({
       showToast('ليس لديك صلاحية لحذف مقاسات هذا المنتج!');
       return;
     }
+    const targetName = typeof sizeToRemove === 'string' ? sizeToRemove : sizeToRemove.name;
     setProductForm(prev => ({
       ...prev,
-      availableSizes: (Array.isArray(prev.availableSizes) ? prev.availableSizes : []).filter(s => s !== sizeToRemove)
+      availableSizes: (Array.isArray(prev.availableSizes) ? prev.availableSizes : []).filter(s => {
+        const name = typeof s === 'string' ? s : s.name;
+        return name !== targetName;
+      })
     }));
   };
 
@@ -2891,14 +2998,14 @@ export default function AdminPanel({
                 </div>
               </div>
 
-              {/* Product Available Colors Section */}
+              {/* Product Available Colors Section (Three-Tier Selection + Optional Image Linking) */}
               <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
                     <Palette className="w-4 h-4 text-[#DF7E93]" />
-                    <span>ألوان المنتج المتاحة للاختيار</span>
+                    <span>ألوان المنتج المتاحة (3 خيارات للإضافة والربط)</span>
                     <span className="text-[10px] text-slate-400 font-normal">
-                      ({(productForm.availableColors || []).length} ألوان محددة)
+                      ({(productForm.availableColors || []).length} ألوان مضافة)
                     </span>
                   </label>
                   {!canEditColors && (
@@ -2909,100 +3016,337 @@ export default function AdminPanel({
                 </div>
 
                 {canEditColors && (
-                  <>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        maxLength={40}
-                        placeholder="أضف لون جديد (مثال: سكري ملكي)..."
-                        value={colorInput}
-                        onChange={(e) => setColorInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddColor();
-                          }
-                        }}
-                        className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-[#DF7E93]"
-                      />
+                  <div className="space-y-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                    {/* Mode Tabs */}
+                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
                       <button
                         type="button"
-                        onClick={handleAddColor}
-                        className="bg-[#DF7E93] hover:bg-[#d46d84] text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer flex items-center gap-1 shadow-xs"
+                        onClick={() => setColorMode('name')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
+                          colorMode === 'name' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>إضافة لون</span>
+                        1. الاسم فقط
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setColorMode('color')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                          colorMode === 'color' ? 'bg-[#DF7E93] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <Palette className="w-3.5 h-3.5" />
+                        <span>2. الاسم مع اللون</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setColorMode('image')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                          colorMode === 'image' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        <span>3. الاسم مع صورة</span>
                       </button>
                     </div>
 
-                    {/* Quick Preset Colors */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-400 font-bold block">ألوان مقترحة سريعة:</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {PRESET_COLORS.map((pc, idx) => {
-                          const isAlreadyAdded = (productForm.availableColors || []).includes(pc);
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              disabled={isAlreadyAdded}
-                              onClick={() => handleAddColor(null, pc)}
-                              className={`text-[11px] px-2.5 py-1 rounded-xl font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                                isAlreadyAdded
-                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
-                                  : 'bg-white hover:bg-pink-50 text-slate-700 border border-slate-200 hover:border-pink-300'
-                              }`}
-                            >
-                              <span>{pc}</span>
-                              {!isAlreadyAdded && <Plus className="w-3 h-3 text-pink-500" />}
-                            </button>
-                          );
-                        })}
+                    {/* Mode 1: Name Only */}
+                    {colorMode === 'name' && (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            maxLength={40}
+                            placeholder="اكتب اسم اللون (مثال: أبيض ناصع، أخضر ملكي)..."
+                            value={colorInput}
+                            onChange={(e) => setColorInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddColor();
+                              }
+                            }}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-slate-900 focus:bg-white"
+                          />
+                        </div>
+
+                        {/* Optional Gallery Image Link */}
+                        <div className="space-y-1 pt-1">
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                            <span className="flex items-center gap-1">
+                              <Link2 className="w-3.5 h-3.5 text-slate-400" />
+                              <span>ربط بصورة من المعرض (اختياري - تقلب الصورة تلقائياً عند النقر):</span>
+                            </span>
+                            {colorLinkedImageIndex !== null && (
+                              <button
+                                type="button"
+                                onClick={() => setColorLinkedImageIndex(null)}
+                                className="text-[10px] text-rose-500 hover:underline cursor-pointer"
+                              >
+                                إلغاء الربط
+                              </button>
+                            )}
+                          </div>
+                          {(productForm.images || []).length === 0 ? (
+                            <p className="text-[10px] text-slate-400 italic">ارفع صوراً للمنتج بالأعلى لتتمكن من ربطها هنا.</p>
+                          ) : (
+                            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                              {productForm.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => setColorLinkedImageIndex(colorLinkedImageIndex === imgIdx ? null : imgIdx)}
+                                  className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                                    colorLinkedImageIndex === imgIdx
+                                      ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-105'
+                                      : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
+                                  }`}
+                                >
+                                  <img src={imgUrl} alt={`صورة ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                  {colorLinkedImageIndex === imgIdx && (
+                                    <span className="absolute inset-0 bg-[#DF7E93]/30 flex items-center justify-center">
+                                      <Check className="w-4 h-4 text-white drop-shadow-sm font-bold" />
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </>
+                    )}
+
+                    {/* Mode 2: Name + Color Swatch (Spectrum & Presets) */}
+                    {colorMode === 'color' && (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            maxLength={40}
+                            placeholder="اسم اللون (مثال: وردي هادئ، كحلي)..."
+                            value={colorInput}
+                            onChange={(e) => setColorInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddColor();
+                              }
+                            }}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-[#DF7E93] focus:bg-white"
+                          />
+                          {/* Color Spectrum Picker */}
+                          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
+                            <input
+                              type="color"
+                              value={colorHex}
+                              onChange={(e) => setColorHex(e.target.value)}
+                              className="w-7 h-7 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
+                              title="انقر لفتح مربع تدرجات وبكسلات كافة الألوان"
+                            />
+                            <span className="text-[10px] font-mono font-bold text-slate-600 px-1">{colorHex}</span>
+                          </div>
+                        </div>
+
+                        {/* Preset Color Swatches */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 font-bold block">ألوان شائعة جاهزة:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {PRESET_COLORS.map((pc, idx) => {
+                              const hex = pc === 'وردي هادئ' ? '#F4B5C3' :
+                                pc === 'أزرق سماوي' ? '#93C5FD' :
+                                pc === 'أبيض قطني' ? '#FFFFFF' :
+                                pc === 'بيج كريمي' ? '#FEF3C7' :
+                                pc === 'رمادي ناعم' ? '#CBD5E1' :
+                                pc === 'أخضر نعناعي' ? '#A7F3D0' :
+                                pc === 'كحلي فاخر' ? '#1E3A8A' : '#B45309';
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setColorInput(pc);
+                                    setColorHex(hex);
+                                  }}
+                                  className="text-[11px] px-2.5 py-1 rounded-xl font-bold bg-slate-50 hover:bg-pink-50 text-slate-700 border border-slate-200 hover:border-pink-300 transition-all flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <span className="w-2.5 h-2.5 rounded-full inline-block border border-black/10" style={{ backgroundColor: hex }} />
+                                  <span>{pc}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Optional Gallery Image Link */}
+                        <div className="space-y-1 pt-1 border-t border-slate-100">
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                            <span className="flex items-center gap-1">
+                              <Link2 className="w-3.5 h-3.5 text-slate-400" />
+                              <span>ربط بصورة من المعرض (اختياري - تقلب الصورة تلقائياً عند النقر):</span>
+                            </span>
+                            {colorLinkedImageIndex !== null && (
+                              <button
+                                type="button"
+                                onClick={() => setColorLinkedImageIndex(null)}
+                                className="text-[10px] text-rose-500 hover:underline cursor-pointer"
+                              >
+                                إلغاء الربط
+                              </button>
+                            )}
+                          </div>
+                          {(productForm.images || []).length === 0 ? (
+                            <p className="text-[10px] text-slate-400 italic">ارفع صوراً للمنتج بالأعلى لتتمكن من ربطها هنا.</p>
+                          ) : (
+                            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                              {productForm.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => setColorLinkedImageIndex(colorLinkedImageIndex === imgIdx ? null : imgIdx)}
+                                  className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                                    colorLinkedImageIndex === imgIdx
+                                      ? 'border-[#DF7E93] ring-2 ring-pink-200 scale-105'
+                                      : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
+                                  }`}
+                                >
+                                  <img src={imgUrl} alt={`صورة ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                  {colorLinkedImageIndex === imgIdx && (
+                                    <span className="absolute inset-0 bg-[#DF7E93]/30 flex items-center justify-center">
+                                      <Check className="w-4 h-4 text-white drop-shadow-sm font-bold" />
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mode 3: Name + Image Thumbnail */}
+                    {colorMode === 'image' && (
+                      <div className="space-y-2.5">
+                        <input
+                          type="text"
+                          maxLength={40}
+                          placeholder="اسم اللون (مثال: وردي، أزرق، كحلي)..."
+                          value={colorInput}
+                          onChange={(e) => setColorInput(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-purple-600 focus:bg-white"
+                        />
+
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-slate-700 block">
+                            اختر الصورة المطابقة لهذا اللون من معرض صور المنتج:
+                          </span>
+                          {(productForm.images || []).length === 0 ? (
+                            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-800">
+                              ⚠️ يرجى رفع صور للمنتج أولاً من قسم (صور وفيديو المنتج) بالأعلى لتحديد صورة مصغرة لهذا اللون.
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                              {productForm.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => setColorImageIndex(imgIdx)}
+                                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                                    (colorImageIndex === imgIdx || (colorImageIndex === null && imgIdx === 0))
+                                      ? 'border-purple-600 ring-2 ring-purple-200 scale-105 shadow-xs'
+                                      : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-400'
+                                  }`}
+                                >
+                                  <img src={imgUrl} alt={`صورة ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                  {(colorImageIndex === imgIdx || (colorImageIndex === null && imgIdx === 0)) && (
+                                    <span className="absolute top-1 right-1 w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center">
+                                      <Check className="w-3 h-3 font-bold" />
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add Color Action Button */}
+                    <button
+                      type="button"
+                      onClick={handleAddColor}
+                      className="w-full bg-[#DF7E93] hover:bg-[#d46d84] text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-xs transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>إضافة هذا اللون للخيارات المتاحة</span>
+                    </button>
+                  </div>
                 )}
 
                 {/* Active Selected Colors */}
                 <div className="pt-1">
+                  <span className="text-[11px] font-bold text-slate-500 block mb-1.5">الألوان المعتمدة الحالية للمنتج:</span>
                   {(productForm.availableColors || []).length === 0 ? (
-                    <p className="text-[11px] text-slate-400 italic bg-white p-2 rounded-xl border border-dashed border-slate-200 text-center">
+                    <p className="text-[11px] text-slate-400 italic bg-white p-2.5 rounded-xl border border-dashed border-slate-200 text-center">
                       لم يتم تحديد ألوان لهذا المنتج بعد
                     </p>
                   ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {productForm.availableColors.map((color, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-white border border-pink-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs"
-                        >
-                          <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-[#DF7E93] to-purple-400 inline-block shadow-2xs" />
-                          <span>{color}</span>
-                          {canEditColors && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveColor(color)}
-                              className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded transition-colors"
-                              title="حذف هذا اللون"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
+                    <div className="flex flex-wrap gap-2">
+                      {productForm.availableColors.map((c, idx) => {
+                        const name = typeof c === 'string' ? c : c.name;
+                        const type = typeof c === 'object' ? (c.type || (c.imageUrl ? 'image' : (c.hex ? 'color' : 'name'))) : 'color';
+                        const hex = typeof c === 'object' ? c.hex : null;
+                        const img = typeof c === 'object' ? c.imageUrl : null;
+
+                        return (
+                          <span
+                            key={idx}
+                            className="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-2 shadow-2xs"
+                          >
+                            {type === 'image' && img ? (
+                              <img src={img} alt={name} className="w-5 h-5 rounded-md object-cover border border-slate-200" />
+                            ) : type === 'color' ? (
+                              <span
+                                className="w-3 h-3 rounded-full border border-black/10 inline-block shadow-2xs shrink-0"
+                                style={{ backgroundColor: hex || '#DF7E93' }}
+                              />
+                            ) : (
+                              <span className="text-[10px] text-slate-400 font-mono font-bold">#</span>
+                            )}
+                            
+                            <span>{name}</span>
+
+                            {img && type !== 'image' && (
+                              <span title="مرتبط بصورة من المعرض">
+                                <Link2 className="w-3 h-3 text-[#DF7E93]" />
+                              </span>
+                            )}
+
+                            {canEditColors && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveColor(c)}
+                                className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded transition-colors"
+                                title="حذف هذا اللون"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Product Available Sizes Section */}
+              {/* Product Available Sizes Section (Three-Tier Selection + Optional Image Linking) */}
               <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
                     <Ruler className="w-4 h-4 text-indigo-600" />
-                    <span>مقاسات المنتج المتاحة للاختيار</span>
+                    <span>مقاسات المنتج المتاحة (3 خيارات للإضافة والربط)</span>
                     <span className="text-[10px] text-slate-400 font-normal">
-                      ({(productForm.availableSizes || []).length} مقاسات محددة)
+                      ({(productForm.availableSizes || []).length} مقاسات مضافة)
                     </span>
                   </label>
                   {!canEditSizes && (
@@ -3013,87 +3357,308 @@ export default function AdminPanel({
                 </div>
 
                 {canEditSizes && (
-                  <>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        maxLength={40}
-                        placeholder="أضف مقاس جديد (مثال: 0-3 أشهر، أو تفصيل مخصص)..."
-                        value={sizeInput}
-                        onChange={(e) => setSizeInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddSize();
-                          }
-                        }}
-                        className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-indigo-500"
-                      />
+                  <div className="space-y-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                    {/* Mode Tabs */}
+                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
                       <button
                         type="button"
-                        onClick={handleAddSize}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer flex items-center gap-1 shadow-xs"
+                        onClick={() => setSizeMode('name')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
+                          sizeMode === 'name' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>إضافة مقاس</span>
+                        1. الاسم فقط
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSizeMode('color')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                          sizeMode === 'color' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <Palette className="w-3.5 h-3.5" />
+                        <span>2. الاسم مع اللون</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSizeMode('image')}
+                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1 ${
+                          sizeMode === 'image' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        <span>3. الاسم مع صورة</span>
                       </button>
                     </div>
 
-                    {/* Quick Preset Sizes */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-400 font-bold block">مقاسات مقترحة سريعة:</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {PRESET_SIZES.map((ps, idx) => {
-                          const isAlreadyAdded = (productForm.availableSizes || []).includes(ps);
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              disabled={isAlreadyAdded}
-                              onClick={() => handleAddSize(null, ps)}
-                              className={`text-[11px] px-2.5 py-1 rounded-xl font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                                isAlreadyAdded
-                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
-                                  : 'bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 hover:border-indigo-300'
-                              }`}
-                            >
-                              <span>{ps}</span>
-                              {!isAlreadyAdded && <Plus className="w-3 h-3 text-indigo-500" />}
-                            </button>
-                          );
-                        })}
+                    {/* Mode 1: Name Only */}
+                    {sizeMode === 'name' && (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          maxLength={40}
+                          placeholder="المقاس (مثال: 0-3 أشهر، حديث الولادة، مقاس موحد)..."
+                          value={sizeInput}
+                          onChange={(e) => setSizeInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddSize();
+                            }
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-indigo-600 focus:bg-white"
+                        />
+
+                        {/* Preset Quick Sizes */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-slate-400 font-bold block">مقاسات مقترحة سريعة:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {PRESET_SIZES.map((ps, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setSizeInput(ps)}
+                                className="text-[11px] px-2.5 py-1 rounded-xl font-bold bg-slate-50 hover:bg-indigo-50 text-slate-700 border border-slate-200 hover:border-indigo-300 transition-all flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>{ps}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Optional Gallery Image Link */}
+                        <div className="space-y-1 pt-1 border-t border-slate-100">
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                            <span className="flex items-center gap-1">
+                              <Link2 className="w-3.5 h-3.5 text-slate-400" />
+                              <span>ربط بصورة من المعرض (اختياري - تقلب الصورة تلقائياً عند النقر):</span>
+                            </span>
+                            {sizeLinkedImageIndex !== null && (
+                              <button
+                                type="button"
+                                onClick={() => setSizeLinkedImageIndex(null)}
+                                className="text-[10px] text-rose-500 hover:underline cursor-pointer"
+                              >
+                                إلغاء الربط
+                              </button>
+                            )}
+                          </div>
+                          {(productForm.images || []).length === 0 ? (
+                            <p className="text-[10px] text-slate-400 italic">ارفع صوراً للمنتج بالأعلى لتتمكن من ربطها هنا.</p>
+                          ) : (
+                            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                              {productForm.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => setSizeLinkedImageIndex(sizeLinkedImageIndex === imgIdx ? null : imgIdx)}
+                                  className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                                    sizeLinkedImageIndex === imgIdx
+                                      ? 'border-indigo-600 ring-2 ring-indigo-200 scale-105'
+                                      : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
+                                  }`}
+                                >
+                                  <img src={imgUrl} alt={`صورة ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                  {sizeLinkedImageIndex === imgIdx && (
+                                    <span className="absolute inset-0 bg-indigo-600/30 flex items-center justify-center">
+                                      <Check className="w-4 h-4 text-white drop-shadow-sm font-bold" />
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </>
+                    )}
+
+                    {/* Mode 2: Name + Accent Color */}
+                    {sizeMode === 'color' && (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            maxLength={40}
+                            placeholder="اسم المقاس (مثال: مقاس خاص، تفصيل ملكي)..."
+                            value={sizeInput}
+                            onChange={(e) => setSizeInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddSize();
+                              }
+                            }}
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-indigo-600 focus:bg-white"
+                          />
+                          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
+                            <input
+                              type="color"
+                              value={sizeHex}
+                              onChange={(e) => setSizeHex(e.target.value)}
+                              className="w-7 h-7 rounded-lg cursor-pointer border-0 p-0 bg-transparent"
+                              title="لون تمييز المقاس"
+                            />
+                            <span className="text-[10px] font-mono font-bold text-slate-600 px-1">{sizeHex}</span>
+                          </div>
+                        </div>
+
+                        {/* Optional Gallery Image Link */}
+                        <div className="space-y-1 pt-1 border-t border-slate-100">
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold">
+                            <span className="flex items-center gap-1">
+                              <Link2 className="w-3.5 h-3.5 text-slate-400" />
+                              <span>ربط بصورة من المعرض (اختياري - تقلب الصورة تلقائياً عند النقر):</span>
+                            </span>
+                            {sizeLinkedImageIndex !== null && (
+                              <button
+                                type="button"
+                                onClick={() => setSizeLinkedImageIndex(null)}
+                                className="text-[10px] text-rose-500 hover:underline cursor-pointer"
+                              >
+                                إلغاء الربط
+                              </button>
+                            )}
+                          </div>
+                          {(productForm.images || []).length === 0 ? (
+                            <p className="text-[10px] text-slate-400 italic">ارفع صوراً للمنتج بالأعلى لتتمكن من ربطها هنا.</p>
+                          ) : (
+                            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                              {productForm.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => setSizeLinkedImageIndex(sizeLinkedImageIndex === imgIdx ? null : imgIdx)}
+                                  className={`relative w-12 h-12 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                                    sizeLinkedImageIndex === imgIdx
+                                      ? 'border-indigo-600 ring-2 ring-indigo-200 scale-105'
+                                      : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
+                                  }`}
+                                >
+                                  <img src={imgUrl} alt={`صورة ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                  {sizeLinkedImageIndex === imgIdx && (
+                                    <span className="absolute inset-0 bg-indigo-600/30 flex items-center justify-center">
+                                      <Check className="w-4 h-4 text-white drop-shadow-sm font-bold" />
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mode 3: Name + Image Thumbnail */}
+                    {sizeMode === 'image' && (
+                      <div className="space-y-2.5">
+                        <input
+                          type="text"
+                          maxLength={40}
+                          placeholder="المقاس (مثال: طقم استقبال كامل، جدول المقاسات)..."
+                          value={sizeInput}
+                          onChange={(e) => setSizeInput(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-purple-600 focus:bg-white"
+                        />
+
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-slate-700 block">
+                            اختر الصورة المطابقة لهذا المقاس من معرض صور المنتج:
+                          </span>
+                          {(productForm.images || []).length === 0 ? (
+                            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-800">
+                              ⚠️ يرجى رفع صور للمنتج أولاً من قسم (صور وفيديو المنتج) بالأعلى لتحديد صورة مصغرة لهذا المقاس.
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                              {productForm.images.map((imgUrl, imgIdx) => (
+                                <button
+                                  key={imgIdx}
+                                  type="button"
+                                  onClick={() => setSizeImageIndex(imgIdx)}
+                                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                                    (sizeImageIndex === imgIdx || (sizeImageIndex === null && imgIdx === 0))
+                                      ? 'border-purple-600 ring-2 ring-purple-200 scale-105 shadow-xs'
+                                      : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-400'
+                                  }`}
+                                >
+                                  <img src={imgUrl} alt={`صورة ${imgIdx + 1}`} className="w-full h-full object-cover" />
+                                  {(sizeImageIndex === imgIdx || (sizeImageIndex === null && imgIdx === 0)) && (
+                                    <span className="absolute top-1 right-1 w-4 h-4 bg-purple-600 text-white rounded-full flex items-center justify-center">
+                                      <Check className="w-3 h-3 font-bold" />
+                                    </span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add Size Action Button */}
+                    <button
+                      type="button"
+                      onClick={handleAddSize}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-xs transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>إضافة هذا المقاس للخيارات المتاحة</span>
+                    </button>
+                  </div>
                 )}
 
                 {/* Active Selected Sizes */}
                 <div className="pt-1">
+                  <span className="text-[11px] font-bold text-slate-500 block mb-1.5">المقاسات المعتمدة الحالية للمنتج:</span>
                   {(productForm.availableSizes || []).length === 0 ? (
-                    <p className="text-[11px] text-slate-400 italic bg-white p-2 rounded-xl border border-dashed border-slate-200 text-center">
+                    <p className="text-[11px] text-slate-400 italic bg-white p-2.5 rounded-xl border border-dashed border-slate-200 text-center">
                       لم يتم تحديد مقاسات لهذا المنتج بعد
                     </p>
                   ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {productForm.availableSizes.map((size, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-white border border-indigo-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs"
-                        >
-                          <span className="text-indigo-600 font-extrabold text-[10px]">#</span>
-                          <span>{size}</span>
-                          {canEditSizes && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSize(size)}
-                              className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded transition-colors"
-                              title="حذف هذا المقاس"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
+                    <div className="flex flex-wrap gap-2">
+                      {productForm.availableSizes.map((s, idx) => {
+                        const name = typeof s === 'string' ? s : s.name;
+                        const type = typeof s === 'object' ? (s.type || (s.imageUrl ? 'image' : (s.hex ? 'color' : 'name'))) : 'name';
+                        const hex = typeof s === 'object' ? s.hex : null;
+                        const img = typeof s === 'object' ? s.imageUrl : null;
+
+                        return (
+                          <span
+                            key={idx}
+                            className="bg-white border border-indigo-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-2 shadow-2xs"
+                          >
+                            {type === 'image' && img ? (
+                              <img src={img} alt={name} className="w-5 h-5 rounded-md object-cover border border-slate-200" />
+                            ) : type === 'color' ? (
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/10 inline-block shrink-0"
+                                style={{ backgroundColor: hex || '#6366F1' }}
+                              />
+                            ) : (
+                              <span className="text-indigo-600 font-extrabold text-[10px]">#</span>
+                            )}
+
+                            <span>{name}</span>
+
+                            {img && type !== 'image' && (
+                              <span title="مرتبط بصورة من المعرض">
+                                <Link2 className="w-3 h-3 text-indigo-600" />
+                              </span>
+                            )}
+
+                            {canEditSizes && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSize(s)}
+                                className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded transition-colors"
+                                title="حذف هذا المقاس"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
