@@ -1,5 +1,5 @@
 ﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Star, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Star, User, Plus, X, Send, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft } from 'lucide-react';
 
 const DEFAULT_TESTIMONIALS = [
   {
@@ -51,11 +51,7 @@ export default function Testimonials({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [expandedReviews, setExpandedReviews] = useState({});
-
-  const toggleExpandReview = (id) => {
-    setExpandedReviews((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+  const [selectedReviewModal, setSelectedReviewModal] = useState(null);
 
   // Carousel & Auto-Gliding References
   const containerRef = useRef(null);
@@ -271,16 +267,6 @@ export default function Testimonials({
     pauseAutoScroll(2500);
   };
 
-  // Manual arrow navigation (Step by 1 card or full view)
-  const handleScrollByStep = (direction) => {
-    if (!containerRef.current) return;
-    pauseAutoScroll(4500);
-    const el = containerRef.current;
-    const scrollAmount = el.clientWidth >= 768 ? Math.round(el.clientWidth / 3) + 16 : Math.round(el.clientWidth * 0.85);
-    const sign = direction === 'next' ? rtlSignRef.current : -rtlSignRef.current;
-    el.scrollBy({ left: sign * scrollAmount, behavior: 'smooth' });
-  };
-
   // Determine if a review is for the store generally or a specific product
   const isStoreGeneralReview = (rev) => {
     if (!rev) return true;
@@ -396,28 +382,7 @@ export default function Testimonials({
         </div>
 
         {/* Carousel Container (Auto-gliding + Manual Swipe/Scroll + 3 Cards in View on Desktop) */}
-        <div className="relative group">
-          {/* Navigation Arrows (Visible for easy manual browsing) */}
-          <button
-            type="button"
-            onClick={() => handleScrollByStep('prev')}
-            aria-label="التعليق السابق"
-            className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-[#8F2338] shadow-md hover:shadow-lg border border-pink-100 flex items-center justify-center transition-all cursor-pointer active:scale-90"
-            title="التعليق السابق"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleScrollByStep('next')}
-            aria-label="التعليق التالي"
-            className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-slate-700 hover:text-[#8F2338] shadow-md hover:shadow-lg border border-pink-100 flex items-center justify-center transition-all cursor-pointer active:scale-90"
-            title="التعليق التالي"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
+        <div className="relative">
           {/* Scrollable Track: 3 cards per view on md+, swipeable on mobile */}
           <div
             ref={containerRef}
@@ -463,7 +428,7 @@ export default function Testimonials({
                     </div>
 
                     <div className="space-y-1.5">
-                      <p className={`text-xs sm:text-sm text-slate-700 leading-relaxed font-medium break-words transition-all duration-200 ${expandedReviews[rev.id] ? '' : 'line-clamp-4'}`}>
+                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium break-words line-clamp-4">
                         "{rev.comment}"
                       </p>
                       {rev.comment && rev.comment.length > 140 && (
@@ -471,11 +436,12 @@ export default function Testimonials({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            toggleExpandReview(rev.id);
+                            pauseAutoScroll(8000);
+                            setSelectedReviewModal(rev);
                           }}
                           className="text-[11px] font-bold text-[#DF7E93] hover:text-[#8F2338] transition-colors inline-flex items-center gap-1 cursor-pointer hover:underline"
                         >
-                          {expandedReviews[rev.id] ? 'عرض أقل ↑' : 'قراءة المزيد... ↓'}
+                          قراءة المزيد...
                         </button>
                       )}
                     </div>
@@ -646,6 +612,86 @@ export default function Testimonials({
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Full Review Detail Modal Popup */}
+      {selectedReviewModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setSelectedReviewModal(null)}
+        >
+          <div 
+            className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-5 animate-scaleUp relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedReviewModal(null)}
+              className="absolute left-4 top-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
+              title="إغلاق"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Modal Header: Avatar + Customer Name + Rating + Date */}
+            <div className="flex items-center gap-3 pt-1 border-b border-pink-50 pb-4">
+              <div className="w-12 h-12 rounded-full bg-pink-50 text-brand-600 flex items-center justify-center border border-pink-100 shrink-0">
+                <User className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">
+                  {selectedReviewModal.name}
+                </h4>
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                  {selectedReviewModal.city && <span>{selectedReviewModal.city}</span>}
+                  {selectedReviewModal.city && <span>•</span>}
+                  <span>{selectedReviewModal.date}</span>
+                </div>
+              </div>
+              <div className="flex gap-0.5 text-amber-500 shrink-0">
+                {[...Array(selectedReviewModal.rating || 5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-amber-400" />
+                ))}
+              </div>
+            </div>
+
+            {/* Full Comment Text */}
+            <div className="space-y-2">
+              <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium whitespace-pre-line bg-pink-50/20 p-4 sm:p-5 rounded-2xl border border-pink-100/60 shadow-inner">
+                "{selectedReviewModal.comment}"
+              </p>
+            </div>
+
+            {/* Product Link if review is for a specific product */}
+            {!isStoreGeneralReview(selectedReviewModal) && (
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleProductClick(selectedReviewModal);
+                    setSelectedReviewModal(null);
+                  }}
+                  className="group inline-flex items-center gap-2 text-xs font-bold text-[#8F2338] hover:text-[#b4324d] transition-all cursor-pointer"
+                  title={`عرض تفاصيل ${selectedReviewModal.product}`}
+                >
+                  <span>عرض منتج: {selectedReviewModal.product}</span>
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                </button>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedReviewModal(null)}
+                className="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                إغلاق النافذة
+              </button>
+            </div>
           </div>
         </div>
       )}
