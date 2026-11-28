@@ -4,7 +4,7 @@ import {
   DollarSign, FolderPlus, Folder, Layers, Check, Truck, 
   X, LogOut, Store, Eye, EyeOff, Percent, Palette, Video, MessageCircle, Phone, Mail, MapPin, Sparkles,
   Tag, Search, CheckCircle2, AlertTriangle, AlertCircle, Star, Power, ThumbsUp,
-  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus
+  Users, UserCheck, Shield, ShieldCheck, Key, Lock, Unlock, Sliders, CheckSquare, Square, UserPlus, Ruler
 } from 'lucide-react';
 import { 
   sanitizeString, 
@@ -313,6 +313,10 @@ export default function AdminPanel({
     : (currentOperatorPerms.canUploadProductVideos !== false);
 
   const canEditBasicInfo = !editingProduct || (currentOperatorPerms.canEditProductBasic !== false);
+  const canEditColors = !editingProduct || (currentOperatorPerms.canEditProductColors !== false);
+  const canEditSizes = !editingProduct || (currentOperatorPerms.canEditProductSizes !== false);
+  const [colorInput, setColorInput] = useState('');
+  const [sizeInput, setSizeInput] = useState('');
   const [productFormError, setProductFormError] = useState('');
   const [productForm, setProductForm] = useState({
     name: '',
@@ -388,6 +392,8 @@ export default function AdminPanel({
       inStock: true
     });
     setTagInput('');
+    setColorInput('');
+    setSizeInput('');
     setUrlImageInput('');
     setIsProductModalOpen(true);
   };
@@ -427,6 +433,8 @@ export default function AdminPanel({
       inStock: prod.inStock !== false
     });
     setTagInput('');
+    setColorInput('');
+    setSizeInput('');
     setUrlImageInput('');
     setIsProductModalOpen(true);
   };
@@ -547,6 +555,64 @@ export default function AdminPanel({
     setProductForm(prev => ({
       ...prev,
       tags: prev.tags.filter(t => t !== tagToRemove)
+    }));
+  };
+
+  const handleAddColor = (e, colorToAdd) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!canEditColors) {
+      showToast('ليس لديك صلاحية لتعديل ألوان هذا المنتج!');
+      return;
+    }
+    const color = sanitizeString(colorToAdd || colorInput, 40);
+    if (!color) return;
+    const currentColors = Array.isArray(productForm.availableColors) ? productForm.availableColors : [];
+    if (!currentColors.includes(color)) {
+      setProductForm(prev => ({
+        ...prev,
+        availableColors: [...currentColors, color]
+      }));
+    }
+    setColorInput('');
+  };
+
+  const handleRemoveColor = (colorToRemove) => {
+    if (!canEditColors) {
+      showToast('ليس لديك صلاحية لحذف ألوان هذا المنتج!');
+      return;
+    }
+    setProductForm(prev => ({
+      ...prev,
+      availableColors: (Array.isArray(prev.availableColors) ? prev.availableColors : []).filter(c => c !== colorToRemove)
+    }));
+  };
+
+  const handleAddSize = (e, sizeToAdd) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!canEditSizes) {
+      showToast('ليس لديك صلاحية لتعديل مقاسات هذا المنتج!');
+      return;
+    }
+    const size = sanitizeString(sizeToAdd || sizeInput, 40);
+    if (!size) return;
+    const currentSizes = Array.isArray(productForm.availableSizes) ? productForm.availableSizes : [];
+    if (!currentSizes.includes(size)) {
+      setProductForm(prev => ({
+        ...prev,
+        availableSizes: [...currentSizes, size]
+      }));
+    }
+    setSizeInput('');
+  };
+
+  const handleRemoveSize = (sizeToRemove) => {
+    if (!canEditSizes) {
+      showToast('ليس لديك صلاحية لحذف مقاسات هذا المنتج!');
+      return;
+    }
+    setProductForm(prev => ({
+      ...prev,
+      availableSizes: (Array.isArray(prev.availableSizes) ? prev.availableSizes : []).filter(s => s !== sizeToRemove)
     }));
   };
 
@@ -2822,6 +2888,214 @@ export default function AdminPanel({
                       )}
                     </span>
                   ))}
+                </div>
+              </div>
+
+              {/* Product Available Colors Section */}
+              <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-[#DF7E93]" />
+                    <span>ألوان المنتج المتاحة للاختيار</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      ({(productForm.availableColors || []).length} ألوان محددة)
+                    </span>
+                  </label>
+                  {!canEditColors && (
+                    <span className="text-[10px] text-rose-500 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
+                      🔒 ليس لديك صلاحية تعديل الألوان
+                    </span>
+                  )}
+                </div>
+
+                {canEditColors && (
+                  <>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        maxLength={40}
+                        placeholder="أضف لون جديد (مثال: سكري ملكي)..."
+                        value={colorInput}
+                        onChange={(e) => setColorInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddColor();
+                          }
+                        }}
+                        className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-[#DF7E93]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddColor}
+                        className="bg-[#DF7E93] hover:bg-[#d46d84] text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer flex items-center gap-1 shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>إضافة لون</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Preset Colors */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-400 font-bold block">ألوان مقترحة سريعة:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_COLORS.map((pc, idx) => {
+                          const isAlreadyAdded = (productForm.availableColors || []).includes(pc);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              disabled={isAlreadyAdded}
+                              onClick={() => handleAddColor(null, pc)}
+                              className={`text-[11px] px-2.5 py-1 rounded-xl font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                                isAlreadyAdded
+                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                                  : 'bg-white hover:bg-pink-50 text-slate-700 border border-slate-200 hover:border-pink-300'
+                              }`}
+                            >
+                              <span>{pc}</span>
+                              {!isAlreadyAdded && <Plus className="w-3 h-3 text-pink-500" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Active Selected Colors */}
+                <div className="pt-1">
+                  {(productForm.availableColors || []).length === 0 ? (
+                    <p className="text-[11px] text-slate-400 italic bg-white p-2 rounded-xl border border-dashed border-slate-200 text-center">
+                      لم يتم تحديد ألوان لهذا المنتج بعد
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {productForm.availableColors.map((color, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-white border border-pink-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs"
+                        >
+                          <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-tr from-[#DF7E93] to-purple-400 inline-block shadow-2xs" />
+                          <span>{color}</span>
+                          {canEditColors && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveColor(color)}
+                              className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded transition-colors"
+                              title="حذف هذا اللون"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Product Available Sizes Section */}
+              <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                    <Ruler className="w-4 h-4 text-indigo-600" />
+                    <span>مقاسات المنتج المتاحة للاختيار</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      ({(productForm.availableSizes || []).length} مقاسات محددة)
+                    </span>
+                  </label>
+                  {!canEditSizes && (
+                    <span className="text-[10px] text-rose-500 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
+                      🔒 ليس لديك صلاحية تعديل المقاسات
+                    </span>
+                  )}
+                </div>
+
+                {canEditSizes && (
+                  <>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        maxLength={40}
+                        placeholder="أضف مقاس جديد (مثال: 0-3 أشهر، أو تفصيل مخصص)..."
+                        value={sizeInput}
+                        onChange={(e) => setSizeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddSize();
+                          }
+                        }}
+                        className="flex-1 bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddSize}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 cursor-pointer flex items-center gap-1 shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>إضافة مقاس</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Preset Sizes */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-400 font-bold block">مقاسات مقترحة سريعة:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PRESET_SIZES.map((ps, idx) => {
+                          const isAlreadyAdded = (productForm.availableSizes || []).includes(ps);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              disabled={isAlreadyAdded}
+                              onClick={() => handleAddSize(null, ps)}
+                              className={`text-[11px] px-2.5 py-1 rounded-xl font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                                isAlreadyAdded
+                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                                  : 'bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 hover:border-indigo-300'
+                              }`}
+                            >
+                              <span>{ps}</span>
+                              {!isAlreadyAdded && <Plus className="w-3 h-3 text-indigo-500" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Active Selected Sizes */}
+                <div className="pt-1">
+                  {(productForm.availableSizes || []).length === 0 ? (
+                    <p className="text-[11px] text-slate-400 italic bg-white p-2 rounded-xl border border-dashed border-slate-200 text-center">
+                      لم يتم تحديد مقاسات لهذا المنتج بعد
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {productForm.availableSizes.map((size, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-white border border-indigo-200 text-slate-800 text-xs font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs"
+                        >
+                          <span className="text-indigo-600 font-extrabold text-[10px]">#</span>
+                          <span>{size}</span>
+                          {canEditSizes && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSize(size)}
+                              className="text-slate-400 hover:text-rose-600 cursor-pointer p-0.5 rounded transition-colors"
+                              title="حذف هذا المقاس"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

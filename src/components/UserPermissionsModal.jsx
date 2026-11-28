@@ -66,6 +66,8 @@ export default function UserPermissionsModal({
         if (updated.canEditProductVideos === undefined) updated.canEditProductVideos = true;
         if (updated.canToggleStock === undefined) updated.canToggleStock = true;
         if (updated.canToggleCustomName === undefined) updated.canToggleCustomName = true;
+        if (updated.canEditProductColors === undefined) updated.canEditProductColors = true;
+        if (updated.canEditProductSizes === undefined) updated.canEditProductSizes = true;
       }
       return updated;
     });
@@ -585,6 +587,52 @@ export default function UserPermissionsModal({
                     <Sparkles className="w-3.5 h-3.5 text-pink-600" />
                   </h5>
                   <p className="text-[10px] text-slate-500 mt-0.5">هل يقدر يفعل أو يعطل خيار كتابة وتطريز اسم المولود.</p>
+                </div>
+              </div>
+
+              {/* canEditProductColors: تعديل ألوان المنتج */}
+              <div 
+                onClick={() => togglePermission('canEditProductColors')}
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
+                  permissions.canEditProductColors
+                    ? 'border-pink-300 bg-pink-50/50'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
+                  permissions.canEditProductColors ? 'bg-[#DF7E93] text-white' : 'border border-slate-300'
+                }`}>
+                  {permissions.canEditProductColors && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <h5 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <span>أزرار تعديل وألوان الصنف</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 inline-block" />
+                  </h5>
+                  <p className="text-[10px] text-slate-500 mt-0.5">هل يقدر يضيف ألوان جديدة للمنتج أو يحذف ألواناً منه.</p>
+                </div>
+              </div>
+
+              {/* canEditProductSizes: تعديل مقاسات المنتج */}
+              <div 
+                onClick={() => togglePermission('canEditProductSizes')}
+                className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
+                  permissions.canEditProductSizes
+                    ? 'border-indigo-300 bg-indigo-50/50'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
+                  permissions.canEditProductSizes ? 'bg-indigo-600 text-white' : 'border border-slate-300'
+                }`}>
+                  {permissions.canEditProductSizes && <Check className="w-3.5 h-3.5" />}
+                </div>
+                <div>
+                  <h5 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <span>أزرار تعديل ومقاسات الصنف</span>
+                    <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                  </h5>
+                  <p className="text-[10px] text-slate-500 mt-0.5">هل يقدر يحدد ويضيف أو يحذف المقاسات والأعمار المتاحة للصنف.</p>
                 </div>
               </div>
 

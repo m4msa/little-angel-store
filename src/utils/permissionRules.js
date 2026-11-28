@@ -24,6 +24,8 @@ export const EMPTY_PERMISSIONS = {
   canEditProductVideos: false,      // تعديل وإضافة أو حذف فيديو المنتج
   canToggleStock: false,            // هل يوجد هذا الصنف أم لا يوجد (المخزون والتوفر)
   canToggleCustomName: false,       // التطريز حسب الاسم (هل يقبل تطريز اسم المولود أم لا)
+  canEditProductColors: false,      // تعديل وإضافة أو حذف ألوان المنتج
+  canEditProductSizes: false,       // تعديل وإضافة أو حذف مقاسات المنتج
   
   // 3. حذف المنتجات
   canDeleteProduct: false,          // حذف المنتجات نهائياً
@@ -68,6 +70,8 @@ export const ROLE_PRESETS = {
       canDeleteProduct: true,
       canToggleStock: true,
       canToggleCustomName: true,
+      canEditProductColors: true,
+      canEditProductSizes: true,
       canAddCategory: true,
       canEditCategory: true,
       canDeleteCategory: true,
@@ -95,6 +99,8 @@ export const ROLE_PRESETS = {
       canDeleteProduct: false,
       canToggleStock: true,
       canToggleCustomName: true,
+      canEditProductColors: true,
+      canEditProductSizes: true,
       canAddCategory: false,
       canEditCategory: true,
       canDeleteCategory: false,
@@ -122,6 +128,8 @@ export const ROLE_PRESETS = {
       canDeleteProduct: false,
       canToggleStock: true,
       canToggleCustomName: true,
+      canEditProductColors: true,
+      canEditProductSizes: true,
       canAddCategory: false,
       canEditCategory: false,
       canDeleteCategory: false,

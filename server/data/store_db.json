@@ -1965,7 +1965,9 @@
         "canDeleteCategory": true,
         "canManageOrders": true,
         "canManageSettings": true,
-        "canManageUsers": true
+        "canManageUsers": true,
+        "canEditProductColors": true,
+        "canEditProductSizes": true
       }
     },
     {
@@ -1999,7 +2001,9 @@
         "canManageOrders": false,
         "canManageReviews": false,
         "canManageSettings": false,
-        "canManageUsers": false
+        "canManageUsers": false,
+        "canEditProductColors": true,
+        "canEditProductSizes": true
       }
     },
     {
@@ -2031,7 +2035,9 @@
         "canDeleteCategory": false,
         "canManageOrders": true,
         "canManageSettings": false,
-        "canManageUsers": false
+        "canManageUsers": false,
+        "canEditProductColors": true,
+        "canEditProductSizes": true
       }
     },
     {

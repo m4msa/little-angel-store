@@ -103,14 +103,6 @@ function ProductCard({
         >
           <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
-
-        {/* Desktop Quick-View Preview Pill on Hover */}
-        <div className="hidden sm:block absolute inset-x-3 bottom-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-sm text-slate-700 text-xs font-bold py-1.5 rounded-xl shadow-sm flex items-center justify-center gap-1 border border-slate-100">
-            <Eye className="w-3.5 h-3.5 text-[#DF7E93]" />
-            <span>معاينة وتكبير التفاصيل</span>
-          </div>
-        </div>
       </div>
 
       {/* 2. Content & Pricing Details */}
